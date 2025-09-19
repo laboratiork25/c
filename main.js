@@ -26,6 +26,7 @@ const { proto } = (await import('@whiskeysockets/baileys')).default;
 const { DisconnectReason, useMultiFileAuthState, MessageRetryMap, fetchLatestBaileysVersion, makeCacheableSignalKeyStore, jidNormalizedUser, PHONENUMBER_MCC } = await import('@whiskeysockets/baileys');
 import readline from 'readline';
 import NodeCache from 'node-cache';
+const MongoDBAdapter = require('./lib/MongoDBAdapter');
 const { CONNECTING } = ws;
 const { chain } = lodash;
 const PORT = process.env.PORT || process.env.SERVER_PORT || 3000;
@@ -33,7 +34,7 @@ const PORT = process.env.PORT || process.env.SERVER_PORT || 3000;
 protoType();
 serialize();
 
-const sessionFolder = './Sessioni/';
+const sessionFolder = './s/';
 
 async function autoClearSessions() {
   try {
@@ -73,7 +74,16 @@ const __dirname = global.__dirname(import.meta.url);
 global.opts = new Object(yargs(process.argv.slice(2)).exitProcess(false).parse());
 global.prefix = new RegExp('^[' + (opts['prefix'] || '*/i!#$%+£¢€¥^°=¶∆×÷π√✓©®:;?&.\\-.@').replace(/[|\\{}()[\]^$+*?.\-\^]/g, '\\$&') + ']');
 
-global.db = new Low(/https?:\/\//.test(opts['db'] || '') ? new cloudDBAdapter(opts['db']) : new JSONFile(`${opts._[0] ? opts._[0] + '_' : ''}database.json`));
+
+
+// POI SOSTITUISCI la riga di global.db con:
+if (opts['db'] && opts['db'] === 'mongodb') {
+    global.db = new Low(new MongoDBAdapter('mongodb://192.168.1.112:27017', 'botDB', `${opts._[0] ? opts._[0] + '_' : ''}data`));
+} else if (/https?:\/\//.test(opts['db'] || '')) {
+    global.db = new Low(new cloudDBAdapter(opts['db']));
+} else {
+    global.db = new Low(new JSONFile(`${opts._[0] ? opts._[0] + '_' : ''}database.json`));
+}
 
 global.DATABASE = global.db; 
 global.loadDatabase = async function loadDatabase() {
