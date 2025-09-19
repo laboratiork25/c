@@ -75,7 +75,7 @@ global.opts = new Object(yargs(process.argv.slice(2)).exitProcess(false).parse()
 global.prefix = new RegExp('^[' + (opts['prefix'] || '*/i!#$%+£¢€¥^°=¶∆×÷π√✓©®:;?&.\\-.@').replace(/[|\\{}()[\]^$+*?.\-\^]/g, '\\$&') + ']');
 
 if (opts['db'] && opts['db'] === 'mongodb') {
-    global.db = new Low(new MongoDBAdapter('mongodb://192.168.1.112:27017', 'botDB', `${opts._[0] ? opts._[0] + '_' : ''}data`));
+    global.db = new Low(new MongoDBAdapter('mongodb://192.168.1.112:27017', 'botDB', 'shared_data'));
 } else if (/https?:\/\//.test(opts['db'] || '')) {
     global.db = new Low(new cloudDBAdapter(opts['db']));
 } else {
