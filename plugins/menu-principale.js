@@ -85,8 +85,8 @@ function generateMenuText(prefix, botName, userCount, userId, groupId) {
 ┃◈┃• 📝 *${prefix}${reportText}* 
 ┃◈┃• 💡 *${prefix}${suggestText}* 
 ┃◈┃• 🆕 *${prefix}${newsText}* (aggiornamenti)
-┃◈┃• 🆕 *${prefix}$chatunity* (CHATBOT)
-┃◈┃• 🆕 *${prefix}$gruppi* 
+┃◈┃• 🆕 *${prefix}chatunity* (CHATBOT)
+┃◈┃• 🆕 *${prefix}gruppi* 
 ┃◈┃
 ┃◈└───────────┈⊷
 ┃◈┃• *${versionText}:* 7.0
