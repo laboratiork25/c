@@ -35,7 +35,7 @@ let warnHandler = async (m, { conn, text, args, groupMetadata, usedPrefix, comma
       forwardingScore: 999,
       isForwarded: true,
       forwardedNewsletterMessageInfo: {
-        newsletterJid: '120363259442839354@newsletter',
+        newsletterJid: '120363422724720651@newsletter',
         serverMessageId: '',
         newsletterName: global.t('newsletterName', userId, groupId, { nomeDelBot })
       }
@@ -73,5 +73,3 @@ warnHandler.botAdmin = true
 function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms))
 }
-
-export default warnHandler

@@ -23,7 +23,7 @@ let handler = async (m, { conn, command, text }) => {
       forwardingScore: 1,
       isForwarded: true,
       forwardedNewsletterMessageInfo: {
-        newsletterJid: '120363259442839354@newsletter',
+        newsletterJid: '120363422724720651@newsletter',
         serverMessageId: '',
         newsletterName: global.t('drogato_newsletter_name', userId, groupId)
       },

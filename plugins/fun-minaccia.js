@@ -35,7 +35,7 @@ const handler = async (m, {
             forwardingScore: 1,
             isForwarded: true,
             forwardedNewsletterMessageInfo: {
-                newsletterJid: '120363259442839354@newsletter',
+                newsletterJid: '120363422724720651@newsletter',
                 serverMessageId: '',
                 newsletterName: global.t('threats_bot_name', m.sender)
             },

@@ -4,8 +4,9 @@ import { exec } from 'child_process'
 import qrcode from 'qrcode'
 import NodeCache from 'node-cache'
 import pino from 'pino'
-import { 
 import '../lib/language.js';
+import { 
+
     makeWASocket, 
     DisconnectReason, 
     useMultiFileAuthState, 

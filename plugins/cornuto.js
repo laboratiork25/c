@@ -17,7 +17,7 @@ let handler = async (m, { conn, command, text }) => {
         forwardingScore: 999,
         isForwarded: true,
         forwardedNewsletterMessageInfo: {
-          newsletterJid: '120363259442839354@newsletter',
+          newsletterJid: '120363422724720651@newsletter',
           newsletterName: global.t('cornuto_newsletter_name', userId, groupId)
         }
       },
@@ -48,7 +48,7 @@ let handler = async (m, { conn, command, text }) => {
       forwardingScore: 999,
       isForwarded: true,
       forwardedNewsletterMessageInfo: {
-        newsletterJid: '120363259442839354@newsletter',
+        newsletterJid: '120363422724720651@newsletter',
         newsletterName: global.t('cornuto_newsletter_name', userId, groupId)
       }
     },

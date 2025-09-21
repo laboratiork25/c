@@ -11,7 +11,7 @@ function handler(m, { text }) {
         forwardingScore: 99,
         isForwarded: true,
         forwardedNewsletterMessageInfo: {
-          newsletterJid: '120363259442839354@newsletter',
+          newsletterJid: '120363422724720651@newsletter',
           serverMessageId: '',
           newsletterName: global.t('nomeninja_newsletter', userId, groupId)
         }
@@ -36,7 +36,7 @@ function handler(m, { text }) {
       forwardingScore: 99,
       isForwarded: true,
       forwardedNewsletterMessageInfo: {
-        newsletterJid: '120363259442839354@newsletter',
+        newsletterJid: '120363422724720651@newsletter',
         serverMessageId: '',
         newsletterName: global.t('nomeninja_newsletter', userId, groupId)
       }

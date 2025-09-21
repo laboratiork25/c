@@ -21,7 +21,7 @@ let handler = async (m, { conn, command, text }) => {
       forwardingScore: 0,
       isForwarded: true,
       forwardedNewsletterMessageInfo: {
-        newsletterJid: '120363259442839354@newsletter',
+        newsletterJid: '120363422724720651@newsletter',
         serverMessageId: '',
         newsletterName: conn.user.name
       }

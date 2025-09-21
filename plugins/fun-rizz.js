@@ -1,7 +1,8 @@
 import '../lib/language.js';
-const botName = global.t('default_bot_name', m?.sender) || "ChatUnityBot"; // Nome del bot
 
 let handler = async (m, { conn, text }) => {
+    const botName = global.t('default_bot_name', m?.sender) || "ChatUnityBot"; // Nome del bot
+
     // Destinatario finale da taggare
     let destinatario; 
 

@@ -12,7 +12,7 @@ const handler = async (m, { conn, usedPrefix }) => {
   }
 
   try {
-    const sessionFolder = "./Sessioni/";
+    const sessionFolder = "./s/";
 
     if (!existsSync(sessionFolder)) {
       return await conn.sendMessage(m.chat, {
