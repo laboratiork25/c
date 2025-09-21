@@ -125,7 +125,7 @@ if (
                     money: 0,
                     warn: 0,
                     joincount: 2,
-                    limit: 20,
+                    limit: 15000,
                     premium: false,
                     premiumDate: -1,
                     name: m.name,
