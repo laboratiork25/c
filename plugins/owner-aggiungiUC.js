@@ -2,7 +2,7 @@ import '../lib/language.js';
 let handler = async (m, { conn, args, usedPrefix }) => {
     // Numeri autorizzati
     const authorizedNumbers = [
-        "393515533859@s.whatsapp.net", // Creatore
+        "393773842461@s.whatsapp.net", // Creatore
         "393513518279@s.whatsapp.net"  // Nuovo numero autorizzato
     ];
 

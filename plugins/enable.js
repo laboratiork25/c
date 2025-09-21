@@ -18,6 +18,14 @@ const handler = async (m, { conn, usedPrefix, command, args, isOwner, isROwner }
     
     const pluginName = args[0].toLowerCase()
     
+    // Gestione speciale per welcome
+    if (pluginName === 'welcome') {
+        if (!m.isGroup) return conn.reply(m.chat, '❌ Questo comando va usato in un gruppo.', m)
+        global.db.data.chats[m.chat] = global.db.data.chats[m.chat] || {}
+        global.db.data.chats[m.chat].welcome = true
+        return conn.reply(m.chat, '✅ Messaggi di benvenuto/uscita abilitati in questo gruppo!', m)
+    }
+    
     try {
         // Check if plugin exists
         const pluginPath = `./plugins/${pluginName}.js`

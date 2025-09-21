@@ -1,4 +1,3 @@
-import '../lib/language.js';
 let cooldowns = {};
 
 let handler = async (m, { conn, text, command, usedPrefix }) => {
@@ -11,11 +10,11 @@ let handler = async (m, { conn, text, command, usedPrefix }) => {
   let targetId = m.mentionedJid?.[0] || m.quoted?.sender;
 
   if (!targetId) {
-    return m.reply(global.t('steal_no_target', senderId, { prefix: usedPrefix, command: command }));
+    return m.reply(`🧠 Tagga qualcuno o rispondi a un messaggio per rubare.\n\n📌 Esempio:\n${usedPrefix + command} @utente`);
   }
 
   if (targetId === senderId) {
-    return m.reply(global.t('steal_self', senderId));
+    return m.reply('🤡 Non puoi rubare a te stesso.');
   }
 
   // Inizializza utenti se non esistono
@@ -26,7 +25,7 @@ let handler = async (m, { conn, text, command, usedPrefix }) => {
   const cooldownTime = 5 * 60 * 1000;
   if (cooldowns[senderId] && Date.now() - cooldowns[senderId] < cooldownTime) {
     let tempoRimanente = formattaTempo(Math.ceil((cooldowns[senderId] + cooldownTime - Date.now()) / 1000));
-    return m.reply(global.t('steal_cooldown', senderId, { time: tempoRimanente }));
+    return m.reply(`🚨 Hai già rubato di recente! Riprova tra ⏱ *${tempoRimanente}*`);
   }
 
   cooldowns[senderId] = Date.now();
@@ -42,11 +41,7 @@ let handler = async (m, { conn, text, command, usedPrefix }) => {
       users[senderId].limit += quantita;
       users[targetId].limit = Math.max(0, users[targetId].limit - quantita);
       await conn.sendMessage(m.chat, {
-        text: global.t('steal_success', senderId, {
-          amount: quantita,
-          target: `@${targetId.split("@")[0]}`,
-          bonus: quantita
-        }),
+        text: `💰 Colpo riuscito! Hai rubato *${quantita} 💶 UC* da @${targetId.split("@")[0]}.\n\n*+${quantita} 💶* aggiunti al tuo saldo.`,
         mentions: [targetId]
       }, { quoted: m });
       break;
@@ -55,10 +50,7 @@ let handler = async (m, { conn, text, command, usedPrefix }) => {
       let multa = Math.min(Math.floor(Math.random() * (users[senderId].limit - minRubare + 1)) + minRubare, maxRubare);
       multa = Math.max(0, multa);
       users[senderId].limit = Math.max(0, users[senderId].limit - multa);
-      await conn.reply(m.chat, global.t('steal_caught', senderId, {
-        name: senderName,
-        fine: multa
-      }), m);
+      await conn.reply(m.chat, `🚓 Sei stato arrestato! Multa di *-${multa} 💶 UC* per ${senderName}.`, m);
       break;
 
     case 2: // Parziale
@@ -67,11 +59,7 @@ let handler = async (m, { conn, text, command, usedPrefix }) => {
       users[senderId].limit += parziale;
       users[targetId].limit = Math.max(0, users[targetId].limit - parziale);
       await conn.sendMessage(m.chat, {
-        text: global.t('steal_partial', senderId, {
-          amount: parziale,
-          target: `@${targetId.split("@")[0]}`,
-          bonus: parziale
-        }),
+        text: `💸 Hai rubato solo *${parziale} 💶 UC* da @${targetId.split("@")[0]}.\n\n*+${parziale} 💶* aggiunti al tuo saldo.`,
         mentions: [targetId]
       }, { quoted: m });
       break;
@@ -82,17 +70,14 @@ let handler = async (m, { conn, text, command, usedPrefix }) => {
 
 handler.help = ['ruba @utente', 'rapina'];
 handler.tags = ['rpg'];
-handler.command = /^(ruba|rapina|steal|rob)$/i;
+handler.command = ['ruba', 'rapina'];
 handler.register = true;
 handler.group = true;
 
 function formattaTempo(secondi) {
   let minuti = Math.floor(secondi / 60);
   let secondiRimanenti = Math.floor(secondi % 60);
-  return global.t('steal_time_format', null, {
-    minutes: minuti,
-    seconds: secondiRimanenti
-  });
+  return `${minuti}m ${secondiRimanenti}s`;
 }
 
 export default handler;

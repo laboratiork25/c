@@ -13,19 +13,22 @@ let handler = async (m, { conn, command, text }) => {
         }
     }, { quoted: m });
 
-    let personalita = global.t('personality_template', m.sender, null, {
-        name: text,
-        moralitaBuona: pickRandom(global.percentuali),
-        moralitaCattiva: pickRandom(global.percentuali),
-        tipoPersona: pickRandom(global.tipiPersona),
-        sempre: pickRandom(global.sempre),
-        intelligenza: pickRandom(global.percentuali),
-        pigrizia: pickRandom(global.percentuali),
-        coraggio: pickRandom(global.percentuali),
-        paura: pickRandom(global.percentuali),
-        fama: pickRandom(global.percentuali),
-        genere: pickRandom(global.generi)
-    });
+    // Assicura che l'oggetto passato abbia sempre la proprietà 'name'
+    let personalityData = {
+        name: typeof text === 'string' ? text : '',
+        moralitaBuona: pickRandom(global.percentuali) || '',
+        moralitaCattiva: pickRandom(global.percentuali) || '',
+        tipoPersona: pickRandom(global.tipiPersona) || '',
+        sempre: pickRandom(global.sempre) || '',
+        intelligenza: pickRandom(global.percentuali) || '',
+        pigrizia: pickRandom(global.percentuali) || '',
+        coraggio: pickRandom(global.percentuali) || '',
+        paura: pickRandom(global.percentuali) || '',
+        fama: pickRandom(global.percentuali) || '',
+        genere: pickRandom(global.generi) || ''
+    };
+
+    let personalita = global.t('personality_template', m.sender, null, personalityData);
 
     await conn.sendMessage(m.chat, { 
         text: personalita,

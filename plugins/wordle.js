@@ -103,7 +103,8 @@ const handler = async (m, { conn, text, usedPrefix, command }) => {
     const groupId = m.isGroup ? m.chat : null
     
     if (!text) {
-        const helpMessage = global.t('wordleHelp', userId, groupId) || 
+        // Usa solo la stringa di fallback, ignora global.t che non trova la traduzione
+        const helpMessage = 
             `🎯 *WORDLE*\n\nIndovina la parola di 5 lettere!\n\nUso: ${usedPrefix}${command} <parola>\nEsempio: ${usedPrefix}${command} AMORE\n\nOppure: ${usedPrefix}${command} new - per iniziare una nuova partita`
         return conn.reply(m.chat, helpMessage, m)
     }
@@ -119,9 +120,8 @@ const handler = async (m, { conn, text, usedPrefix, command }) => {
             gameOver: false
         })
         
-        const newGameMessage = global.t('wordleNewGame', userId, groupId) || 
+        const newGameMessage = 
             '🎯 *Nuova partita Wordle iniziata!*\n\nIndovina la parola di 5 lettere.\nHai 6 tentativi!'
-        
         const image = createWordleImage([], '', targetWord)
         return conn.sendFile(m.chat, image, 'wordle.png', newGameMessage, m)
     }
@@ -129,7 +129,7 @@ const handler = async (m, { conn, text, usedPrefix, command }) => {
     const guess = text.toUpperCase().replace(/[^A-Z]/g, '')
     
     if (guess.length !== 5) {
-        const errorMessage = global.t('wordleInvalidLength', userId, groupId) || 
+        const errorMessage = 
             '❌ La parola deve essere di esattamente 5 lettere!'
         return conn.reply(m.chat, errorMessage, m)
     }
@@ -147,7 +147,7 @@ const handler = async (m, { conn, text, usedPrefix, command }) => {
     }
     
     if (game.gameOver) {
-        const gameOverMessage = global.t('wordleGameOver', userId, groupId) || 
+        const gameOverMessage = 
             '🎯 La partita è già finita! Usa "new" per iniziarne una nuova.'
         return conn.reply(m.chat, gameOverMessage, m)
     }
@@ -158,14 +158,14 @@ const handler = async (m, { conn, text, usedPrefix, command }) => {
     
     if (guess === game.targetWord) {
         game.gameOver = true
-        resultMessage = global.t('wordleWin', userId, groupId) || 
+        resultMessage = 
             `🎉 *Complimenti!* Hai indovinato la parola: *${game.targetWord}*\n\nTentativi: ${game.attempts.length}/6`
     } else if (game.attempts.length >= 6) {
         game.gameOver = true
-        resultMessage = global.t('wordleLose', userId, groupId) || 
+        resultMessage = 
             `😔 *Game Over!* La parola era: *${game.targetWord}*\n\nRiprova con una nuova partita!`
     } else {
-        resultMessage = global.t('wordleContinue', userId, groupId) || 
+        resultMessage = 
             `🎯 Tentativo ${game.attempts.length}/6\n\nContinua a indovinare!`
     }
     

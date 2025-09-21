@@ -38,6 +38,32 @@ let handler = async (m, { conn, usedPrefix }) => {
         }
     }, { quoted: m, detectLink: true });
     return;
+  
+    let txt = `
+╭─「 💰 𝐖𝐀𝐋𝐋𝐄𝐓」─
+│
+│ 👤 user: ${name}
+│ 💰 unitycoins: ${formatNumber(user.limit)} 💶
+│ 🏛️ bank: ${formatNumber(userbank)} 💳
+│
+╰───────✦───────
+    `.trim()
+
+    await conn.sendMessage(m.chat, {
+        text: txt,
+        mentions: [who],
+        contextInfo: {
+            externalAdReply: {
+                title: `𝐩𝐨𝐫𝐭𝐚𝐟𝐨𝐠𝐥𝐢𝐨 𝐝𝐢 ${name}`,
+                body: `𝐬𝐚𝐥𝐝𝐨: ${user.limit} 𝑼𝑪`,
+                thumbnailUrl: imgUrl,
+                mediaType: 1,
+                renderLargerThumbnail: true
+            }
+        }
+    })
+
+    m.react('💶')
 }
 
 handler.help = ['wallet']

@@ -108,12 +108,12 @@ let handler = async (m, { conn, usedPrefix }) => {
   ])
 
   const xpImage = await createXPImage(userName,level,xpCurrent,xpNeeded,pfpUrl,groupUrl)
-  const caption = global.t('xp_caption', m.sender, {
-    user: userName,
-    level: level,
-    exp: user.exp,
-    next: xpToNext
-  })
+
+  const caption = 
+    `👤 ${userName}\n` +
+    `📈 Livello: ${level}\n` +
+    `⭐ Exp: ${user.exp}\n` +
+    `🔜 Prossimo livello tra: ${xpToNext} exp`;
 
   await conn.sendMessage(m.chat,{image:xpImage,caption,mentions:[m.sender]},{quoted:m})
   await writeDB(db)

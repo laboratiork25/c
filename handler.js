@@ -174,6 +174,7 @@ if (
                 if (!isNumber(chat.messaggi)) chat.messaggi = 0
                 if (!('name' in chat)) chat.name = this.getName(m.chat)
                 if (!('antispamcomandi' in chat)) chat.antispamcomandi = true
+                if (!('welcome' in chat)) chat.welcome = true
             } else {
                 global.db.data.chats[m.chat] = {
                     name: this.getName(m.chat),
@@ -184,7 +185,8 @@ if (
                     antiTraba: true,
                     expired: 0,
                     messaggi: 0,
-                    antispamcomandi: true
+                    antispamcomandi: true,
+                    welcome: true
                 }
             }
             let settings = global.db.data.settings[this.user.jid]
@@ -528,6 +530,47 @@ export async function participantsUpdate({ id, participants, action }) {
     if (this.isInit) return
     if (global.db.data == null) await loadDatabase()
     let chat = global.db.data.chats[id] || {}
+
+    // --- Benvenuto/Addio ---
+    if (chat.welcome) {
+        let groupMetadata = await this.groupMetadata(id).catch(_ => null) || (this.chats[id] || {}).metadata
+        for (let user of participants) {
+            let pp = './menu/principale.jpeg'
+            try {
+                pp = await this.profilePictureUrl(user, 'image')
+            } catch (e) {}
+            let apii
+            try {
+                apii = await this.getFile(pp)
+            } catch (e) {
+                apii = { data: fs.readFileSync('./menu/principale.jpeg') }
+            }
+            let nomeDelBot = global.db.data.nomedelbot || `𝐂𝐡𝐚𝐭𝐔𝐧𝐢𝐭𝐲-𝐁𝐨𝐭`
+            let text = (action === 'add'
+                ? (chat.sWelcome || this.welcome || this.conn?.welcome || 'Benvenuto, @user!').replace('@subject', groupMetadata?.subject || '').replace('@desc', groupMetadata?.desc?.toString() || 'bot')
+                : (chat.sBye || this.bye || this.conn?.bye || 'Addio, @user!')).replace('@user', '@' + user.split('@')[0])
+            await this.sendMessage(id, {
+                text: text,
+                contextInfo: {
+                    mentionedJid: [user],
+                    forwardingScore: 99,
+                    isForwarded: true,
+                    forwardedNewsletterMessageInfo: {
+                        newsletterJid: '120363422724720651@newsletter',
+                        serverMessageId: '',
+                        newsletterName: `${nomeDelBot}`
+                    },
+                    externalAdReply: {
+                        "title": `${action === 'add' ? '𝐌𝐞𝐬𝐬𝐚𝐠𝐠𝐢𝐨 𝐝𝐢 𝐛𝐞𝐧𝐯𝐞𝐧𝐮𝐭𝐨' : '𝐌𝐞𝐬𝐬𝐚𝐠𝐠𝐢𝐨 𝐝𝐢 𝐚𝐝𝐝𝐢𝐨'}`,
+                        "previewType": "PHOTO",
+                        "thumbnailUrl": ``,
+                        "thumbnail": apii.data,
+                        "mediaType": 1
+                    }
+                }
+            })
+        }
+    }
 }
 
 export async function groupsUpdate(groupsUpdate) {
@@ -550,7 +593,7 @@ export async function callUpdate(callUpdate) {
         if (nk.isGroup == false) {
             if (nk.status == "offer") {
                 let callmsg = await this.reply(nk.from, `ciao @${nk.from.split('@')[0]}, c'è anticall.`, false, { mentions: [nk.from] })
-                let vcard = `BEGIN:VCARD\nVERSION:5.0\nN:;𝐂𝐡𝐚𝐭𝐔𝐧𝐢𝐭𝐲;;;\nFN:𝐂𝐡𝐚𝐭𝐔𝐧𝐢𝐭𝐲\nORG:𝐂𝐡𝐚𝐭𝐔𝐧𝐢𝐭𝐲\nTITLE:\nitem1.TEL;waid=393515533859:+39 3515533859\nitem1.X-ABLabel:𝐂𝐡𝐚𝐭𝐔𝐧𝐢𝐭𝐲\nX-WA-BIZ-DESCRIPTION:ofc\nX-WA-BIZ-NAME:𝐂𝐡𝐚𝐭𝐔𝐧𝐢𝐭𝐲\nEND:VCARD`
+                let vcard = `BEGIN:VCARD\nVERSION:5.0\nN:;𝐂𝐡𝐚𝐭𝐔𝐧𝐢𝐭𝐲;;;\nFN:𝐂𝐡𝐚𝐭𝐔𝐧𝐢𝐭𝐲\nORG:𝐂𝐡𝐚𝐭𝐔𝐧𝐢𝐭𝐲\nTITLE:\nitem1.TEL;waid=393773842461:+39 3515533859\nitem1.X-ABLabel:𝐂𝐡𝐚𝐭𝐔𝐧𝐢𝐭𝐲\nX-WA-BIZ-DESCRIPTION:ofc\nX-WA-BIZ-NAME:𝐂𝐡𝐚𝐭𝐔𝐧𝐢𝐭𝐲\nEND:VCARD`
                 await this.sendMessage(nk.from, { contacts: { displayName: 'Unlimited', contacts: [{ vcard }] }}, {quoted: callmsg})
                 await this.updateBlockStatus(nk.from, 'block')
             }

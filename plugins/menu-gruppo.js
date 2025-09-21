@@ -147,6 +147,8 @@ function generateMenuText(prefix, botName, userCount, userId, groupId) {
 ┃◈┃• 🎰 *.slot*  
 ┃◈┃• 🏏 *.casinò*  
 ┃◈┃• 💰 *.scommessa* (${global.t('quantityCommand', userId, groupId) || 'quantità'})  
+┃◈┃• 💰 *.blackjack*
+┃◈┃• 💰 *.wordle*
 ┃◈┃• 🔫 *.roulette*  
 ┃◈┃• 🪙 *.moneta* (${global.t('headsOrTailsCommand', userId, groupId) || 'testa o croce'})  
 ┃◈┃• 🧮 *.mate* (${global.t('mathProblemCommand', userId, groupId) || 'problema mate'})  
@@ -163,7 +165,8 @@ function generateMenuText(prefix, botName, userCount, userId, groupId) {
 ┃◈┃• 💰 *.portafoglio* (${global.t('balanceCommand', userId, groupId) || 'saldo'})  
 ┃◈┃• 🏦 *.banca*   
 ┃◈┃• 💸 *.daily*  
-┃◈┃• 🏆 *.classifica* (${global.t('topUsersCommand', userId, groupId) || 'top utenti'})  
+┃◈┃• 🏆 *.topuser* (${global.t('topUsersCommand', userId, groupId) || 'top utenti'})  
+┃◈┃• 🏆 *.topgruppi*  
 ┃◈┃• 💳 *.donauc*   
 ┃◈┃• 🤑 *.ruba* @${global.t('userCommand', userId, groupId) || 'utente'}  
 ┃◈┃• 📤 *.ritira* (${global.t('withdrawUCCommand', userId, groupId) || 'UC dalla banca'})  

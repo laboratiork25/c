@@ -82,12 +82,14 @@ function generateMenuText(prefix, botName, userCount, userId, groupId) {
 ┃◈┃• ⚙ *${prefix}${systemText}*
 ┃◈┃• ❓ *${prefix}${faqText}*
 ┃◈┃• 🚀 *${prefix}${pingText}*
-┃◈┃• 📝 *${prefix}${reportText}* (comando)
-┃◈┃• 💡 *${prefix}${suggestText}* (comando)
+┃◈┃• 📝 *${prefix}${reportText}* 
+┃◈┃• 💡 *${prefix}${suggestText}* 
 ┃◈┃• 🆕 *${prefix}${newsText}* (aggiornamenti)
+┃◈┃• 🆕 *${prefix}$chatunity* (CHATBOT)
+┃◈┃• 🆕 *${prefix}$gruppi* 
 ┃◈┃
 ┃◈└───────────┈⊷
-┃◈┃• *${versionText}:* 2.0.0
+┃◈┃• *${versionText}:* 7.0
 ┃◈┃• ${collabText}
 ┃◈┃• ${usersText}: ${userCount}
 ╰━━━━━━━━━━━━━┈·๏

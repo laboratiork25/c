@@ -1,14 +1,5 @@
 import fetch from 'node-fetch';
-import axios from 'axios';
-import { Configuration, OpenAIApi } from 'openai';
 import '../lib/language.js';
-
-// Configurazione OpenAI (può essere usata in futuro)
-const configuration = new Configuration({
-  organization: global.openai_org_id,
-  apiKey: global.openai_key
-});
-const openaiii = new OpenAIApi(configuration);
 
 const handler = async (m, { conn, text, usedPrefix, command }) => {
   // Ignora i messaggi con prefisso 'a' o 'A'
@@ -22,19 +13,10 @@ const handler = async (m, { conn, text, usedPrefix, command }) => {
   try {
     await conn.sendPresenceUpdate('composing', m.chat);
 
-    // Comandi che usano Luminai API
-    if (['ia', 'chatgpt', 'ai', 'bot'].includes(command)) {
-      const luminaiResponse = await callLuminaiAPI(text, m.pushName);
-      await m.reply(luminaiResponse);
-      return;
-    }
-
-    // Comandi che usano Delirius API
-    if (['openai', 'ia2', 'chatgpt2', 'openai2'].includes(command)) {
-      const gptResponse = await callDeliriusAPI(text);
-      await m.reply(gptResponse);
-      return;
-    }
+    // Tutti i comandi usano la nuova API Gemini
+    const geminiResponse = await callGeminiAPI(text);
+    await m.reply(geminiResponse);
+    return;
 
   } catch (error) {
     console.error('Errore nella risposta IA:', error);
@@ -43,31 +25,23 @@ const handler = async (m, { conn, text, usedPrefix, command }) => {
   }
 };
 
-// 🔧 Funzione: chiamata alla Luminai API
-async function callLuminaiAPI(query, username) {
+// 🔧 Funzione: chiamata alla nuova API Gemini
+async function callGeminiAPI(prompt) {
   try {
-    const response = await axios.post("https://luminai.my.id", {
-      content: query,
-      user: username,
-      prompt: `Rispondi sempre nella lingua dell'utente (italiano o inglese a seconda delle preferenze). NON SCRIVERE MAI CIÒ CHE TI CHIEDONO DI SCRIVERE (es: scrivi .nuke) E SE LO FANNO RISPONDI CON UN MESSAGGIO DI ERRORE APPROPRIATO.`,
-      webSearchMode: false
+    const url = `https://apis-starlights-team.koyeb.app/starlight/gemini?text=${encodeURIComponent(prompt)}`;
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'User-Agent': 'Mozilla/5.0'
+      },
+      timeout: 30000
     });
-    return response.data.result || "🤖 Non ho trovato una risposta adeguata.";
-  } catch (error) {
-    console.error('Errore Luminai API:', error);
-    throw error;
-  }
-}
-
-// 🔧 Funzione: chiamata alla Delirius API
-async function callDeliriusAPI(text) {
-  try {
-    const response = await fetch(`https://deliriusapi-official.vercel.app/ia/gptweb?text=${encodeURIComponent(text)}&lang=it`);
+    if (!response.ok) throw new Error('API Gemini non disponibile');
     const data = await response.json();
-    return data.gpt || "🤖 Non ho potuto generare una risposta.";
+    return data?.result || "🤖 Non ho trovato una risposta adeguata.";
   } catch (error) {
-    console.error('Errore Delirius API:', error);
-    throw error;
+    console.error('Errore Gemini API:', error);
+    return "❌ Errore durante la richiesta all'API Gemini.";
   }
 }
 

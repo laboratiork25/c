@@ -104,7 +104,7 @@ pm2 logs
 
 - **Dashboard GitHub**: [Visita qui](https://github.com/chatunity-bot)
 - **Canale WhatsApp**: [Unisciti qui](https://whatsapp.com/channel/0029VaZVlJZHwXb8naJBQN0J)
-- **Contatto**: [Scrivi qui](https://wa.me/393515533859)
+- **Contatto**: [Scrivi qui](https://wa.me/393773842461)
 - **Collaborazioni**: [Partecipa qui](https://whatsapp.com/channel/0029Vb1C4od5vKA35u1Mqc06)
 
 ---
