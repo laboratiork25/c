@@ -9,18 +9,9 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const handler = async (message, { conn }) => {
-    const newsText = `*RILASCIO V6.1*\n\n`
-                  + `📅 *Data:* 18/08 \n`
-                  + `🆕 *Aggiornamenti principali:*\n`
-                  + `• Nuovo comando social\n`
-                  + `• Ottimizzato i log su console\n`
-                  + `• Ottimizzato aggiorna\n`
-                  + `• nuova interfaccia dox\n`
-                  + `• nuovi staffer: giusemd & anubi\n`
-                  + `• *Cambio gestione security transato a DEATH:*\n`
-                  + `  - Nuove funzionalità in security\n`
-                  + `  - Ristrutturazione completa del progetto\n`
-                  + `• Preparazione per V7.0 con nuove funzionalità\n\n`;
+    const newsText = `*RILASCIO V7.0*\n\n`
+                  + `📅 disponibili dal 22 \n`
+
 
     await conn.sendMessage(
         message.chat,
