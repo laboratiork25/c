@@ -138,7 +138,7 @@ function _0x2086() {
         'Antivirus',
         'antiCall',
         'XRhQc',
-        './CODE_OF_CONDUCT.md',
+        './handler.js',
         'aMtSt',
         'admin',
         '\x0a╭〔\x20*🔧\x20𝑴𝑬𝑵𝑼\x20𝑺𝑰𝑪𝑼𝑹𝑬𝑿\x20𝑩𝑶𝑻\x20🔧\x20〕┈⊷\x0a┃◈╭─────────────·๏\x0a┃◈┃•\x20*𝐀𝐓𝐓𝐈𝐕𝐀/𝐃𝐈𝐒𝐀𝐁𝐈𝐋𝐈𝐓𝐀\x0a┃◈┃\x0a┃◈┃•\x20*ℹ\x20𝐂𝐎𝐌𝐄\x20𝐒𝐈\x20𝐔𝐒𝐀*\x0a┃◈┃•\x20🟢\x20attiva\x20[funzione]\x0a┃◈┃•\x20🔴\x20disabilita\x20[funzione]\x0a┃◈┃•\x20🔴\x20disattiva\x20[funzione]\x0a┃◈┃\x0a',
