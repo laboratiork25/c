@@ -53,11 +53,11 @@ let handler = async (m, { conn }) => {
   let users = Object.keys(global.db.data.users)
   let excludedUsers = Object.keys(global.db.data.excluded.users || {})
 
-  let caption = `📂 𝐃𝐀𝐓𝐀𝐁𝐀𝐒𝐄 𝐈𝐍𝐅𝐎\n\n`
+  let caption = `📂 𝐔𝐓𝐈𝐋𝐈𝐙𝐙𝐎 𝐁𝐎𝐓 𝐈𝐍 𝐓𝐄𝐌𝐏𝐎 𝐑𝐄𝐀𝐋𝐄\n\n`
   caption += `📌 𝐆𝐫𝐮𝐩𝐩𝐢 𝐚𝐭𝐭𝐢𝐯𝐢 𝐚𝐭𝐭𝐮𝐚𝐥𝐦𝐞𝐧𝐭𝐞: *${validGroups.length}*\n`
   caption += `🚫 𝐆𝐫𝐮𝐩𝐩𝐢 𝐞𝐬𝐜𝐥𝐮𝐬𝐢: *${excludedChats.length}*\n\n`
   caption += `✅ 𝐔𝐭𝐞𝐧𝐭𝐢 𝐚𝐭𝐭𝐢𝐯𝐢 𝐚𝐭𝐭𝐮𝐚𝐥𝐦𝐞𝐧𝐭𝐞: *${users.length - excludedUsers.length}*\n`
-  caption += `🚫 𝐔𝐭𝐞𝐧𝐭𝐢 𝐞𝐬𝐜𝐥𝐮𝐬𝐢: *${excludedUsers.length}*`
+  caption += `> 𝐃𝐚𝐭𝐢 𝐫𝐞𝐠𝐢𝐬𝐭𝐫𝐚𝐭𝐢 𝐧𝐞𝐥𝐥’𝐚𝐫𝐜𝐨 𝐝𝐢 𝟏 𝐦𝐢𝐧𝐮𝐭𝐨 ⚠️`
 
   conn.sendMessage(m.chat, { text: caption })
 }
