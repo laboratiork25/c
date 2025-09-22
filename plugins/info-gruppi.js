@@ -54,10 +54,8 @@ let handler = async (m, { conn }) => {
   let excludedUsers = Object.keys(global.db.data.excluded.users || {})
 
   let caption = `📂 𝐃𝐀𝐓𝐀𝐁𝐀𝐒𝐄 𝐈𝐍𝐅𝐎\n\n`
-  caption += `👥 𝐆𝐫𝐮𝐩𝐩𝐢 𝐭𝐨𝐭𝐚𝐥𝐢: *${totalGroups}*\n`
   caption += `📌 𝐆𝐫𝐮𝐩𝐩𝐢 𝐚𝐭𝐭𝐢𝐯𝐢: *${validGroups.length}*\n`
   caption += `🚫 𝐆𝐫𝐮𝐩𝐩𝐢 𝐞𝐬𝐜𝐥𝐮𝐬𝐢: *${excludedChats.length}*\n\n`
-  caption += `👤 𝐔𝐭𝐞𝐧𝐭𝐢 𝐭𝐨𝐭𝐚𝐥𝐢: *${users.length}*\n`
   caption += `✅ 𝐔𝐭𝐞𝐧𝐭𝐢 𝐚𝐭𝐭𝐢𝐯𝐢: *${users.length - excludedUsers.length}*\n`
   caption += `🚫 𝐔𝐭𝐞𝐧𝐭𝐢 𝐞𝐬𝐜𝐥𝐮𝐬𝐢: *${excludedUsers.length}*`
 
