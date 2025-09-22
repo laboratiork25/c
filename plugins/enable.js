@@ -34,7 +34,7 @@ const features = [
 // Handler principale del comando
 let handler = async (message, { conn, usedPrefix, command, args, isOwner, isAdmin, isROwner }) => {
     // Controlla la presenza delle immagini usate nei messaggi
-    const images = [ './bal.png',];
+    const images = [];
     for (const img of images) {
         try {
             await fs.promises.stat(img);
