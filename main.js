@@ -151,15 +151,42 @@ const rl = readline.createInterface({ input: process.stdin, output: process.stdo
 const question = (texto) => new Promise((resolver) => rl.question(texto, resolver));
 let opcion = methodCodeQR ? '1' : undefined;
 
+if (methodCodeQR) {
+  opcion = '1';
+}
+
+if (!methodCodeQR && !process.argv.includes('code') && !existsSync(`./s/creds.json`)) {
+  do {
+    let lineM = '⋯ ⋯ ⋯ ⋯ ⋯ ⋯ ⋯ ⋯ ⋯ ⋯ ⋯ 》';
+    opcion = await question(
+      `╭${lineM}  
+┊ ${chalk.blueBright('╭┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅')}
+┊ ${chalk.blueBright('┊')} ${chalk.blue.bgBlue.bold.cyan('METODO DI COLLEGAMENTO')}
+┊ ${chalk.blueBright('╰┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅')}   
+┊ ${chalk.blueBright('╭┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅')}     
+┊ ${chalk.italic.magenta('Scrivi solo il numero(1 o 2)')}
+┊ ${chalk.blueBright('┊')} ${chalk.italic.magenta('per connetterti')}
+┊ ${chalk.blueBright('╰┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅')} 
+┊ ${chalk.blueBright('╭┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅')}    
+┊ ${chalk.blueBright('┊')} ${chalk.green.bgMagenta.bold.yellow('COME CONNETTERSI?')}
+┊ ${chalk.blueBright('┊')} ${chalk.bold.redBright(`⇢  Opzione 1:`)} ${chalk.greenBright('Codice qr')}
+┊ ${chalk.blueBright('┊')} ${chalk.bold.redBright(`⇢  Opzione 2:`)} ${chalk.greenBright('Codice 8 caratteri')}
+┊ ${chalk.blueBright('╰┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅')} 
+╰${lineM}\n${chalk.bold.magentaBright('---> ')}`,
+    );
+
+    if (!/^[1-2]$/.test(opcion)) console.log(chalk.bold.redBright('Opzione non valida. Inserisci solo 1 o 2.'));
+  } while ((opcion !== '1' && opcion !== '2') || existsSync(`./s/creds.json`));
+}
+
 const decodeCache = new Map();
 function decodeJidCached(jid) {
   if (!jid) return jid;
-  const cached = decodeCache.get(jid);
-  if (cached) return cached;
+  if (decodeCache.has(jid)) return decodeCache.get(jid);
   let decoded = jid;
   if (/:\d+@/gi.test(jid)) decoded = jidNormalizedUser(jid);
-  if (typeof decoded === 'object' && decoded?.user && decoded?.server) decoded = `${decoded.user}@${decoded.server}`;
-  if (typeof decoded === 'string' && decoded.endsWith('@lid')) decoded = decoded.replace('@lid', '@s.whatsapp.net');
+  if (typeof decoded === 'object' && decoded.user && decoded.server) decoded = `${decoded.user}@${decoded.server}`;
+  if (decoded.endsWith('@lid')) decoded = decoded.replace('@lid', '@s.whatsapp.net');
   decodeCache.set(jid, decoded);
   return decoded;
 }
@@ -180,6 +207,7 @@ function getGroupMetaCached(id) {
 }
 
 console.info = () => {};
+
 const connectionOptions = {
   logger: Pino({ level: 'silent' }),
   printQRInTerminal: opcion === '1',
@@ -211,38 +239,30 @@ const connectionOptions = {
 global.conn = makeWASocket(connectionOptions);
 
 if (!existsSync(`./s/creds.json`)) {
-  if (!methodCodeQR) {
-    do {
-      let lineM = '⋯ ⋯ ⋯ ⋯ ⋯ ⋯ ⋯ ⋯ ⋯ ⋯ ⋯ 》';
-      opcion = await question(
-        `╭${lineM}
-┊ ${chalk.blueBright('QR=1  |  CODE=2')}
-╰${lineM}\n${chalk.bold.magentaBright('---> ')}`,
-      );
-      if (!/^[1-2]$/.test(opcion)) console.log(chalk.bold.redBright('Scelta non valida'));
-    } while (opcion !== '1' && opcion !== '2' || existsSync('./s/creds.json'));
-  }
-}
-
-if (!existsSync(`./s/creds.json`)) {
   if (opcion === '2' || process.argv.includes('code')) {
     if (!conn.authState.creds.registered) {
-      if (process.argv.includes('mobile')) throw new Error('Pairing code non supportato in mobile');
-      let numeroTelefono = global.botnumber ? String(global.botnumber).replace(/[^0-9]/g, '') : '';
-      if (!numeroTelefono || !Object.keys(PHONENUMBER_MCC).some((v) => numeroTelefono.startsWith(v))) {
-        rl.write('');
+      if (process.argv.includes('mobile')) throw new Error('Impossibile utilizzare un codice di accoppiamento con l\'API mobile');
+      let numeroTelefono;
+      if (!!global.botnumber) {
+        numeroTelefono = global.botnumber.replace(/[^0-9]/g, '');
+        if (!Object.keys(PHONENUMBER_MCC).some((v) => numeroTelefono.startsWith(v))) {
+          console.log(chalk.bgBlack(chalk.bold.redBright('Inserisci un numero WhatsApp valido')));
+          process.exit(0);
+        }
+      } else {
         while (true) {
           numeroTelefono = await question(chalk.bgBlack(chalk.bold.yellowBright('Inserisci numero WhatsApp (es. +39 333 333 3333)\n')));
           numeroTelefono = numeroTelefono.replace(/[^0-9]/g, '');
+
           if (numeroTelefono.match(/^\d+$/) && Object.keys(PHONENUMBER_MCC).some((v) => numeroTelefono.startsWith(v))) break;
-          console.log(chalk.bold.redBright('Numero non valido'));
+          else console.log(chalk.bgBlack(chalk.bold.redBright('Numero non valido')));
         }
         rl.close();
       }
       setTimeout(async () => {
         let code = await conn.requestPairingCode(numeroTelefono, 'unitybot');
         code = code?.match(/.{1,4}/g)?.join('-') || code;
-        console.log(chalk.yellowBright('Collega il bot con questo codice:'));
+        console.log(chalk.yellowBright('Collega il tuo bot con questo codice:'));
         console.log(chalk.black(chalk.bgGreenBright(code)));
       }, 2000);
     }
@@ -488,7 +508,7 @@ async function filesInit() {
       const file = global.__filename(join(pluginFolder, filename));
       const module = await import(file);
       global.plugins[filename] = module.default || module;
-    } catch (e) {
+    } catch {
       delete global.plugins[filename];
     }
   }
@@ -506,15 +526,13 @@ global.reload = async (_ev, filename) => {
   try {
     const module = await import(`${global.__filename(dir)}?update=${Date.now()}`);
     global.plugins[filename] = module.default || module;
-  } catch {
-  } finally {
+  } catch {}
+  finally {
     global.plugins = Object.fromEntries(Object.entries(global.plugins).sort(([a], [b]) => a.localeCompare(b)));
   }
 };
 Object.freeze(global.reload);
 watch(pluginFolder, global.reload);
-
-await global.reloadHandler();
 
 async function _quickTest() {
   const bins = ['ffmpeg', 'ffprobe', 'convert', 'magick', 'gm', 'find'];
