@@ -141,25 +141,21 @@ async function autoClearSessions() {
 }
 setInterval(autoClearSessions, 300000);
 
-const { state, saveCreds } = await useMultiFileAuthState('s');
-const msgRetryCounterCache = new NodeCache({ stdTTL: 900, checkperiod: 120 });
-const msgRetryCounterMap = (MessageRetryMap) => {};
-const { version } = await fetchLatestBaileysVersion();
+// --- PARTE DI COLLEGAMENTO ORIGINALE ---
 
-const methodCodeQR = process.argv.includes('qr');
+const methodCodeQR = process.argv.includes("qr");
+const methodCode = !!global.botnumber || process.argv.includes("code");
+const MethodMobile = process.argv.includes("mobile");
 const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
 const question = (texto) => new Promise((resolver) => rl.question(texto, resolver));
-let opcion = methodCodeQR ? '1' : undefined;
-
+let opcion;
 if (methodCodeQR) {
   opcion = '1';
 }
-
-if (!methodCodeQR && !process.argv.includes('code') && !existsSync(`./s/creds.json`)) {
+if (!methodCodeQR && !methodCode && !existsSync(`./s/creds.json`)) {
   do {
     let lineM = '⋯ ⋯ ⋯ ⋯ ⋯ ⋯ ⋯ ⋯ ⋯ ⋯ ⋯ 》';
-    opcion = await question(
-      `╭${lineM}  
+    opcion = await question(`╭${lineM}  
 ┊ ${chalk.blueBright('╭┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅')}
 ┊ ${chalk.blueBright('┊')} ${chalk.blue.bgBlue.bold.cyan('METODO DI COLLEGAMENTO')}
 ┊ ${chalk.blueBright('╰┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅')}   
@@ -172,12 +168,46 @@ if (!methodCodeQR && !process.argv.includes('code') && !existsSync(`./s/creds.js
 ┊ ${chalk.blueBright('┊')} ${chalk.bold.redBright(`⇢  Opzione 1:`)} ${chalk.greenBright('Codice qr')}
 ┊ ${chalk.blueBright('┊')} ${chalk.bold.redBright(`⇢  Opzione 2:`)} ${chalk.greenBright('Codice 8 caratteri')}
 ┊ ${chalk.blueBright('╰┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅')} 
-╰${lineM}\n${chalk.bold.magentaBright('---> ')}`,
-    );
-
-    if (!/^[1-2]$/.test(opcion)) console.log(chalk.bold.redBright('Opzione non valida. Inserisci solo 1 o 2.'));
-  } while ((opcion !== '1' && opcion !== '2') || existsSync(`./s/creds.json`));
+╰${lineM}\n${chalk.bold.magentaBright('---> ')}`);
+    if (!/^[1-2]$/.test(opcion)) {
+      console.log(chalk.bold.redBright('Opzione non valida. Inserisci solo 1 o 2.'));
+    }
+  } while (opcion !== '1' && opcion !== '2' || existsSync(`./s/creds.json`));
 }
+
+if (!existsSync(`./s/creds.json`)) {
+  if (opcion === '2' || methodCode) {
+    if (!conn.authState.creds.registered) {
+      if (MethodMobile) throw new Error('Impossibile utilizzare un codice di accoppiamento con l\'API mobile');
+
+      let numeroTelefono;
+      if (!!global.botnumber) {
+        numeroTelefono = global.botnumber.replace(/[^0-9]/g, '');
+        if (!Object.keys(PHONENUMBER_MCC).some(v => numeroTelefono.startsWith(v))) {
+          console.log(chalk.bgBlack(chalk.bold.redBright('Inserisci un numero WhatsApp valido')));
+          process.exit(0);
+        }
+      } else {
+        while (true) {
+          numeroTelefono = await question(chalk.bgBlack(chalk.bold.yellowBright('Inserisci numero WhatsApp (es. +39 333 333 3333)\n')));
+          numeroTelefono = numeroTelefono.replace(/[^0-9]/g, '');
+          if (numeroTelefono.match(/^\d+$/) && Object.keys(PHONENUMBER_MCC).some(v => numeroTelefono.startsWith(v))) break;
+          else console.log(chalk.bgBlack(chalk.bold.redBright('Numero non valido')));
+        }
+        rl.close();
+      }
+
+      setTimeout(async () => {
+        let codigo = await conn.requestPairingCode(numeroTelefono, 'unitybot');
+        codigo = codigo?.match(/.{1,4}/g)?.join('-') || codigo;
+        console.log(chalk.yellowBright('Collega il tuo bot con questo codice:'));
+        console.log(chalk.black(chalk.bgGreenBright(codigo)));
+      }, 3000);
+    }
+  }
+}
+
+// --- OTTIMIZZAZIONI POST-LOGIN ---
 
 const decodeCache = new Map();
 function decodeJidCached(jid) {
@@ -205,8 +235,6 @@ function getGroupMetaCached(id) {
   }
   return entry.meta;
 }
-
-console.info = () => {};
 
 const connectionOptions = {
   logger: Pino({ level: 'silent' }),
@@ -238,40 +266,7 @@ const connectionOptions = {
 
 global.conn = makeWASocket(connectionOptions);
 
-if (!existsSync(`./s/creds.json`)) {
-  if (opcion === '2' || process.argv.includes('code')) {
-    if (!conn.authState.creds.registered) {
-      if (process.argv.includes('mobile')) throw new Error('Impossibile utilizzare un codice di accoppiamento con l\'API mobile');
-      let numeroTelefono;
-      if (!!global.botnumber) {
-        numeroTelefono = global.botnumber.replace(/[^0-9]/g, '');
-        if (!Object.keys(PHONENUMBER_MCC).some((v) => numeroTelefono.startsWith(v))) {
-          console.log(chalk.bgBlack(chalk.bold.redBright('Inserisci un numero WhatsApp valido')));
-          process.exit(0);
-        }
-      } else {
-        while (true) {
-          numeroTelefono = await question(chalk.bgBlack(chalk.bold.yellowBright('Inserisci numero WhatsApp (es. +39 333 333 3333)\n')));
-          numeroTelefono = numeroTelefono.replace(/[^0-9]/g, '');
-
-          if (numeroTelefono.match(/^\d+$/) && Object.keys(PHONENUMBER_MCC).some((v) => numeroTelefono.startsWith(v))) break;
-          else console.log(chalk.bgBlack(chalk.bold.redBright('Numero non valido')));
-        }
-        rl.close();
-      }
-      setTimeout(async () => {
-        let code = await conn.requestPairingCode(numeroTelefono, 'unitybot');
-        code = code?.match(/.{1,4}/g)?.join('-') || code;
-        console.log(chalk.yellowBright('Collega il tuo bot con questo codice:'));
-        console.log(chalk.black(chalk.bgGreenBright(code)));
-      }, 2000);
-    }
-  }
-}
-
-conn.isInit = false;
-conn.well = false;
-
+// Batch write DB every 8 seconds
 if (!opts['test']) {
   let pendingDBWrite = false;
   let lastWrite = 0;
@@ -288,24 +283,21 @@ if (!opts['test']) {
     } catch {}
   }, 5000);
 }
-
-if (opts['server']) (await import('./server.js')).default(global.conn, PORT);
-
-function clearTmp() {
-  const tmp = [join(__dirname, './tmp')];
-  const files = [];
-  tmp.forEach((dirname) => {
-    if (!existsSync(dirname)) return;
-    readdirSync(dirname).forEach((file) => files.push(join(dirname, file)));
-  });
-  files.forEach((file) => {
-    try {
-      const stats = statSync(file);
-      if (stats.isFile() && Date.now() - stats.mtimeMs >= 1000 * 60 * 3) unlinkSync(file);
-    } catch {}
-  });
+// Pulizia automatica sessioni
+async function autoClearSessions() {
+  try {
+    if (!existsSync(sessionFolder)) return;
+    const sessionFiles = readdirSync(sessionFolder);
+    for (const file of sessionFiles) {
+      if (file !== 'creds.json' && file.startsWith('pre-key-')) {
+        unlinkSync(path.join(sessionFolder, file));
+      }
+    }
+  } catch {}
 }
+setInterval(autoClearSessions, 300000); // ogni 5 minuti
 
+// Funzioni per pulizie delle sessioni pre-key e sub-bot
 function purgeSession() {
   try {
     if (!existsSync('./s')) return;
@@ -328,9 +320,9 @@ function purgeSessionSB() {
 }
 
 function purgeOldFiles() {
-  const directories = ['./s/', './jadibts/'];
-  const oneHourAgo = Date.now() - 60 * 60 * 1000;
-  directories.forEach((dir) => {
+  const dirs = ['./s/', './jadibts/'];
+  const cutoff = Date.now() - 60 * 60 * 1000;
+  dirs.forEach((dir) => {
     try {
       if (!existsSync(dir)) return;
       const files = readdirSync(dir);
@@ -338,12 +330,31 @@ function purgeOldFiles() {
         if (file === 'creds.json') continue;
         const filePath = path.join(dir, file);
         const stats = statSync(filePath);
-        if (stats.isFile() && stats.mtimeMs < oneHourAgo) unlinkSync(filePath);
+        if (stats.isFile() && stats.mtimeMs < cutoff) unlinkSync(filePath);
       }
     } catch {}
   });
 }
 
+// Setup scrittura database batchata
+if (!opts['test']) {
+  let pendingDBWrite = false;
+  let lastWrite = 0;
+  const minInterval = 8000;
+  setInterval(async () => {
+    try {
+      if (!global.db?.data) return;
+      const now = Date.now();
+      if (pendingDBWrite || now - lastWrite >= minInterval) {
+        pendingDBWrite = false;
+        await global.db.write();
+        lastWrite = now;
+      }
+    } catch {}
+  }, 5000);
+}
+
+// Gestione aggiornamenti connessione
 async function connectionUpdate(update) {
   const { connection, lastDisconnect, isNewLogin } = update;
   global.stopped = connection;
@@ -481,10 +492,10 @@ global.reloadHandler = async function (restatConn) {
   conn.credsUpdate = saveCreds.bind(global.conn, true);
 
   conn.getGroupMetadata = async (jid) => {
-    const cached = getGroupMetaCached(jid);
-    if (cached) return cached;
+    const entry = groupMetaCache.get(jid);
+    if (entry && (Date.now() - entry.ts) < 5 * 60 * 1000) return entry.meta;
     const meta = await conn.groupMetadata(jid).catch(() => null);
-    if (meta) setGroupMetaCache(jid, meta);
+    if (meta) groupMetaCache.set(jid, { meta, ts: Date.now() });
     return meta;
   };
 
@@ -499,81 +510,20 @@ global.reloadHandler = async function (restatConn) {
   return true;
 };
 
-const pluginFolder = global.__dirname(join(__dirname, './plugins/index'));
-const pluginFilter = (filename) => /\.js$/.test(filename);
-global.plugins = {};
-async function filesInit() {
-  for (const filename of readdirSync(pluginFolder).filter(pluginFilter)) {
-    try {
-      const file = global.__filename(join(pluginFolder, filename));
-      const module = await import(file);
-      global.plugins[filename] = module.default || module;
-    } catch {
-      delete global.plugins[filename];
-    }
-  }
+// Cache per decodeJid
+const decodeCache = new Map();
+function decodeJidCached(jid) {
+  if (!jid) return jid;
+  if (decodeCache.has(jid)) return decodeCache.get(jid);
+  let decoded = jid;
+  if (/:\d+@/gi.test(jid)) decoded = jidNormalizedUser(jid);
+  if (typeof decoded === 'object' && decoded.user && decoded.server) decoded = `${decoded.user}@${decoded.server}`;
+  if (decoded.endsWith('@lid')) decoded = decoded.replace('@lid', '@s.whatsapp.net');
+  decodeCache.set(jid, decoded);
+  return decoded;
 }
-await filesInit();
 
-global.reload = async (_ev, filename) => {
-  if (!pluginFilter(filename)) return;
-  const dir = global.__filename(join(pluginFolder, filename), true);
-  if (filename in global.plugins) {
-    if (!existsSync(dir)) return delete global.plugins[filename];
-  }
-  const err = syntaxerror(readFileSync(dir), filename, { sourceType: 'module', allowAwaitOutsideFunction: true });
-  if (err) return;
-  try {
-    const module = await import(`${global.__filename(dir)}?update=${Date.now()}`);
-    global.plugins[filename] = module.default || module;
-  } catch {}
-  finally {
-    global.plugins = Object.fromEntries(Object.entries(global.plugins).sort(([a], [b]) => a.localeCompare(b)));
-  }
-};
-Object.freeze(global.reload);
-watch(pluginFolder, global.reload);
+const groupMetaCache = new Map();
 
-async function _quickTest() {
-  const bins = ['ffmpeg', 'ffprobe', 'convert', 'magick', 'gm', 'find'];
-  const tests = await Promise.all(
-    [
-      spawn('ffmpeg'),
-      spawn('ffprobe'),
-      spawn('ffmpeg', ['-hide_banner', '-loglevel', 'error', '-filter_complex', 'color', '-frames:v', '1', '-f', 'webp', '-']),
-      spawn('convert'),
-      spawn('magick'),
-      spawn('gm'),
-      spawn('find', ['--version']),
-    ].map((p) => {
-      return Promise.race([
-        new Promise((resolve) => p.on('close', (code) => resolve(code !== 127))),
-        new Promise((resolve) => p.on('error', () => resolve(false))),
-      ]);
-    }),
-  );
-  const [ffmpeg, ffprobe, ffmpegWebp, convert, magick, gm, find] = tests;
-  const s = (global.support = { ffmpeg, ffprobe, ffmpegWebp, convert, magick, gm, find });
-  Object.freeze(global.support);
-}
-_quickTest().catch(() => {});
 
-setInterval(async () => {
-  if (global.stopped === 'close' || !conn || !conn.user) return;
-  clearTmp();
-}, 240000);
 
-setInterval(async () => {
-  if (global.stopped === 'close' || !conn || !conn.user) return;
-  purgeSession();
-}, 60 * 60 * 1000);
-
-setInterval(async () => {
-  if (global.stopped === 'close' || !conn || !conn.user) return;
-  purgeSessionSB();
-}, 60 * 60 * 1000);
-
-setInterval(async () => {
-  if (global.stopped === 'close' || !conn || !conn.user) return;
-  purgeOldFiles();
-}, 60 * 60 * 1000);
