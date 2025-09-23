@@ -12,7 +12,7 @@ let handler = async (m, { conn }) => {
   if (cooldowns[m.sender] && Date.now() - cooldowns[m.sender] < tempoAttesa) {
     let tempoRimanente = secondiAMMS(Math.ceil((cooldowns[m.sender] + tempoAttesa - Date.now()) / 1000))
     await conn.sendMessage(m.chat, { 
-        text: global.t('mining_cooldown', m.sender, null, { nome: nome, tempo: tempoRimanente }),
+        text: `${nome}, devi aspettare ancora ${tempoRimanente} prima di minare di nuovo.`,
         contextInfo: {
             forwardingScore: 99,
             isForwarded: true,
@@ -28,7 +28,7 @@ let handler = async (m, { conn }) => {
 
   user.exp += risultato
   await conn.sendMessage(m.chat, { 
-      text: global.t('mining_complete', m.sender, null, { risultato: String(risultato), totale: String(user.exp) }),
+      text: `Hai minato ${risultato} punti esperienza. Totale: ${user.exp} XP.`,
       contextInfo: {
           forwardingScore: 99,
           isForwarded: true,
