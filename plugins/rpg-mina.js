@@ -4,13 +4,15 @@ let cooldowns = {};
 let handler = async (m, { conn }) => {
   let user = global.db.data.users[m.sender];
   
-  // Inizializzazione sicura
+  // Inizializza exp se non è già presente
   user.exp = Number(user.exp) || 0;
   
+  // Genera un risultato casuale tra 0 e 4999
   let risultato = Math.floor(Math.random() * 5000);
   let nome = conn.getName(m.sender);
   let tempoAttesa = 5 * 60 * 1000; // 5 minuti in millisecondi
 
+  // Controllo cooldown singolo utente
   if (cooldowns[m.sender] && Date.now() - cooldowns[m.sender] < tempoAttesa) {
     let tempoRimanente = secondiAMMS(Math.ceil((cooldowns[m.sender] + tempoAttesa - Date.now()) / 1000));
     await conn.sendMessage(m.chat, { 
@@ -28,6 +30,7 @@ let handler = async (m, { conn }) => {
     return;
   }
 
+  // Aggiorna exp utente con il risultato della minata
   user.exp += risultato;
   await conn.sendMessage(m.chat, { 
       text: global.t('mining_complete', m.sender, null, { risultato: risultato, totale: user.exp }),
@@ -51,6 +54,7 @@ handler.command = /^(mina|miming|mine|mining|dig)$/i;
 handler.register = true;
 export default handler;
 
+// Converte secondi in stringa mm:ss es: 2m 10s
 function secondiAMMS(secondi) {
   let minuti = Math.floor(secondi / 60);
   let secondiRimanenti = secondi % 60;
