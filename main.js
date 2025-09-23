@@ -22,14 +22,11 @@ import { makeWASocket, protoType, serialize } from './lib/simple.js';
 import { Low, JSONFile } from 'lowdb';
 import { mongoDB, mongoDBV2 } from './lib/mongoDB.js';
 import store from './lib/store.js';
-import NodeCache from 'node-cache';
-
-const metadataCache = new NodeCache({ stdTTL: 600, checkperiod: 120 });
-
 const { proto } = (await import('@whiskeysockets/baileys')).default;
 const { DisconnectReason, useMultiFileAuthState, MessageRetryMap, fetchLatestBaileysVersion, makeCacheableSignalKeyStore, jidNormalizedUser, PHONENUMBER_MCC } = await import('@whiskeysockets/baileys');
 import readline from 'readline';
-
+import NodeCache from 'node-cache';
+import MongoDBAdapter from './lib/MongoDBAdapter.js';
 const { CONNECTING } = ws;
 const { chain } = lodash;
 const PORT = process.env.PORT || process.env.SERVER_PORT || 3000;
@@ -53,21 +50,20 @@ async function autoClearSessions() {
   } catch { }
 }
 
+// Avvia la pulizia ogni 2 minuti
 setInterval(autoClearSessions, 120000);
 
 global.__filename = function filename(pathURL = import.meta.url, rmPrefix = platform !== 'win32') {
   return rmPrefix ? /file:\/\/\//.test(pathURL) ? fileURLToPath(pathURL) : pathURL : pathToFileURL(pathURL).toString();
-};
-global.__dirname = function dirname(pathURL) {
+}; global.__dirname = function dirname(pathURL) {
   return path.dirname(global.__filename(pathURL, true));
-};
-global.__require = function require(dir = import.meta.url) {
+}; global.__require = function require(dir = import.meta.url) {
   return createRequire(dir);
 };
 
-global.API = (name, path = '/', query = {}, apikeyqueryname) => (name in global.APIs ? global.APIs[name] : name) + path + (query || apikeyqueryname ? '?' + new URLSearchParams(Object.entries({ ...query, ...(apikeyqueryname ? { [apikeyqueryname]: global.APIKeys[name in global.APIs ? global.APIs[name] : name] } : {}) })) : '');
+global.API = (name, path = '/', query = {}, apikeyqueryname) => (name in global.APIs ? global.APIs[name] : name) + path + (query || apikeyqueryname ? '?' + new URLSearchParams(Object.entries({...query, ...(apikeyqueryname ? {[apikeyqueryname]: global.APIKeys[name in global.APIs ? global.APIs[name] : name]} : {})})) : '');
 
-global.timestamp = { start: new Date };
+global.timestamp = {start: new Date};
 global.videoList = [];
 global.videoListXXX = [];
 
@@ -77,22 +73,22 @@ global.opts = new Object(yargs(process.argv.slice(2)).exitProcess(false).parse()
 global.prefix = new RegExp('^[' + (opts['prefix'] || '*/i!#$%+£¢€¥^°=¶∆×÷π√✓©®:;?&.\\-.@').replace(/[|\\{}()[\]^$+*?.\-\^]/g, '\\$&') + ']');
 
 if (opts['db'] && opts['db'] === 'mongodb') {
-  global.db = new Low(new MongoDBAdapter('mongodb://192.168.1.112:27017', 'botDB', 'shared_data'));
+    global.db = new Low(new MongoDBAdapter('mongodb://192.168.1.112:27017', 'botDB', 'shared_data'));
 } else if (/https?:\/\//.test(opts['db'] || '')) {
-  global.db = new Low(new cloudDBAdapter(opts['db']));
+    global.db = new Low(new cloudDBAdapter(opts['db']));
 } else {
-  global.db = new Low(new JSONFile(`${opts._[0] ? opts._[0] + '_' : ''}database.json`));
+    global.db = new Low(new JSONFile(`${opts._[0] ? opts._[0] + '_' : ''}database.json`));
 }
 
-global.DATABASE = global.db;
+global.DATABASE = global.db; 
 global.loadDatabase = async function loadDatabase() {
   if (global.db.READ) {
-    return new Promise((resolve) => setInterval(async function () {
+    return new Promise((resolve) => setInterval(async function() {
       if (!global.db.READ) {
         clearInterval(this);
         resolve(global.db.data == null ? global.loadDatabase() : global.db.data);
       }
-    }, 1000));
+    }, 1 * 1000));
   }
   if (global.db.data !== null) return;
   global.db.READ = true;
@@ -115,12 +111,12 @@ global.chatgpt = new Low(new JSONFile(path.join(__dirname, '/db/chatgpt.json')))
 global.loadChatgptDB = async function loadChatgptDB() {
   if (global.chatgpt.READ) {
     return new Promise((resolve) =>
-      setInterval(async function () {
+      setInterval(async function() {
         if (!global.chatgpt.READ) {
           clearInterval(this);
-          resolve(global.chatgpt.data === null ? global.loadChatgptDB() : global.chatgpt.data);
+          resolve( global.chatgpt.data === null ? global.loadChatgptDB() : global.chatgpt.data );
         }
-      }, 1000));
+      }, 1 * 1000));
   }
   if (global.chatgpt.data !== null) return;
   global.chatgpt.READ = true;
@@ -135,10 +131,10 @@ global.loadChatgptDB = async function loadChatgptDB() {
 loadChatgptDB();
 
 global.authFile = `s`;
-const { state, saveState, saveCreds } = await useMultiFileAuthState(global.authFile);
+const {state, saveState, saveCreds} = await useMultiFileAuthState(global.authFile);
 const msgRetryCounterMap = (MessageRetryMap) => { };
 const msgRetryCounterCache = new NodeCache()
-const { version } = await fetchLatestBaileysVersion();
+const {version} = await fetchLatestBaileysVersion();
 let phoneNumber = global.botnumber
 
 const methodCodeQR = process.argv.includes("qr")
@@ -173,20 +169,20 @@ if (!methodCodeQR && !methodCode && !fs.existsSync(`./${authFile}/creds.json`)) 
   } while (opcion !== '1' && opcion !== '2' || fs.existsSync(`./${authFile}/creds.json`))
 }
 
-console.info = () => { }
+console.info = () => {}
 //console.warn = () => {}
 const connectionOptions = {
   logger: pino({ level: 'silent' }),
   printQRInTerminal: opcion == '1' ? true : methodCodeQR ? true : false,
-  mobile: MethodMobile,
+  mobile: MethodMobile, 
   browser: opcion == '1' ? ['𝐂𝐡𝐚𝐭𝐔𝐧𝐢𝐭𝐲 (lavoro)', 'Edge', '20.0.04'] : methodCodeQR ? ['𝐂𝐡𝐚𝐭𝐔𝐧𝐢𝐭𝐲 (lavoro)', 'Edge', '20.0.04'] : ["Mac OS", "Safari", "20.0.04"], // safari non chrome
   auth: {
     creds: state.creds,
     keys: makeCacheableSignalKeyStore(state.keys, Pino({ level: "fatal" }).child({ level: "fatal" })),
   },
-  markOnlineOnConnect: true,
-  generateHighQualityLinkPreview: true,
-  syncFullHistory: true,
+  markOnlineOnConnect: true, 
+  generateHighQualityLinkPreview: true, 
+  syncFullHistory: true,  
   defaultQueryTimeoutMs: 60000,
   getMessage: async (clave) => {
     let jid = jidNormalizedUser(clave.remoteJid)
@@ -209,7 +205,7 @@ const connectionOptions = {
     }
     return decoded;
   },
-  version,
+  version,  
 }
 
 global.conn = makeWASocket(connectionOptions);
@@ -218,7 +214,7 @@ if (!fs.existsSync(`./${authFile}/creds.json`)) {
   if (opcion === '2' || methodCode) {
 
     opcion = '2'
-    if (!conn.authState.creds.registered) {
+    if (!conn.authState.creds.registered) {  
       if (MethodMobile) throw new Error(`Impossibile utilizzare un codice di accoppiamento con l'API mobile`)
 
       let numeroTelefono
@@ -234,13 +230,13 @@ if (!fs.existsSync(`./${authFile}/creds.json`)) {
           numeroTelefono = numeroTelefono.replace(/[^0-9]/g, '')
 
           if (numeroTelefono.match(/^\d+$/) && Object.keys(PHONENUMBER_MCC).some(v => numeroTelefono.startsWith(v))) {
-            break
+            break 
           } else {
             console.log(chalk.bgBlack(chalk.bold.redBright(`𝐈𝐧𝐬𝐞𝐫𝐢𝐬𝐜𝐢 𝐢𝐥 𝐧𝐮𝐦𝐞𝐫𝐨 𝐝𝐢 𝐭𝐞𝐥𝐞𝐟𝐨𝐧𝐨 𝐖𝐡𝐚𝐭𝐬𝐀𝐩𝐩\n𝐄𝐬𝐞𝐦𝐩𝐢𝐨: +39 333 333 3333\n`)))
           }
         }
-        rl.close()
-      }
+        rl.close()  
+      } 
 
       setTimeout(async () => {
         let codigo = await conn.requestPairingCode(numeroTelefono, 'unitybot')
@@ -248,8 +244,7 @@ if (!fs.existsSync(`./${authFile}/creds.json`)) {
         console.log(chalk.yellowBright('𝐂𝐨𝐥𝐥𝐞𝐠𝐚 𝐢𝐥 𝐭𝐮𝐨 𝐛𝐨𝐭...'));
         console.log(chalk.black(chalk.bgCyanBright(`𝐈𝐍𝐒𝐄𝐑𝐈𝐒𝐂𝐈 𝐐𝐔𝐄𝐒𝐓𝐎 𝐂𝐎𝐃𝐈𝐂𝐄:`)), chalk.black(chalk.bgGreenBright(codigo)))
       }, 3000)
-    }
-  }
+  }}
 }
 
 conn.isInit = false;
@@ -261,11 +256,12 @@ if (!opts['test']) {
     setInterval(async () => {
       if (global.db.data) await global.db.write();
       if (opts['autocleartmp'] && (global.support || {}).find) (tmp = [os.tmpdir(), 'tmp', 'jadibts'], tmp.forEach((filename) => cp.spawn('find', [filename, '-amin', '3', '-type', 'f', '-delete'])));
-    }, 10000);
+    }, 10 * 1000);
   }
 }
 
 if (opts['server']) (await import('./server.js')).default(global.conn, PORT);
+
 
 function clearTmp() {
   const tmp = [join(__dirname, './tmp')];
@@ -288,7 +284,7 @@ function purgeSession() {
   filesFolderPreKeys.forEach(files => {
     unlinkSync(`./s/${files}`)
   })
-}
+} 
 
 function purgeSessionSB() {
   try {
@@ -321,22 +317,22 @@ function purgeOldFiles() {
         const filePath = path.join(dir, file)
         stat(filePath, (err, stats) => {
           if (err) throw err;
-          if (stats.isFile() && stats.mtimeMs < oneHourAgo && file !== 'creds.json') {
-            unlinkSync(filePath, err => {
+          if (stats.isFile() && stats.mtimeMs < oneHourAgo && file !== 'creds.json') { 
+            unlinkSync(filePath, err => {  
               if (err) throw err
               console.log(chalk.bold.green(`Archivo ${file} borrado con éxito`))
             })
-          } else {
+          } else {  
             console.log(chalk.bold.red(`Archivo ${file} no borrado` + err))
-          }
-        })
-      })
-    })
+          } 
+        }) 
+      }) 
+    }) 
   })
 }
 
 async function connectionUpdate(update) {
-  const { connection, lastDisconnect, isNewLogin } = update;
+  const {connection, lastDisconnect, isNewLogin} = update;
   global.stopped = connection;
   if (isNewLogin) conn.isInit = true;
   const code = lastDisconnect?.error?.output?.statusCode || lastDisconnect?.error?.output?.payload?.statusCode;
@@ -366,8 +362,7 @@ async function connectionUpdate(update) {
   let reason = new Boom(lastDisconnect?.error)?.output?.statusCode;
   if (reason == 405) {
     await fs.unlinkSync("./s/" + "creds.json")
-    console.log(chalk.bold.redBright(`[ ⚠️ ] 𝐂𝐨𝐧𝐧𝐞𝐬𝐬𝐢𝐨𝐧𝐞 𝐬𝐨𝐬𝐭𝐢𝐭𝐮𝐢𝐭𝐚, 𝐫𝐢𝐚𝐯𝐯𝐢𝐨 𝐢𝐧 𝐜𝐨𝐫𝐬𝐨...\n𝐒𝐞 𝐚𝐩𝐩𝐚𝐫𝐞 𝐮𝐧 𝐞𝐫𝐫𝐨𝐫𝐞, 𝐫𝐢𝐜𝐨𝐦𝐢𝐧𝐜𝐢𝐚 𝐜𝐨𝐧: 𝐧𝐩𝐦 𝐬𝐭𝐚𝐫𝐭`)
-    )
+    console.log(chalk.bold.redBright(`[ ⚠️ ] 𝐂𝐨𝐧𝐧𝐞𝐬𝐬𝐢𝐨𝐧𝐞 𝐬𝐨𝐬𝐭𝐢𝐭𝐮𝐢𝐭𝐚, 𝐫𝐢𝐚𝐯𝐯𝐢𝐨 𝐢𝐧 𝐜𝐨𝐫𝐬𝐨...\n𝐒𝐞 𝐚𝐩𝐩𝐚𝐫𝐞 𝐮𝐧 𝐞𝐫𝐫𝐨𝐫𝐞, 𝐫𝐢𝐜𝐨𝐦𝐢𝐧𝐜𝐢𝐚 𝐜𝐨𝐧: 𝐧𝐩𝐦 𝐬𝐭𝐚𝐫𝐭`)) 
     process.send('reset')
   }
   if (connection === 'close') {
@@ -380,7 +375,7 @@ async function connectionUpdate(update) {
       conn.logger.warn(`[ ⚠️ ] 𝐂𝐨𝐧𝐧𝐞𝐬𝐬𝐢𝐨𝐧𝐞 𝐩𝐞𝐫𝐬𝐨 𝐚𝐥 𝐬𝐞𝐫𝐯𝐞𝐫, 𝐫𝐢𝐜𝐨𝐧𝐧𝐞𝐬𝐬𝐢𝐨𝐧𝐞 𝐢𝐧 𝐜𝐨𝐫𝐬𝐨...`);
       await global.reloadHandler(true).catch(console.error);
     } else if (reason === DisconnectReason.connectionReplaced) {
-      conn.logger.error(`[ ⚠️ ] 𝐂𝐨𝐧𝐧𝐞𝐬𝐬𝐢𝐨𝐧𝐞 𝐬𝐨𝐬𝐭𝐢𝐭𝐮𝐢𝐭𝐚, 𝐞' 𝐬𝐭𝐚𝐭𝐚 𝐚𝐩𝐞𝐫𝐭𝐚 𝐮𝐧'𝐚𝐥𝐭𝐫𝐚 𝐧𝐮𝐨𝐯𝐚 𝐬𝐞𝐬𝐬𝐢𝐨𝐧𝐞. 𝐏𝐞𝐫 𝐩𝐫𝐢𝐦𝐚 𝐜𝐨𝐬𝐚 𝐝𝐢𝐬𝐜𝐨𝐧𝐧𝐞𝐭𝐭𝐢𝐭𝐢 𝐝𝐚𝐥𝐥'𝐚𝐭𝐭𝐮𝐚𝐥𝐞 𝐬𝐞𝐬𝐬𝐢𝐨𝐧𝐞.`);
+      conn.logger.error(`[ ⚠️ ] 𝐂𝐨𝐧𝐧𝐞𝐬𝐬𝐢𝐨𝐧𝐞 𝐬𝐨𝐬𝐭𝐢𝐭𝐮𝐢𝐭𝐚, 𝐞' 𝐬𝐭𝐚𝐭𝐚 𝐚𝐩𝐞𝐫𝐭𝐚 𝐮𝐧'𝐚𝐥𝐭𝐫𝐚 𝐧𝐮𝐨𝐯𝐚 𝐬𝐞𝐬𝐬𝐢𝐨𝐧𝐞. 𝐏𝐞𝐫 𝐩𝐫𝐢𝐦𝐚 𝐜𝐨𝐬𝐚 𝐝𝐢𝐬𝐜𝐨𝐧𝐧𝐞𝐭𝐭𝐢𝐭𝐢 𝐝𝐚𝐥𝐥𝐚 𝐬𝐞𝐬𝐬𝐢𝐨𝐧𝐞 𝐜𝐨𝐫𝐫𝐞𝐧𝐭𝐞.`);
     } else if (reason === DisconnectReason.loggedOut) {
       conn.logger.error(`[ ⚠️ ] 𝐂𝐨𝐧𝐧𝐞𝐬𝐬𝐢𝐨𝐧𝐞 𝐜𝐡𝐢𝐮𝐬𝐚, 𝐞𝐥𝐢𝐦𝐢𝐧𝐚 𝐥𝐚 𝐜𝐚𝐫𝐭𝐞𝐥𝐥𝐚 ${global.authFile} 𝐞𝐝 𝐞𝐬𝐞𝐠𝐮𝐢 𝐧𝐮𝐨𝐯𝐚𝐦𝐞𝐧𝐭𝐞 𝐥𝐚 𝐬𝐜𝐚𝐧𝐬𝐢𝐨𝐧𝐞.`);
     } else if (reason === DisconnectReason.restartRequired) {
@@ -398,61 +393,40 @@ async function connectionUpdate(update) {
 
 process.on('uncaughtException', console.error);
 
-// Funzione raccolta metadati con caching
-async function getMetaWithCache(jid) {
-  let meta = metadataCache.get(jid);
-  if (!meta) {
-    meta = await conn.groupMetadata(jid).catch(() => null) || {};
-    metadataCache.set(jid, meta);
-  }
-  return meta;
-}
+// Ottimizzazione Rate Limit per i messaggi
 
-// Coda messaggi con concurrency e backoff dinamico
-const maxConcurrent = 2;
-let running = 0;
-const queue = [];
-let backoff = false;
+const maxConcurrentMessages = 1;
+let runningMessages = 0;
+const messageQueue = [];
 
-async function rateLimitedHandler(m) {
+async function rateLimitedMessageHandler(m) {
   return new Promise((resolve) => {
-    queue.push({ m, resolve });
-    runQueue();
+    messageQueue.push({ m, resolve });
+    processNextMessage();
   });
 }
 
-function runQueue() {
-  if (backoff) return;
-  if (running >= maxConcurrent || queue.length === 0) return;
-
-  running++;
-  const { m, resolve } = queue.shift();
+function processNextMessage() {
+  if (runningMessages >= maxConcurrentMessages || messageQueue.length === 0) return;
+  runningMessages++;
+  const { m, resolve } = messageQueue.shift();
   (async () => {
     try {
       await handler.handler.call(global.conn, m);
-      backoff = false;
-    } catch (e) {
-      if (e?.output?.statusCode === 429) { // rate-limit error
-        backoff = true;
-        setTimeout(() => {
-          backoff = false;
-          runQueue();
-        }, 2000);
-      } else {
-        console.error('Handler error:', e);
-      }
+    } catch (error) {
+      console.error('Error in message handler:', error);
     }
     setTimeout(() => {
-      running--;
-      runQueue();
-    }, 100);
+      runningMessages--;
+      processNextMessage();
+    }, 500); // 500ms delay tra i messaggi per prevenire rate limit
     resolve();
   })();
 }
 
 let isInit = true;
 let handler = await import('./handler.js');
-global.reloadHandler = async function (restatConn) {
+global.reloadHandler = async function(restatConn) {
   try {
     const Handler = await import(`./handler.js?update=${Date.now()}`).catch(console.error);
     if (Object.keys(Handler || {}).length) handler = Handler;
@@ -465,7 +439,7 @@ global.reloadHandler = async function (restatConn) {
       global.conn.ws.close();
     } catch { }
     conn.ev.removeAllListeners();
-    global.conn = makeWASocket(connectionOptions, { chats: oldChats });
+    global.conn = makeWASocket(connectionOptions, {chats: oldChats});
     isInit = true;
   }
   if (!isInit) {
@@ -483,7 +457,8 @@ global.reloadHandler = async function (restatConn) {
   conn.sIcon = '𝐢𝐦𝐦𝐚𝐠𝐢𝐧𝐞 𝐠𝐫𝐮𝐩𝐩𝐨 𝐦𝐨𝐝𝐢𝐟𝐢𝐜𝐚𝐭𝐚'
   conn.sRevoke = '𝐥𝐢𝐧𝐤 𝐫𝐞𝐢𝐦𝐩𝐨𝐬𝐭𝐚𝐭𝐨, 𝐧𝐮𝐨𝐯𝐨 𝐥𝐢𝐧𝐤: @revoke'
 
-  conn.handler = rateLimitedHandler;
+  // Sostituisco il handler dei messaggi con la versione rate-limited
+  conn.handler = rateLimitedMessageHandler;
   conn.participantsUpdate = handler.participantsUpdate.bind(global.conn);
   conn.groupsUpdate = handler.groupsUpdate.bind(global.conn);
   conn.onDelete = handler.deleteUpdate.bind(global.conn);
@@ -549,7 +524,6 @@ global.reload = async (_ev, filename) => {
 Object.freeze(global.reload);
 watch(pluginFolder, global.reload);
 await global.reloadHandler();
-
 async function _quickTest() {
   const test = await Promise.all([
     spawn('ffmpeg'),
@@ -571,28 +545,27 @@ async function _quickTest() {
       })]);
   }));
   const [ffmpeg, ffprobe, ffmpegWebp, convert, magick, gm, find] = test;
-  const s = global.support = { ffmpeg, ffprobe, ffmpegWebp, convert, magick, gm, find };
+  const s = global.support = {ffmpeg, ffprobe, ffmpegWebp, convert, magick, gm, find};
   Object.freeze(global.support);
 }
 setInterval(async () => {
   if (stopped === 'close' || !conn || !conn.user) return;
-  await clearTmp();
+  const a = await clearTmp();
   console.log(chalk.cyanBright(`\n╭─────────────────···\n│ 𝐀𝐔𝐓𝐎𝐂𝐋𝐄𝐀𝐑𝐓𝐌𝐏\n│ ⓘ 𝐀𝐫𝐜𝐡𝐢𝐯𝐢 𝐞𝐥𝐢𝐦𝐢𝐧𝐚𝐭𝐢 𝐜𝐨𝐧 𝐬𝐮𝐜𝐜𝐞𝐬𝐬𝐨. ✅\n╰─────────────···`));
 }, 180000);
 setInterval(async () => {
   if (stopped === 'close' || !conn || !conn.user) return;
   await purgeSession();
   console.log(chalk.cyanBright(`\n╭─────────────────···\n│ 𝐀𝐔𝐓𝐎 𝐄𝐋𝐈𝐌𝐈𝐍𝐀𝐙𝐈𝐎𝐍𝐄 𝐒𝐄𝐒𝐒𝐈𝐎𝐍𝐈\n│ ⓘ 𝐀𝐫𝐜𝐡𝐢𝐯𝐢 𝐞𝐥𝐢𝐦𝐢𝐧𝐚𝐭𝐢 𝐜𝐨𝐧 𝐬𝐮𝐜𝐜𝐞𝐬𝐬𝐨. ✅\n╰─────────────···`));
-}, 3600000);
+}, 1000 * 60 * 60);
 setInterval(async () => {
   if (stopped === 'close' || !conn || !conn.user) return;
   await purgeSessionSB();
   console.log(chalk.cyanBright(`\n╭─────────────────···\n│ 𝐀𝐔𝐓𝐎 𝐄𝐋𝐈𝐌𝐈𝐍𝐀𝐙𝐈𝐎𝐍𝐄 𝐒𝐄𝐒𝐒𝐈𝐎𝐍𝐈 𝐒𝐔𝐁-𝐁𝐎𝐓𝐒\n│ ⓘ 𝐀𝐫𝐜𝐡𝐢𝐯𝐢 𝐞𝐥𝐢𝐦𝐢𝐧𝐚𝐭𝐢 𝐜𝐨𝐧 𝐬𝐮𝐜𝐜𝐞𝐬𝐬𝐨. ✅\n╰─────────────···`));
-}, 3600000);
+}, 1000 * 60 * 60);
 setInterval(async () => {
   if (stopped === 'close' || !conn || !conn.user) return;
   await purgeOldFiles();
   console.log(chalk.cyanBright(`\n╭─────────────────\n│ 𝐀𝐔𝐓𝐎 𝐄𝐋𝐈𝐌𝐈𝐍𝐀𝐙𝐈𝐎𝐍𝐄 𝐎𝐋𝐃𝐅𝐈𝐋𝐄𝐒\n│ ⓘ 𝐀𝐫𝐜𝐡𝐢𝐯𝐢 𝐞𝐥𝐢𝐦𝐢𝐧𝐚𝐭𝐢 𝐜𝐨𝐧 𝐬𝐮𝐜𝐜𝐞𝐬𝐬𝐨. ✅\n╰─────────────···`));
-}, 3600000);
-
+}, 1000 * 60 * 60);
 _quickTest().catch(console.error);
