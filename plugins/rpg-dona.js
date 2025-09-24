@@ -1,53 +1,42 @@
 import MessageType from '@whiskeysockets/baileys'
-import '../lib/language.js';
 
 let tassa = 0.02 // 2% di tassa sulle transazioni
 
 let handler = async (m, { conn, text }) => {
     let who
-    if (m.isGroup) who = m.mentionedJid?.[0] // Se in gruppo, prende l'utente menzionato
+    if (m.isGroup) who = m.mentionedJid[0] // Se in gruppo, prende l'utente menzionato
     else who = m.chat // Se in privato, usa l'utente corrente
     
-    if (!who) throw global.t('mention_required', m.sender)
+    if (!who) throw '🚩 𝚍𝚎𝚟𝚒 𝚖𝚎𝚗𝚣𝚒𝚘𝚗𝚊𝚛𝚎 𝚒𝚕 destinatario @user*'
     
     let txt = text.replace('@' + who.split`@`[0], '').trim()
-    if (!txt) throw global.t('amount_required', m.sender)
-    if (isNaN(txt)) throw global.t('only_numbers', m.sender)
+    if (!txt) throw '🚩 𝚒𝚗𝚜𝚎𝚛𝚒𝚜𝚌𝚒 𝚕𝚊 𝚚𝚞𝚊𝚗𝚝𝚒𝚝𝚊 𝚍𝚒 💶 𝚞𝚗𝚒𝚝𝚢𝚌𝚘𝚒𝚗𝚜 𝚍𝚊 𝚝𝚛𝚊𝚜𝚏𝚎𝚛𝚒𝚛𝚎'
+    if (isNaN(txt)) throw '𝚖𝚊 𝚑𝚘 𝚜𝚎𝚒 𝚏𝚛𝚘𝚌𝚒𝚘? 𝚜𝚌𝚛𝚒𝚟𝚒 𝚜𝚘𝚕𝚘 𝚗𝚞𝚖𝚎𝚛𝚒'
     
     let Unitycoins = parseInt(txt)
+    let costo = Unitycoins
     let tassaImporto = Math.ceil(Unitycoins * tassa)
-    let costo = Unitycoins + tassaImporto
+    costo += tassaImporto
     
-    if (costo < 1) throw global.t('min_transfer', m.sender)
-    
+    if (costo < 1) throw '🚩 𝚒𝚕 𝚖𝚒𝚗𝚒𝚖𝚘 𝚍𝚊 𝚝𝚛𝚊𝚜𝚏𝚛𝚒𝚛𝚎 𝚎 1 𝚞𝚗𝚒𝚝𝚢𝚌𝚘𝚒𝚗𝚜'
     let users = global.db.data.users
-    
-    // Controllo e inizializzazione utenti se non esistono
-    if (!users[m.sender]) users[m.sender] = { limit: 0 }
-    if (!users[who]) users[who] = { limit: 0 }
-    
-    if (costo > users[m.sender].limit) throw global.t('insufficient_funds', m.sender)
+    if (costo > users[m.sender].limit) throw '𝚗𝚘𝚗 𝚑𝚊𝚒 𝚊𝚋𝚋𝚊𝚜𝚝𝚊𝚗𝚣𝚊 💶 𝚞𝚗𝚒𝚝𝚢𝚌𝚘𝚒𝚗𝚜 𝚙𝚎𝚛 𝚚𝚞𝚎𝚜𝚝𝚘 𝚝𝚛𝚊𝚜𝚏𝚎𝚛𝚒𝚖𝚎𝚗𝚝𝚘'
     
     // Esegui la transazione
     users[m.sender].limit -= costo
     users[who].limit += Unitycoins
     
-    // Rispondi al mittente con parametri protetti contro undefined
-    await m.reply(global.t('transfer_success_sender', m.sender, null, {
-        amount: Unitycoins ?? 0,
-        tax: tassaImporto ?? 0,
-        total: costo ?? 0
-    }))
+    await m.reply(`*${-Unitycoins}* 💶 𝚞𝚗𝚒𝚝𝚢𝚌𝚘𝚒𝚗𝚜 
+𝚝𝚊𝚜𝚜𝚊 2% : *${-tassaImporto}* 💶 𝚝𝚊𝚜𝚜𝚊 𝚒𝚖𝚙𝚘𝚛𝚝o
+𝚝𝚘𝚝𝚊𝚕𝚎 𝚊𝚍𝚍𝚎𝚋𝚒𝚝𝚘: *${-costo}* 💶 𝚞𝚗𝚒𝚝𝚢𝚌𝚘𝚒𝚗𝚜`)
     
-    // Notifica il destinatario con parametro protetto
-    conn.fakeReply(m.chat, global.t('transfer_success_receiver', who, null, {
-        amount: Unitycoins ?? 0
-    }), who, m.text)
+    // Notifica il destinatario
+    conn.fakeReply(m.chat, `*+${Unitycoins}* 💶 𝚞𝚗𝚒𝚝𝚢𝚌𝚘𝚒𝚗𝚜 𝚛𝚒𝚌𝚎𝚟𝚞𝚝𝚎!`, who, m.text)
 }
 
 handler.help = ['daiUnitycoins *@user <quantità>*']
 handler.tags = ['rpg']
-handler.command = /^(donauc|bonifico|trasferisci|dona|transfer|senduc|pay)$/i
+handler.command = ['daiUnitycoins', 'bonifico', 'trasferisci','donauc']
 handler.register = true 
 
 export default handler
