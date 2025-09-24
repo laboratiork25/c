@@ -32,16 +32,16 @@ let handler = async (m, { conn, text }) => {
     users[m.sender].limit -= costo
     users[who].limit += Unitycoins
     
-    // Rispondi al mittente
+    // Rispondi al mittente con parametri protetti contro undefined
     await m.reply(global.t('transfer_success_sender', m.sender, null, {
-        amount: Unitycoins,
-        tax: tassaImporto,
-        total: costo
+        amount: Unitycoins ?? 0,
+        tax: tassaImporto ?? 0,
+        total: costo ?? 0
     }))
     
-    // Notifica il destinatario
+    // Notifica il destinatario con parametro protetto
     conn.fakeReply(m.chat, global.t('transfer_success_receiver', who, null, {
-        amount: Unitycoins
+        amount: Unitycoins ?? 0
     }), who, m.text)
 }
 
