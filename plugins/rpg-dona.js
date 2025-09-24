@@ -5,7 +5,7 @@ let tassa = 0.02 // 2% di tassa sulle transazioni
 
 let handler = async (m, { conn, text }) => {
     let who
-    if (m.isGroup) who = m.mentionedJid[0] // Se in gruppo, prende l'utente menzionato
+    if (m.isGroup) who = m.mentionedJid?.[0] // Se in gruppo, prende l'utente menzionato
     else who = m.chat // Se in privato, usa l'utente corrente
     
     if (!who) throw global.t('mention_required', m.sender)
@@ -15,9 +15,8 @@ let handler = async (m, { conn, text }) => {
     if (isNaN(txt)) throw global.t('only_numbers', m.sender)
     
     let Unitycoins = parseInt(txt)
-    let costo = Unitycoins
     let tassaImporto = Math.ceil(Unitycoins * tassa)
-    costo += tassaImporto
+    let costo = Unitycoins + tassaImporto
     
     if (costo < 1) throw global.t('min_transfer', m.sender)
     
@@ -33,10 +32,11 @@ let handler = async (m, { conn, text }) => {
     users[m.sender].limit -= costo
     users[who].limit += Unitycoins
     
+    // Rispondi al mittente
     await m.reply(global.t('transfer_success_sender', m.sender, null, {
-        amount: -Unitycoins,
-        tax: -tassaImporto,
-        total: -costo
+        amount: Unitycoins,
+        tax: tassaImporto,
+        total: costo
     }))
     
     // Notifica il destinatario
