@@ -20,7 +20,13 @@ let handler = async (m, { conn, text }) => {
     costo += tassaImporto
     
     if (costo < 1) throw global.t('min_transfer', m.sender)
+    
     let users = global.db.data.users
+    
+    // Controllo e inizializzazione utenti se non esistono
+    if (!users[m.sender]) users[m.sender] = { limit: 0 }
+    if (!users[who]) users[who] = { limit: 0 }
+    
     if (costo > users[m.sender].limit) throw global.t('insufficient_funds', m.sender)
     
     // Esegui la transazione
