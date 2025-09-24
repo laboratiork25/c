@@ -78,7 +78,7 @@ let handler = async (m, { conn, usedPrefix, command }) => {
     try {
       messageOptions.contextInfo.externalAdReply = {
         title: global.t('pingTitle', userId, groupId, { nomeDelBot }),
-        body: global.t('pingBody', userId, groupId, { versioneBot }),
+        body: global.t('pingBody', userId, groupId, 6.1),
         mediaType: 1,
         renderLargerThumbnail: false,
         previewType: 'thumbnail',
