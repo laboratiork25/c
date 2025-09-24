@@ -38,22 +38,43 @@ function ensureDb() {
   return global.db;
 }
 
+// Normalizza stringhe per confronto
+const norm = (s = '') => String(s).toLowerCase().trim();
+
+// Deduci stato corrente di una feature
+function isFeatureOn(db, chatId, senderId, feature) {
+  if (feature.ownerOnly) {
+    const byOwner = db.data.owners[senderId] || {};
+    return !!byOwner[feature.key];
+  }
+  const chatSettings = db.data.chats[chatId] || {};
+  return !!chatSettings[feature.key];
+}
+
 let handler = async (message, { conn, usedPrefix, command, args, isOwner, isAdmin, isROwner }) => {
-  // Assicura la struttura del DB
   const db = ensureDb();
 
-  const chatId = message?.chat || (message?.key && message.key.remoteJid) || 'unknown-chat';
-  const senderId = message?.sender || message?.key?.participant || message?.participant || 'unknown-sender';
+  const chatId =
+    message?.chat ||
+    (message?.key && message.key.remoteJid) ||
+    message?.key?.remoteJid ||
+    'unknown-chat';
 
-  // Inizializza lo spazio della chat se manca
+  const senderId =
+    message?.sender ||
+    message?.key?.participant ||
+    message?.participant ||
+    message?.key?.id ||
+    'unknown-sender';
+
+  // Inizializza strutture
   if (!db.data.chats[chatId]) db.data.chats[chatId] = {};
+  if (!db.data.owners[senderId]) db.data.owners[senderId] = {};
   const chatSettings = db.data.chats[chatId];
 
-  // Prepara il menu con lo stato corrente di ogni feature
+  // Costruisci menu stato
   const featuresStatus = features.map(feature => {
-    const isOn = feature.ownerOnly
-      ? !!db.data.owners[senderId]
-      : !!chatSettings[feature.key];
+    const isOn = isFeatureOn(db, chatId, senderId, feature);
     const statusIcon = isOn ? '🟢' : '🔴';
     const ownerTag = feature.ownerOnly ? ' (Owner)' : '';
     return `┃◈┃ ${statusIcon} *${feature.label}*${ownerTag}`;
@@ -64,68 +85,89 @@ let handler = async (message, { conn, usedPrefix, command, args, isOwner, isAdmi
     `${featuresStatus}\n` +
     `╰━━━━━━━━━━━━━┈·๏\n`;
 
-  // Parsing argomento funzione
-  const featureArg = (args?.[0] || '').toLowerCase().trim();
-  const selectedFeature = features.find(f => f.label.toLowerCase() === featureArg);
+  // Parsing argomenti: <feature> [on|off]
+  const featureArg = norm(args?.[0] || '');
+  const stateArg = norm(args?.[1] || '');
 
-  // Se non è stata indicata una feature valida, mostra il menu interattivo testuale
+  // Trova feature per label o key
+  const selectedFeature = features.find(f =>
+    norm(f.label) === featureArg || norm(f.key) === featureArg
+  );
+
+  // Se manca feature valida, mostra una List Message interattiva
   if (!featureArg || !selectedFeature) {
+    const sections = [
+      {
+        title: 'Impostazioni Bot',
+        rows: features.map(f => ({
+          title: f.label,
+          description: `Attiva/Disattiva ${f.label}`,
+          rowId: `${usedPrefix}attiva ${norm(f.label)}`
+        }))
+      }
+    ];
+
+    // Baileys list message format
     const interactiveMsg = {
-      text: menuText,
+      text: 'Impostazioni Bot',
       footer: 'Seleziona una funzione da attivare/disattivare',
       title: 'Impostazioni Bot',
       buttonText: 'Funzioni',
-      sections: [
-        {
-          title: 'Impostazioni Bot',
-          rows: features.map(f => ({
-            title: f.label,
-            description: `Attiva/Disattiva ${f.label}`,
-            rowId: `${usedPrefix}attiva ${f.label.toLowerCase()}`
-          }))
-        }
-      ]
+      sections
     };
-    return await conn.sendMessage(chatId, interactiveMsg);
+
+    await conn.sendMessage(chatId, interactiveMsg); // List message in Baileys
+    // Inoltre invia lo stato corrente come testo
+    await conn.sendMessage(chatId, { text: menuText });
+    return;
   }
 
-  // Controllo permessi owner per feature ownerOnly
-  if (selectedFeature.ownerOnly && !(isOwner && isROwner)) {
-    return await conn.sendMessage(chatId, '❌ Solo il proprietario può attivare/disattivare questa funzione.', message);
+  // Controllo permessi owner per feature ownerOnly (basta essere owner o real owner)
+  if (selectedFeature.ownerOnly && !(isOwner || isROwner)) {
+    await conn.sendMessage(chatId, { text: '❌ Solo il proprietario può attivare/disattivare questa funzione.' });
+    return;
   }
 
-  // Determina se attivare o disattivare
+  // Regex per interpretare enable/disable
   const enableReg = /^(attiva|enable|on|1|true)$/i;
   const disableReg = /^(disabilita|disattiva|disable|off|0|false)$/i;
-  let enableFeature = enableReg.test(command?.toLowerCase() || '');
-  if (disableReg.test(command?.toLowerCase() || '')) enableFeature = false;
 
-  // Applica la modifica
-  if (selectedFeature.ownerOnly) {
-    // Stato per utente (owner-only) memorizzato in db.data.owners
-    db.data.owners[senderId] = enableFeature;
-  } else {
-    // Stato per chat memorizzato in db.data.chats[chatId]
-    chatSettings[selectedFeature.key] = enableFeature;
+  // Deduci intento: priorità a argomento esplicito, poi dal comando
+  let enableFeature;
+  if (enableReg.test(stateArg)) enableFeature = true;
+  else if (disableReg.test(stateArg)) enableFeature = false;
+  else if (enableReg.test(norm(command || ''))) enableFeature = true;
+  else if (disableReg.test(norm(command || ''))) enableFeature = false;
+  else {
+    // Se non specificato, toggla lo stato corrente
+    enableFeature = !isFeatureOn(db, chatId, senderId, selectedFeature);
   }
 
-  // Risposta testuale di conferma senza immagini
+  // Applica modifica
+  if (selectedFeature.ownerOnly) {
+    if (!db.data.owners[senderId]) db.data.owners[senderId] = {};
+    db.data.owners[senderId][selectedFeature.key] = !!enableFeature;
+  } else {
+    chatSettings[selectedFeature.key] = !!enableFeature;
+  }
+
   const actionLabel = enableFeature ? 'attivata' : 'disattivata';
   const confirmText =
     `\n┃◈┃ Funzione *${selectedFeature.label}* ${actionLabel}\n` +
     `╰━━━━━━━━━━━━━┈·๏\n`;
 
-  await conn.sendMessage(chatId, confirmText);
+  await conn.sendMessage(chatId, { text: confirmText });
 };
 
 // Metadati comando
 handler.help = [
-  'attiva <feature>',
-  'disabilita <feature>',
-  'disattiva <feature>'
+  'attiva <feature> [on|off]',
+  'disattiva <feature>',
+  'enable <feature> [on|off]',
+  'disable <feature>'
 ];
 handler.tags = ['settings', 'owner'];
-handler.command = /^(attiva|disabilita|disattiva|enable|disable)/i;
+handler.command = /^(attiva|disabilita|disattiva|enable|disable)$/i;
 handler.group = true;
 handler.bot = true;
 
