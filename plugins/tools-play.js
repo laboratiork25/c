@@ -12,12 +12,10 @@ const ddownr = {
     if (!formatAudio.includes(format) && !formatVideo.includes(format)) {
       throw new Error(global.t('formatNotSupported', null, null));
     }
-
     try {
       const { data } = await axios.get(`https://p.oceansaver.in/ajax/download.php?format=${format}&url=${encodeURIComponent(url)}&api=dfcb6d76f2f6a9894gjkege8a4ab232222`, {
         headers: { 'User-Agent': 'Mozilla/5.0' }
       });
-
       if (data?.success) {
         return {
           id: data.id,
@@ -40,7 +38,6 @@ const ddownr = {
         const { data } = await axios.get(`https://p.oceansaver.in/ajax/progress.php?id=${id}`, {
           headers: { 'User-Agent': 'Mozilla/5.0' }
         });
-
         if (data?.success && data.progress === 1000) {
           return data.download_url;
         }
@@ -56,10 +53,10 @@ const ddownr = {
 const handler = async (m, { conn, text, usedPrefix, command, args }) => {
   const userId = m.sender;
   const groupId = m.isGroup ? m.chat : null;
-  
+
   try {
     if (!text.trim()) {
-      await conn.sendMessage(m.chat, { 
+      await conn.sendMessage(m.chat, {
         text: global.t('noInputText', userId, groupId),
         contextInfo: {
           forwardingScore: 99,
@@ -74,10 +71,69 @@ const handler = async (m, { conn, text, usedPrefix, command, args }) => {
       return;
     }
 
+    // Nuova integrazione SoundCloud
+    if (command === 'playsc') {
+      const soundcloudUrl = text.trim();
+      if (!soundcloudUrl) {
+        await conn.sendMessage(m.chat, {
+          text: global.t('noInputText', userId, groupId),
+          contextInfo: {
+            forwardingScore: 99,
+            isForwarded: true,
+            forwardedNewsletterMessageInfo: {
+              newsletterJid: '120363422724720651@newsletter',
+              serverMessageId: '',
+              newsletterName: global.t('newsletterName', userId, groupId)
+            }
+          }
+        }, { quoted: m });
+        return;
+      }
+      try {
+        const scResult = await axios.get(`https://delirius-apiofc.vercel.app/download/soundcloud?url=${encodeURIComponent(soundcloudUrl)}`);
+        if (scResult.data?.url) {
+          await conn.sendMessage(m.chat, {
+            audio: { url: scResult.data.url },
+            mimetype: "audio/mpeg",
+            fileName: (scResult.data.title || 'audio') + ".mp3"
+          }, { quoted: m });
+        } else {
+          await conn.sendMessage(m.chat, {
+            text: global.t('noValidLink', userId, groupId),
+            contextInfo: {
+              forwardingScore: 99,
+              isForwarded: true,
+              forwardedNewsletterMessageInfo: {
+                newsletterJid: '120363422724720651@newsletter',
+                serverMessageId: '',
+                newsletterName: global.t('newsletterName', userId, groupId)
+              }
+            }
+          }, { quoted: m });
+        }
+      } catch (error) {
+        await conn.sendMessage(m.chat, {
+          text: global.t('downloadError', userId, groupId),
+          contextInfo: {
+            forwardingScore: 99,
+            isForwarded: true,
+            forwardedNewsletterMessageInfo: {
+              newsletterJid: '120363422724720651@newsletter',
+              serverMessageId: '',
+              newsletterName: global.t('newsletterName', userId, groupId)
+            }
+          }
+        }, { quoted: m });
+      }
+      return;
+    }
+
+    // Gestione comandi YouTube come sopra (play/playaudio/playvideo)
+
     if (command === 'playaudio' || command === 'playvideo') {
       const search = await yts(text);
       if (!search.all.length) {
-        await conn.sendMessage(m.chat, { 
+        await conn.sendMessage(m.chat, {
           text: global.t('noResults', userId, groupId),
           contextInfo: {
             forwardingScore: 99,
@@ -91,19 +147,17 @@ const handler = async (m, { conn, text, usedPrefix, command, args }) => {
         }, { quoted: m });
         return;
       }
-      
       const videoInfo = search.all[0];
       const { url, title, thumbnail } = videoInfo;
       const thumb = (await conn.getFile(thumbnail))?.data;
 
       if (command === 'playaudio') {
-        await conn.sendMessage(m.chat, { 
-          text: global.t('audioComing', userId, groupId) 
+        await conn.sendMessage(m.chat, {
+          text: global.t('audioComing', userId, groupId)
         }, { quoted: m });
-        
         const api = await ddownr.download(url, 'mp3');
-        await conn.sendMessage(m.chat, { 
-          audio: { url: api.downloadUrl }, 
+        await conn.sendMessage(m.chat, {
+          audio: { url: api.downloadUrl },
           mimetype: "audio/mpeg",
           contextInfo: {
             forwardingScore: 99,
@@ -116,17 +170,16 @@ const handler = async (m, { conn, text, usedPrefix, command, args }) => {
           }
         }, { quoted: m });
       } else {
-        await conn.sendMessage(m.chat, { 
-          text: global.t('videoComing', userId, groupId) 
+        await conn.sendMessage(m.chat, {
+          text: global.t('videoComing', userId, groupId)
         }, { quoted: m });
-        
+
         let sources = [
           `https://api.siputzx.my.id/api/d/ytmp4?url=${url}`,
           `https://api.zenkey.my.id/api/download/ytmp4?apikey=zenkey&url=${url}`,
           `https://axeel.my.id/api/download/video?url=${encodeURIComponent(url)}`,
           `https://delirius-apiofc.vercel.app/download/ytmp4?url=${url}`
         ];
-        
         const results = await Promise.allSettled(sources.map(src => fetch(src).then(res => res.json())));
         for (const result of results) {
           if (result.status === "fulfilled") {
@@ -152,7 +205,7 @@ const handler = async (m, { conn, text, usedPrefix, command, args }) => {
             }
           }
         }
-        await conn.sendMessage(m.chat, { 
+        await conn.sendMessage(m.chat, {
           text: global.t('noValidLink', userId, groupId),
           contextInfo: {
             forwardingScore: 99,
@@ -171,7 +224,7 @@ const handler = async (m, { conn, text, usedPrefix, command, args }) => {
     if (command === 'play') {
       const search = await yts(text);
       if (!search.all.length) {
-        await conn.sendMessage(m.chat, { 
+        await conn.sendMessage(m.chat, {
           text: global.t('noResults', userId, groupId),
           contextInfo: {
             forwardingScore: 99,
@@ -189,7 +242,7 @@ const handler = async (m, { conn, text, usedPrefix, command, args }) => {
       const videoInfo = search.all[0];
       const durationInSeconds = videoInfo.seconds;
       if (durationInSeconds > MAX_DURATION) {
-        return await conn.sendMessage(m.chat, { 
+        return await conn.sendMessage(m.chat, {
           text: global.t('videoTooLong', userId, groupId, {
             timestamp: videoInfo.timestamp
           }),
@@ -207,7 +260,7 @@ const handler = async (m, { conn, text, usedPrefix, command, args }) => {
 
       const { title, thumbnail, timestamp, views, ago, url, author } = videoInfo;
       const formattedViews = new Intl.NumberFormat().format(views);
-      
+
       const infoMessage = global.t('videoInfo', userId, groupId, {
         title,
         timestamp,
@@ -250,7 +303,7 @@ const handler = async (m, { conn, text, usedPrefix, command, args }) => {
     }
 
   } catch (error) {
-    await conn.sendMessage(m.chat, { 
+    await conn.sendMessage(m.chat, {
       text: error.message.startsWith('╭━━') ? error.message : global.t('genericError', userId, groupId, {
         error: error.message
       }),
@@ -267,7 +320,7 @@ const handler = async (m, { conn, text, usedPrefix, command, args }) => {
   }
 };
 
-handler.command = handler.help = ['play', 'playaudio', 'playvideo', 'ytmp4', 'play2', 'youtube', 'yt'];
+handler.command = handler.help = ['play', 'playaudio', 'playvideo', 'ytmp4', 'play2', 'youtube', 'yt', 'playsc'];
 handler.tags = ['downloader'];
 
 export default handler;
