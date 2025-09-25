@@ -12,13 +12,17 @@ const handler = async (m, { conn, text }) => {
 
     try {
         const apiUrl = `https://okatsu-rolezapiiz.vercel.app/ai/txt2video?text=${encodeURIComponent(text)}`
-        const { data } = await axios.get(apiUrl, {
+        const response = await axios.get(apiUrl, {
             timeout: 60000,
             headers: { 'user-agent': 'Mozilla/5.0' }
         })
 
+        const data = response.data
+        console.log('[VEO] API response:', data)
+
         const videoUrl = data?.videoUrl || data?.result || data?.data?.videoUrl
         if (!videoUrl) {
+            console.error('[VEO] Nessun videoUrl trovato nella risposta')
             return conn.reply(
                 m.chat,
                 '❌ Nessun video generato dall\'API.',
@@ -36,10 +40,10 @@ const handler = async (m, { conn, text }) => {
             { quoted: m }
         )
     } catch (error) {
-        console.error('[VEO] errore:', error?.message || error)
+        console.error('[VEO] errore durante generazione video:', error)
         await conn.reply(
             m.chat,
-            '*❌ Errore durante la generazione del video.*',
+            '*❌ Errore durante la generazione del video. Riprova più tardi.*',
             m
         )
     }
