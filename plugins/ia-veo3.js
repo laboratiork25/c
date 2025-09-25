@@ -1,5 +1,6 @@
 import axios from 'axios';
 
+// Funzione comando .veo per generare video da prompt
 export async function veoCommand(sock, chatId, message) {
     try {
         const rawText = message.message?.conversation?.trim() ||
@@ -46,4 +47,29 @@ export async function veoCommand(sock, chatId, message) {
         console.error('[VEO] errore:', error?.message || error);
         await sock.sendMessage(chatId, { text: 'Video non generato. Prova con un prompt diverso più tardi.' }, { quoted: message });
     }
+}
+
+// Esempio di gestione messaggi con instradamento comando .veo
+export function setupMessageHandler(sock) {
+    sock.on('messages.upsert', async ({ messages }) => {
+        if (!messages || messages.length === 0) return;
+        const message = messages[0];
+        if (!message.message) return;
+
+        // Estrarre testo dal messaggio per riconoscere il comando
+        const text = message.message.conversation?.trim() ||
+            message.message.extendedTextMessage?.text?.trim() ||
+            message.message.imageMessage?.caption?.trim() ||
+            message.message.videoMessage?.caption?.trim() || '';
+
+        if (!text) return;
+
+        const command = text.split(/\s+/)[0].toLowerCase();
+
+        if (command === '.veo') {
+            await veoCommand(sock, message.key.remoteJid, message);
+        }
+
+        // Qui si possono aggiungere altri comandi con else if ...
+    });
 }
