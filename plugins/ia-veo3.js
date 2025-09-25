@@ -9,7 +9,7 @@ export async function soraCommand(sock, chatId, message) {
             '';
 
         // Estrai prompt dopo la keyword o usa testo citato
-        const used = (rawText || '').split(/\s+/)[0] || '.sora';
+        const used = (rawText || '').split(/\s+/)[0] || '.veo';
         const args = rawText.slice(used.length).trim();
         const quoted = message.message?.extendedTextMessage?.contextInfo?.quotedMessage;
         const quotedText = quoted?.conversation || quoted?.extendedTextMessage?.text || '';
