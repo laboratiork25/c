@@ -35,7 +35,7 @@ const handler = async (m, { conn, text }) => {
             {
                 video: { url: videoUrl },
                 mimetype: 'video/mp4',
-                caption: `Prompt: ${text}`
+                caption: `> GENERATO DA CHATUNITY-BOT`
             },
             { quoted: m }
         )
