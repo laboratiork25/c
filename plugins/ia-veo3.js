@@ -2,13 +2,10 @@ import axios from 'axios'
 import '../lib/language.js'
 
 const handler = async (m, { conn, text }) => {
-    const userId = m.sender
-    const groupId = m.isGroup ? m.chat : null
-
     if (!text) {
         return conn.reply(
             m.chat,
-            global.t('veoNoText', userId, groupId) || '*Fornisci un testo per generare un video con .veo.*',
+            '*Fornisci un testo per generare un video con .veo.*',
             m
         )
     }
@@ -24,7 +21,7 @@ const handler = async (m, { conn, text }) => {
         if (!videoUrl) {
             return conn.reply(
                 m.chat,
-                global.t('veoNoVideoUrl', userId, groupId) || '❌ Nessun video generato dall\'API.',
+                '❌ Nessun video generato dall\'API.',
                 m
             )
         }
@@ -42,7 +39,7 @@ const handler = async (m, { conn, text }) => {
         console.error('[VEO] errore:', error?.message || error)
         await conn.reply(
             m.chat,
-            global.t('veoError', userId, groupId) || '*❌ Errore durante la generazione del video.*',
+            '*❌ Errore durante la generazione del video.*',
             m
         )
     }
