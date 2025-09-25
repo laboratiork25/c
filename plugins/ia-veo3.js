@@ -1,44 +1,53 @@
-import axios from 'axios';
+import axios from 'axios'
+import '../lib/language.js'
 
-export async function soraCommand(sock, chatId, message) {
+const handler = async (m, { conn, text }) => {
+    const userId = m.sender
+    const groupId = m.isGroup ? m.chat : null
+
+    if (!text) {
+        return conn.reply(
+            m.chat,
+            global.t('veoNoText', userId, groupId) || '*Fornisci un testo per generare un video con .veo.*',
+            m
+        )
+    }
+
     try {
-        const rawText = message.message?.conversation?.trim() ||
-            message.message?.extendedTextMessage?.text?.trim() ||
-            message.message?.imageMessage?.caption?.trim() ||
-            message.message?.videoMessage?.caption?.trim() ||
-            '';
+        const apiUrl = `https://okatsu-rolezapiiz.vercel.app/ai/txt2video?text=${encodeURIComponent(text)}`
+        const { data } = await axios.get(apiUrl, {
+            timeout: 60000,
+            headers: { 'user-agent': 'Mozilla/5.0' }
+        })
 
-        // Estrai prompt dopo la keyword o usa testo citato
-        const used = (rawText || '').split(/\s+/)[0] || '.veo';
-        const args = rawText.slice(used.length).trim();
-        const quoted = message.message?.extendedTextMessage?.contextInfo?.quotedMessage;
-        const quotedText = quoted?.conversation || quoted?.extendedTextMessage?.text || '';
-        const input = args || quotedText;
-
-        if (!input) {
-            await sock.sendMessage(chatId, { text: 'Fornisci un prompt. Esempio: .sora ragazza anime con capelli blu corti' }, { quoted: message });
-            return;
-        }
-
-        const apiUrl = `https://okatsu-rolezapiiz.vercel.app/ai/txt2video?text=${encodeURIComponent(input)}`;
-        const { data } = await axios.get(apiUrl, { 
-            timeout: 60000, 
-            headers: { 'user-agent': 'Mozilla/5.0' } 
-        });
-
-        const videoUrl = data?.videoUrl || data?.result || data?.data?.videoUrl;
+        const videoUrl = data?.videoUrl || data?.result || data?.data?.videoUrl
         if (!videoUrl) {
-            throw new Error('Nessun videoUrl nella risposta API');
+            return conn.reply(
+                m.chat,
+                global.t('veoNoVideoUrl', userId, groupId) || '❌ Nessun video generato dall\'API.',
+                m
+            )
         }
 
-        await sock.sendMessage(chatId, {
-            video: { url: videoUrl },
-            mimetype: 'video/mp4',
-            caption: `Prompt: ${input}`
-        }, { quoted: message });
-
+        await conn.sendMessage(
+            m.chat,
+            {
+                video: { url: videoUrl },
+                mimetype: 'video/mp4',
+                caption: `Prompt: ${text}`
+            },
+            { quoted: m }
+        )
     } catch (error) {
-        console.error('[SORA] errore:', error?.message || error);
-        await sock.sendMessage(chatId, { text: 'Video non generato. Prova con un prompt diverso più tardi.' }, { quoted: message });
+        console.error('[VEO] errore:', error?.message || error)
+        await conn.reply(
+            m.chat,
+            global.t('veoError', userId, groupId) || '*❌ Errore durante la generazione del video.*',
+            m
+        )
     }
 }
+
+handler.command = /^veo$/i
+
+export default handler
