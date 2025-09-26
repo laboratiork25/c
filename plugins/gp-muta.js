@@ -2,27 +2,21 @@ import '../lib/language.js';
 import fetch from 'node-fetch';
 
 const handler = async (m, { conn, command, text, isAdmin }) => {
-    // Se il comando è 'muta'
     if (command === 'muta') {
-        if (!isAdmin) throw 'ⓘ Non sei un amministratore';  // Controlla permessi admin
+        if (!isAdmin) throw 'ⓘ Non sei un amministratore';  // Verifica permessi admin
 
-        // Ottieni informazioni sul gruppo
         const groupMetadata = await conn.groupMetadata(m.chat);
-        // Ottieni jid del creatore del gruppo
         const groupOwner = groupMetadata.owner || m.chat.split('-')[0] + '@s.whatsapp.net';
 
-        // Impedisci di mutare il creatore
-        if (m.mentionedJid?.[0] === groupOwner) throw 'ⓘ Il creatore del gruppo non può essere mutato';
-
-        // Identifica l'utente da mutare: menzionato, risposto, o testo
+        // Impedisce di mutare il creatore o il bot stesso
         let userToMute = m.mentionedJid?.[0] || m.quoted?.sender || text;
+        if (!userToMute) return conn.reply(m.chat, 'Tagga la persona da mutare 👤', m);
+        if (userToMute === groupOwner) throw 'ⓘ Il creatore del gruppo non può essere mutato';
         if (userToMute === conn.user.jid) throw 'ⓘ Non puoi mutare il bot';
-        
-        // Controlla se l'utente è già mutato
+
         let userData = global.db.data.users[userToMute];
         if (userData?.muto) throw 'ⓘ Questo utente è già stato mutato/а 🔇';
 
-        // Messaggio di notifica con vCard e immagine
         let messageOptions = {
             key: { participants: '0@s.whatsapp.net', fromMe: false, id: '0' },
             message: {
@@ -35,24 +29,18 @@ const handler = async (m, { conn, command, text, isAdmin }) => {
             participant: '0@s.whatsapp.net'
         };
 
-        if (!m.mentionedJid?.[0] && !m.quoted) 
-            return conn.reply(m.chat, 'Tagga la persona da mutare 👤', m);
-        
         conn.reply(m.chat, '𝐈 suoi messaggi verranno eliminati', messageOptions, null, { mentions: [userToMute] });
-        global.db.data.users[userToMute].muto = true; // Attiva muting nel database
+        global.db.data.users[userToMute].muto = true;
     }
-    // Se il comando è 'smuta'
+
     else if (command === 'smuta') {
         if (!isAdmin) throw 'ⓘ Non sei un amministratore';
 
         let userToUnmute = m.mentionedJid?.[0] || m.quoted?.sender || text;
-
+        if (!userToUnmute) return conn.reply(m.chat, 'Tagga la persona da smutare 👤', m);
         if (userToUnmute === m.sender) throw 'ⓘ Chiedi ad un amministratore di smutarti';
 
-        if (!m.mentionedJid?.[0] && !m.quoted) 
-            return conn.reply(m.chat, 'Tagga la persona da smutare 👤', m);
-
-        global.db.data.users[userToUnmute].muto = false; // Disattiva muting nel database
+        global.db.data.users[userToUnmute].muto = false;
 
         let messageOptions = {
             key: { participants: '0@s.whatsapp.net', fromMe: false, id: '0' },
