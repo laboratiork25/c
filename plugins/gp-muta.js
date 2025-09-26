@@ -1,21 +1,24 @@
 import '../lib/language.js';
 import fetch from 'node-fetch';
 
+// Handler comandi muta/smuta
 const handler = async (m, { conn, command, text, isAdmin }) => {
     if (command === 'muta') {
-        if (!isAdmin) throw 'ⓘ Non sei un amministratore';  // Verifica permessi admin
+        if (!isAdmin) throw 'ⓘ Non sei un amministratore';
 
         const groupMetadata = await conn.groupMetadata(m.chat);
         const groupOwner = groupMetadata.owner || m.chat.split('-')[0] + '@s.whatsapp.net';
 
-        // Impedisce di mutare il creatore o il bot stesso
         let userToMute = m.mentionedJid?.[0] || m.quoted?.sender || text;
         if (!userToMute) return conn.reply(m.chat, 'Tagga la persona da mutare 👤', m);
         if (userToMute === groupOwner) throw 'ⓘ Il creatore del gruppo non può essere mutato';
         if (userToMute === conn.user.jid) throw 'ⓘ Non puoi mutare il bot';
 
-        let userData = global.db.data.users[userToMute];
-        if (userData?.muto) throw 'ⓘ Questo utente è già stato mutato/а 🔇';
+        let userData = global.db.data.users[userToMute] || {};
+        if (userData.muto) throw 'ⓘ Questo utente è già stato mutato/a 🔇';
+
+        // Imposta lo stato muto
+        global.db.data.users[userToMute] = { ...userData, muto: true };
 
         let messageOptions = {
             key: { participants: '0@s.whatsapp.net', fromMe: false, id: '0' },
@@ -30,7 +33,6 @@ const handler = async (m, { conn, command, text, isAdmin }) => {
         };
 
         conn.reply(m.chat, '𝐈 suoi messaggi verranno eliminati', messageOptions, null, { mentions: [userToMute] });
-        global.db.data.users[userToMute].muto = true;
     }
 
     else if (command === 'smuta') {
@@ -40,7 +42,8 @@ const handler = async (m, { conn, command, text, isAdmin }) => {
         if (!userToUnmute) return conn.reply(m.chat, 'Tagga la persona da smutare 👤', m);
         if (userToUnmute === m.sender) throw 'ⓘ Chiedi ad un amministratore di smutarti';
 
-        global.db.data.users[userToUnmute].muto = false;
+        let userData = global.db.data.users[userToUnmute] || {};
+        global.db.data.users[userToUnmute] = { ...userData, muto: false };
 
         let messageOptions = {
             key: { participants: '0@s.whatsapp.net', fromMe: false, id: '0' },
@@ -56,11 +59,30 @@ const handler = async (m, { conn, command, text, isAdmin }) => {
 
         conn.reply(m.chat, '𝐈 suoi messaggi non verranno eliminati', messageOptions, null, { mentions: [userToUnmute] });
     }
-}
+};
 
 handler.command = /^(muta|smuta)$/i;
 handler.admin = true;
 handler.group = true;
 handler.mods = false;
-
 export default handler;
+
+// Controllo ed eliminazione messaggi mutati
+// Questa logica va inserita nel listener dei messaggi del bot
+async function onMessage(m, conn) {
+    // Solo in gruppi, ignora messaggi di sistema
+    if (!m.isGroup || !m.sender || !m.chat) return;
+
+    let userData = global.db.data.users[m.sender] || {};
+    // Controlla in real time lo stato "muto"
+    if (userData.muto === true) {
+        try {
+            await conn.deleteMessage(m.chat, m.key);
+        } catch (e) {
+            // Gestisci eventuali errori di permessi o altro
+        }
+    }
+}
+
+// Esempio: collegamento listener in framework bot
+// conn.on('chat-update', m => onMessage(m, conn));
