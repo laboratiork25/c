@@ -67,4 +67,4 @@ END:VCARD`
 handler.help = ['owner']
 handler.tags = ['main']
 handler.command = ['creatore'] 
-export default handlerp
+export default handler
