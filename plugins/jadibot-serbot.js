@@ -3,7 +3,7 @@ import {
   DisconnectReason,
   makeCacheableSignalKeyStore,
   fetchLatestBaileysVersion
-} from '@whiskeysockets/baileys'
+} from '@realvare/based'
 import qrcode from 'qrcode'
 import NodeCache from 'node-cache'
 import fs from 'fs'
