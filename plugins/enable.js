@@ -1,174 +1,166 @@
-// plugins/enable.js
+import fs from 'fs'; // non usato più per file locali, lasciato se serve altrove
+import fetch from 'node-fetch';
 
-// Elenco delle funzioni gestite dal bot
+// Elenco funzionalità gestite dal toggle
 const features = [
-  { key: 'antispamcomandi', label: 'AntispamComandi' },
-  { key: 'antiLinkHard', label: 'Antilinkhard' },
-  { key: 'autosticker', label: 'Autosticker' },
-  { key: 'welcome', label: 'Benvenuto' },
-  { key: 'isBanned', label: 'BanGruppo' },
-  { key: 'isGroup', label: 'SoloGruppo' },
-  { key: 'soloadmin', label: 'SoloAdmin' },
-  { key: 'detect', label: 'Detect' },
-  { key: 'risposte', label: 'Risposte' },
-  { key: 'antibot', label: 'Antibot' },
-  { key: 'antispam', label: 'Antispam' },
-  { key: 'antimedia', label: 'Antimedia' },
-  { key: 'antiporno', label: 'Antiporno' },
-  { key: 'soloprivato', label: 'SoloPrivato' },
-  { key: 'admin', label: 'SoloAdmin' },
-  { key: 'group', label: 'SoloGruppo' },
-  { key: 'antiinsta', label: 'Antiinsta' },
-  { key: 'Antibestemmie', label: 'Antibestemmie' },
-  { key: 'antitiktok', label: 'AntiTikTok' },
-  { key: 'antivirus', label: 'Antivirus' },
-  { key: 'antiCall', label: 'AntiCall' },
-  { key: 'antivoip', label: 'Antivoip' },
-  { key: 'Antitrava', label: 'Antitrava' },
-  { key: 'Antiarab', label: 'Antiarab' },
-  { key: 'antiviewonce', label: 'Antiviewonce', ownerOnly: true }
+  { key: 'antiLink',           label: 'AntiLink' },
+  { key: 'antiLinkHard',       label: 'Antilinkhard' },
+  { key: 'antimedia',          label: 'Antimedia' },
+  { key: 'antispamcomandi',    label: 'AntispamComandi' },
+  { key: 'welcome',            label: 'Benvenuto' },
+  { key: 'autosticker',        label: 'Autosticker' },
+  { key: 'antibot',            label: 'Antibot' },
+  { key: 'detect',             label: 'Detect' },
+  { key: 'risposte',           label: 'Risposte' },
+  { key: 'gpt',                label: 'GPT' },
+  { key: 'antispam',           label: 'Antispam' },
+  { key: 'antiviewonce',       label: 'Antiviewonce' },
+  { key: 'sologruppo',         label: 'SoloGruppo' },
+  { key: 'soloprivato',        label: 'SoloPrivato' },
+  { key: 'soloadmin',          label: 'soloadmin' },
+  { key: 'isBanned',           label: 'BanGruppo' },
+  { key: 'antiCall',           label: 'AntiCall' },
+  { key: 'antiinsta',          label: 'Antiinsta' },
+  { key: 'antiporno',          label: 'Antiporno' },
+  { key: 'antitrava',          label: 'Antitrava' },
+  { key: 'antivirus',          label: 'Antivirus' },
+  { key: 'antivoip',           label: 'Antivoip' },
+  { key: 'antiArab',           label: 'Antiarab' },
+  { key: 'antisondaggi',       label: 'Antisondaggi' },
+  { key: 'antitiktok',         label: 'AntiTikTok' },
+  { key: 'chatbotPrivato',     label: 'ChatbotPrivato', ownerOnly: true },
 ];
 
-// Inizializzazione sicura dei dati globali (evita undefined)
-function ensureDb() {
-  if (!global.db) global.db = {};
-  if (!global.db.data) global.db.data = {};
-  if (!global.db.data.chats) global.db.data.chats = {};
-  if (!global.db.data.owners) global.db.data.owners = {};
-  return global.db;
-}
+// Helper: menu titolo e intestazioni
+const MENU_HEADER =
+  '╭〔 🔧 𝑴𝑬𝑵𝑼 𝑺𝑰𝑪𝑼𝑹𝑬𝑿 𝑩𝑶𝑻 🔧 〕┈⊷\n' +
+  '┃◈╭─────────────·๏\n' +
+  '┃◈┃• 𝐀𝐓𝐓𝐈𝐕𝐀/𝐃𝐈𝐒𝐀𝐁𝐈𝐋𝐈𝐓𝐀\n' +
+  '┃◈┃\n' +
+  '┃◈┃• ℹ 𝐂𝐎𝐌𝐄 𝐒𝐈 𝐔𝐒𝐀\n' +
+  '┃◈┃• 🟢 attiva [funzione]\n' +
+  '┃◈┃• 🔴 disabilita [funzione]\n' +
+  '┃◈┃• 🔴 disattiva [funzione]\n' +
+  '┃◈┃\n';
 
-// Normalizza stringhe per confronto
-const norm = (s = '') => String(s).toLowerCase().trim();
+const MENU_FOOTER =
+  '\n┃◈┃\n' +
+  '┃◈┃•  𝐂𝐎𝐋𝐋𝐀𝐁: 𝐎𝐍𝐄 𝐏𝐈𝐄𝐂𝐄\n' +
+  '┃◈┃• *𝐒𝐔𝐏𝐏𝐎𝐑𝐓𝐎:* (.supporto)\n' +
+  '╰━━━━━━━━━━━━━┈·๏\n';
 
-// Deduci stato corrente di una feature
-function isFeatureOn(db, chatId, senderId, feature) {
-  if (feature.ownerOnly) {
-    const byOwner = db.data.owners[senderId] || {};
-    return !!byOwner[feature.key];
-  }
-  const chatSettings = db.data.chats[chatId] || {};
-  return !!chatSettings[feature.key];
-}
+const STATUS_HEADER = '\n╭〔 🔧 𝑴𝑬𝑺𝑺𝑨𝑮𝑮𝑰𝑶 𝑺𝑻𝑨𝑻𝑶 〕┈⊷\n┃ Funzione ';
+const STATUS_FOOTER = '\n┃◈┃\n┃◈└───────────┈⊷\n┃◈┃• *𝑽𝑬𝑹𝑺𝑰𝑶𝑵𝑬:* \n╰━━━━━━━━━━━━━┈·๏\n';
 
-let handler = async (message, { conn, usedPrefix, command, args, isOwner, isAdmin, isROwner }) => {
-  const db = ensureDb();
+const BUTTON_TITLE = '📋 Lista Comandi';
+const BUTTON_SECTION_TITLE = '🔧 Funzioni';
+const BUTTON_TEXT = '⚙ Impostazioni ';
+const ONLY_OWNER_MSG = '❌ Solo il proprietario può attivare/disattivare questa funzione.';
+const ONLY_PRIVATE_CHATBOT_MSG = '❌ Puoi attivare/disattivare la funzione *ChatbotPrivato* solo in chat privata.';
+const ONLY_CHATUNITY_BASE_MSG = 'Questo comando è disponibile solo con la base di ChatUnity.';
 
-  const chatId =
-    message?.chat ||
-    (message?.key && message.key.remoteJid) ||
-    message?.key?.remoteJid ||
-    'unknown-chat';
+const PLACEHOLDER_THUMB = null; // eliminato uso di file locali
+const PLACEHOLDER_VCARD = 'BEGIN:VCARD...'; // eliminato dettaglio file
 
-  const senderId =
-    message?.sender ||
-    message?.key?.participant ||
-    message?.participant ||
-    message?.key?.id ||
-    'unknown-sender';
+let handler = async (m, { conn, usedPrefix, command, args, isOwner, isAdmin, isROwner }) => {
+  // Ricava info chat e stato locale
+  const name = await conn.getName(m.sender);
+  const chats = (global.db?.data?.chats || {});
+  const chatData = chats[m.chat] || {};
 
-  // Inizializza strutture
-  if (!db.data.chats[chatId]) db.data.chats[chatId] = {};
-  if (!db.data.owners[senderId]) db.data.owners[senderId] = {};
-  const chatSettings = db.data.chats[chatId];
+  // Genera lista testuale con stato delle funzioni
+  const listLines = features.map(f => {
+    let current = false;
 
-  // Costruisci menu stato
-  const featuresStatus = features.map(feature => {
-    const isOn = isFeatureOn(db, chatId, senderId, feature);
-    const statusIcon = isOn ? '🟢' : '🔴';
-    const ownerTag = feature.ownerOnly ? ' (Owner)' : '';
-    return `┃◈┃ ${statusIcon} *${feature.label}*${ownerTag}`;
+    if (f.key === 'chatbotPrivato') {
+      current = (global.privateChatbot?.[m.sender]) || false;
+    } else if (f.key === 'antivoip') {
+      current = (global.db?.data?.chats?.[m.chat]?.antivoip) || false;
+    } else {
+      current = chatData[f.key];
+    }
+
+    const dot = current ? '🟢' : '🔴';
+    const ownerTag = f.ownerOnly ? ' (Owner)' : '';
+    return `┃◈┃ ${dot} *${f.label}*${ownerTag}`;
   }).join('\n');
 
-  const menuText =
-    `\n╭〔 *🔧 MESSAGGIO STATO* 〕┈⊷\n` +
-    `${featuresStatus}\n` +
-    `╰━━━━━━━━━━━━━┈·๏\n`;
+  const menuText = (MENU_HEADER + listLines + STATUS_FOOTER).trim();
 
-  // Parsing argomenti: <feature> [on|off]
-  const featureArg = norm(args?.[0] || '');
-  const stateArg = norm(args?.[1] || '');
+  // Se non viene passata una feature valida, mostra il menu cliccabile
+  const featureArg = (args[0] || '').toLowerCase();
+  const selected = features.find(f => f.label.toLowerCase() === featureArg);
 
-  // Trova feature per label o key
-  const selectedFeature = features.find(f =>
-    norm(f.label) === featureArg || norm(f.key) === featureArg
-  );
-
-  // Se manca feature valida, mostra una List Message interattiva
-  if (!featureArg || !selectedFeature) {
-    const sections = [
-      {
-        title: 'Impostazioni Bot',
-        rows: features.map(f => ({
-          title: f.label,
-          description: `Attiva/Disattiva ${f.label}`,
-          rowId: `${usedPrefix}attiva ${norm(f.label)}`
-        }))
-      }
-    ];
-
-    // Baileys list message format
-    const interactiveMsg = {
-      text: 'Impostazioni Bot',
-      footer: 'Seleziona una funzione da attivare/disattivare',
-      title: 'Impostazioni Bot',
-      buttonText: 'Funzioni',
-      sections
+  if (!featureArg || !selected) {
+    // Menu interattivo senza dipendenze da file
+    const section = {
+      title: BUTTON_SECTION_TITLE,
+      rows: features.map(f => ({
+        title: f.label,
+        description: `Attiva ${f.label}`,
+        rowId: usedPrefix + 'attiva ' + f.label.toLowerCase()
+      }))
     };
 
-    await conn.sendMessage(chatId, interactiveMsg); // List message in Baileys
-    // Inoltre invia lo stato corrente come testo
-    await conn.sendMessage(chatId, { text: menuText });
+    const listMessage = {
+      text: menuText,
+      footer: 'Seleziona una funzione da attivare/disattivare',
+      title: name,
+      buttonText: BUTTON_TEXT,
+      sections: [section]
+    };
+
+    await conn.sendMessage(m.chat, listMessage, { quoted: null }); // niente vcard/thumb locali
     return;
   }
 
-  // Controllo permessi owner per feature ownerOnly (basta essere owner o real owner)
-  if (selectedFeature.ownerOnly && !(isOwner || isROwner)) {
-    await conn.sendMessage(chatId, { text: '❌ Solo il proprietario può attivare/disattivare questa funzione.' });
+  // Blocco ownerOnly
+  if (selected.ownerOnly && !(isOwner || isROwner)) {
+    await conn.reply(m.chat, ONLY_OWNER_MSG, m);
     return;
   }
 
-  // Regex per interpretare enable/disable
-  const enableReg = /^(attiva|enable|on|1|true)$/i;
-  const disableReg = /^(disabilita|disattiva|disable|off|0|false)$/i;
+  // Determina ON/OFF dal comando
+  const isEnable = /attiva|enable|on|1|true/i.test(command.toLowerCase());
+  const isDisable = /disabilita|disattiva|disable|off|0|false/i.test(command.toLowerCase());
+  let setTo = isEnable && !isDisable;
 
-  // Deduci intento: priorità a argomento esplicito, poi dal comando
-  let enableFeature;
-  if (enableReg.test(stateArg)) enableFeature = true;
-  else if (disableReg.test(stateArg)) enableFeature = false;
-  else if (enableReg.test(norm(command || ''))) enableFeature = true;
-  else if (disableReg.test(norm(command || ''))) enableFeature = false;
-  else {
-    // Se non specificato, toggla lo stato corrente
-    enableFeature = !isFeatureOn(db, chatId, senderId, selectedFeature);
-  }
-
-  // Applica modifica
-  if (selectedFeature.ownerOnly) {
-    if (!db.data.owners[senderId]) db.data.owners[senderId] = {};
-    db.data.owners[senderId][selectedFeature.key] = !!enableFeature;
+  // Applica il toggle sulla destinazione corretta
+  if (selected.key === 'antivoip') {
+    chatData.antivoip = setTo;
+  } else if (selected.key === 'chatbotPrivato') {
+    // Solo in chat privata
+    if (m.isGroup) {
+      await conn.reply(m.chat, ONLY_PRIVATE_CHATBOT_MSG, m);
+      return;
+    }
+    if (!global.privateChatbot) global.privateChatbot = {};
+    global.privateChatbot[m.sender] = setTo;
   } else {
-    chatSettings[selectedFeature.key] = !!enableFeature;
+    // In chat
+    chatData[selected.key] = setTo;
   }
 
-  const actionLabel = enableFeature ? 'attivata' : 'disattivata';
-  const confirmText =
-    `\n┃◈┃ Funzione *${selectedFeature.label}* ${actionLabel}\n` +
-    `╰━━━━━━━━━━━━━┈·๏\n`;
+  // Salva chatData nel db se non referenziato
+  if (global.db?.data?.chats) {
+    global.db.data.chats[m.chat] = chatData;
+  }
 
-  await conn.sendMessage(chatId, { text: confirmText });
+  const stateIcon = (selected.key === 'chatbotPrivato'
+    ? (global.privateChatbot?.[m.sender] ? '🟢' : '🔴')
+    : (chatData[selected.key] ? '🟢' : '🔴'));
+
+  const stateVerb = setTo ? '𝐚𝐭𝐭𝐢𝐯𝐚𝐭𝐚' : '𝐝𝐢𝐬𝐚𝐭𝐭𝐢𝐯𝐚𝐭𝐚';
+  const statusMsg = (STATUS_HEADER + `*${selected.label}* ${stateVerb}\n╰━━━━━━━━━━━━━┈·๏\n`).trim();
+
+  // Messaggio di conferma senza allegati locali
+  await conn.reply(m.chat, statusMsg, m);
 };
 
-// Metadati comando
-handler.help = [
-  'attiva <feature> [on|off]',
-  'disattiva <feature>',
-  'enable <feature> [on|off]',
-  'disable <feature>'
-];
-handler.tags = ['settings', 'owner'];
-handler.command = /^(attiva|disabilita|disattiva|enable|disable)$/i;
+handler.help = ['attiva <feature>', 'disabilita <feature>', 'disattiva <feature>'];
+handler.tags = ['Impostazioni Bot', 'owner'];
+handler.command = /^(attiva|disabilita|disattiva|enable|disable)/i;
 handler.group = true;
-handler.bot = true;
+handler.ownerOnly = false;
 
 export default handler;
