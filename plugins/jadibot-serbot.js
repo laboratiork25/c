@@ -1,285 +1,196 @@
-import { DisconnectReason, useMultiFileAuthState, fetchLatestBaileysVersion, makeCacheableSignalKeyStore, jidNormalizedUser } from '@realvare/based'
+import {
+  useMultiFileAuthState,
+  DisconnectReason,
+  makeCacheableSignalKeyStore,
+  fetchLatestBaileysVersion
+} from '@whiskeysockets/baileys'
 import qrcode from 'qrcode'
-import fs from 'fs'
-import pino from 'pino'
-import crypto from 'crypto'
 import NodeCache from 'node-cache'
-import ws from 'ws'
+import fs from 'fs'
+import path from 'path'
+import pino from 'pino'
+import * as ws from 'ws'
 import { makeWASocket } from '../lib/simple.js'
 
-const SESSIONS_DIR = './chatunitysub'
-if (!fs.existsSync(SESSIONS_DIR)) fs.mkdirSync(SESSIONS_DIR, { recursive: true })
+const JADI_DIR = 'jadibts'
+const CMD_NAME = ['collegabot', 'jadibot']
+const TAGS = ['serbot']
+const HELP = ['serbot']
+const PRIVATE_ONLY = true
+const BOTNAME = 'chatunity'
 
-if (!global.conns || !Array.isArray(global.conns)) global.conns = []
+const TOP = '╭───────────────⟢'
+const BOTTOM = '╰────────────────⟢'
+const SEP = '⟣───────────────────⟢'
 
-function findSubByJid(jid) {
-  if (!global.conns) return null
-  return global.conns.find(c => c?.user?.jid === jid)
+const CAPTION_QR = `${TOP}
+🚀 SUB-BOT: ${BOTNAME}
+
+${SEP}
+
+📲 Scansiona questo QR per collegarti come SubBot
+
+1. Apri WhatsApp
+2. Tocca ⋮ → Dispositivi collegati
+3. Scansiona questo QR
+
+⚠ Il QR scade in 45 secondi
+
+${BOTTOM}`
+
+const CAPTION_CODE = `${TOP}
+🚀 SUB-BOT: ${BOTNAME}
+
+${SEP}
+
+📲 Usa questo codice per collegarti come SubBot
+
+1. Apri WhatsApp
+2. Tocca ⋮ → Dispositivi collegati
+3. Seleziona "Collega con numero di telefono"
+4. Inserisci il codice ricevuto qui
+
+⚠ Questo codice è valido solo per poco tempo
+
+${BOTTOM}`
+
+if (!(global.conns instanceof Array)) global.conns = []
+
+const sleep = (ms) => new Promise((res) => setTimeout(res, ms))
+
+function getUserDirFromMessage(m, conn) {
+  const targetJid = (m.mentionedJid && m.mentionedJid[0])
+    ? m.mentionedJid[0]
+    : (m.fromMe ? conn.user?.jid : m.sender)
+  const bare = String((targetJid || '').split('@')[0] || '')
+  const userDir = path.join('./', JADI_DIR, bare)
+  return { bare, userDir }
 }
 
-function countActiveSubbots() {
-  if (!global.conns) return 0
-  return global.conns.filter(c => c?.ws?.socket && c.ws.socket.readyState === ws.OPEN && c.user).length
-}
-
-let serbotHandler = async (m, { conn: mainConn, args, usedPrefix, command }) => {
-  const settings = (global.db?.data?.settings && global.db.data.settings[mainConn.user.jid]) || {}
-  if (settings.jadibotmd === false) {
-    await mainConn.reply(m.chat, '💛 Questo comando è disattivato dal mio creatore.', m)
-    return
+let handler = async (m, { conn, args, usedPrefix, command }) => {
+  if (!args[0]) {
+    return conn.sendMessage(
+      m.chat,
+      {
+        text: `${TOP}\nScegli come collegare il SubBot:\n${BOTTOM}`,
+        buttons: [
+          { buttonId: `${usedPrefix + command} qr`, buttonText: { displayText: '🔳 Collegati con QR' }, type: 1 },
+          { buttonId: `${usedPrefix + command} code`, buttonText: { displayText: '🔑 Collegati con CODE' }, type: 1 }
+        ],
+        headerType: 1
+      },
+      { quoted: m }
+    )
   }
 
-  const parent = args[0] === 'plz' ? mainConn : await global.conn
+  const wantCode = /code/i.test(args[0])
+
+  const { bare, userDir } = getUserDirFromMessage(m, conn)
+  if (!bare) return m.reply(`${TOP}\nFormato utente non valido.\n${BOTTOM}`)
+  if (!fs.existsSync(userDir)) fs.mkdirSync(userDir, { recursive: true })
+
+  const credsPath = path.join(userDir, 'creds.json')
 
   async function startSubBot() {
-    const subId = crypto.randomBytes(10).toString('hex').slice(0, 8)
-    const folder = `${SESSIONS_DIR}/${subId}`
-    if (!fs.existsSync(folder)) fs.mkdirSync(folder, { recursive: true })
-
-    // se passano creds base64 le salvo
-    if (args[0] && args[0] !== 'plz') {
-      try {
-        const decoded = Buffer.from(args[0], 'base64').toString('utf-8')
-        // può essere una creds.json già serializzata
-        fs.writeFileSync(`${folder}/creds.json`, decoded)
-      } catch (err) {
-      }
-    }
-
-    const { state, saveCreds } = await useMultiFileAuthState(folder)
-    const msgRetryCounterCache = new NodeCache()
     const { version } = await fetchLatestBaileysVersion()
+    const logger = pino({ level: 'silent' })
+    const msgRetryCache = new NodeCache()
+    const { state, saveCreds } = await useMultiFileAuthState(userDir)
 
-    const connectionOptions = {
-      logger: pino({ level: 'silent' }),
+    const sockConfig = {
       printQRInTerminal: false,
-      browser: ['ChatUnity Sub-Bot', 'Edge', '2.0.0'],
+      logger,
       auth: {
         creds: state.creds,
-        keys: makeCacheableSignalKeyStore(state.keys, pino({ level: 'fatal' }).child({ level: 'fatal' }))
+        keys: makeCacheableSignalKeyStore(state.keys, logger)
       },
-      markOnlineOnConnect: true,
-      generateHighQualityLinkPreview: true,
-      getMessage: async (key) => {
-        try {
-          const jid = jidNormalizedUser(key.remoteJid)
-          const msg = await global.store?.loadMessage(jid, key.id)
-          return msg?.message || {}
-        } catch {
-          return {}
-        }
-      },
-      msgRetryCounterCache,
-      version
+      msgRetry: () => {},
+      msgRetryCache,
+      syncFullHistory: true,
+      browser: wantCode
+        ? ['Windows', 'Chrome', '114.0.5735.198']
+        : [`${BOTNAME} (SUB WORK)`, 'Chrome', '2.0.0'],
+      version,
+      getMessage: async () => ({ conversation: 'Messaggio ricevuto' })
     }
 
-    let sub = makeWASocket(connectionOptions)
-    sub.isInit = false
-    let isInit = true
-    let qrMsgKey = null
+    let sock = makeWASocket(sockConfig)
+    sock.isInit = false
 
-    async function connectionUpdate(update) {
+    async function onConnectionUpdate(update) {
       const { connection, lastDisconnect, isNewLogin, qr } = update
-      if (isNewLogin) sub.isInit = true
+      if (isNewLogin) sock.isInit = false
 
-      if (qr) {
+      if (qr && !wantCode) {
         try {
-          const caption = '*SUB-BOT*\n\nScansiona questo QR per collegare il sub-bot a ChatUnityBot.\n🕒 Valido 120 secondi.'
-          const png = await qrcode.toDataURL(qr, { scale: 8 })
-          const sent = await parent.sendMessage(m.chat, { image: Buffer.from(png.split(',')[1], 'base64'), caption }, { quoted: m })
-          qrMsgKey = sent.key
-          setTimeout(() => {
-            try {
-              if (qrMsgKey) parent.sendMessage(m.chat, { delete: qrMsgKey })
-            } catch {}
-          }, 120000)
+          const img = await qrcode.toBuffer(qr, { scale: 8 })
+          await conn.sendMessage(m.chat, { image: img, caption: CAPTION_QR }, { quoted: m })
         } catch {}
       }
 
-      const code = lastDisconnect?.error?.output?.statusCode || lastDisconnect?.error?.output?.payload?.statusCode
-      if (code && code !== DisconnectReason.loggedOut && (sub?.ws?.socket == null || sub?.ws?.socket?.readyState !== ws.OPEN)) {
-        const i = global.conns.indexOf(sub)
-        if (i >= 0) {
-          try { delete global.conns[i] } catch {}
-          global.conns.splice(i, 1)
+      if (connection === 'connecting' && wantCode && !sock.authState.creds.registered) {
+        try {
+          await conn.sendMessage(m.chat, { text: CAPTION_CODE }, { quoted: m })
+          await sleep(2000)
+          const phone = String(m.sender.split('@')[0]).replace(/\D/g, '')
+          const code = await sock.requestPairingCode(phone)
+          await conn.sendMessage(
+            m.chat,
+            {
+              text:
+                `${TOP}\n🔑 CODICE DI COLLEGAMENTO:\n\n👉 ${code}\n\nUsalo subito per collegare il SubBot!\n${BOTTOM}`
+            },
+            { quoted: m }
+          )
+        } catch {
+          await m.reply(`${TOP}\n❌ Impossibile generare il codice, riprova.\n${BOTTOM}`)
         }
-        try { fs.rmSync(folder, { recursive: true, force: true }) } catch {}
-        try { parent.sendMessage(m.chat, { text: '❌ Connessione persa con il server.' }, { quoted: m }) } catch {}
-        return
       }
 
       if (connection === 'open') {
-        sub.isInit = true
-        if (!global.conns.includes(sub)) global.conns.push(sub)
-        try {
-          await parent.sendMessage(m.chat, { text: `✅ Sub-bot creato con successo! Numero: ${sub.user?.id?.split?.('@')?.[0] || 'sconosciuto'}` }, { quoted: m })
-        } catch {}
-        // cancella QR se ancora visibile
-        try {
-          if (qrMsgKey) parent.sendMessage(m.chat, { delete: qrMsgKey })
-        } catch {}
+        sock.isInit = true
+        global.conns.push(sock)
+        await conn.sendMessage(m.chat, { text: `${TOP}\n✅ SubBot connesso con successo!\n${BOTTOM}` }, { quoted: m })
       }
-    }
 
-    const cleanupInterval = setInterval(() => {
-      try {
-        if (!sub || !sub.user) {
-          try { sub?.ws?.close?.() } catch {}
-          try { sub?.ev?.removeAllListeners?.() } catch {}
-          const i = global.conns.indexOf(sub)
-          if (i >= 0) {
-            try { delete global.conns[i] } catch {}
-            global.conns.splice(i, 1)
-          }
-          clearInterval(cleanupInterval)
+      if (connection === 'close') {
+        const statusCode =
+          lastDisconnect?.error?.output?.statusCode ??
+          lastDisconnect?.error?.output?.payload?.statusCode
+
+        if (!sock.authState.creds.registered) {
+          console.log('⏳ Chiusura temporanea ignorata (SubBot non ancora registrato).')
+          return
         }
-      } catch {}
-    }, 60_000)
 
-    let coreHandler = await import('../handler.js')
-    let creloadHandler = async function (restartConn) {
-      try {
-        const fresh = await import(`../handler.js?update=${Date.now()}`).catch(() => ({}))
-        if (Object.keys(fresh || {}).length) coreHandler = fresh
-      } catch {}
-      if (restartConn) {
-        try { sub.ws.close() } catch {}
-        try { sub.ev.removeAllListeners() } catch {}
-        sub = makeWASocket(connectionOptions)
-        isInit = true
+        if (statusCode === DisconnectReason.loggedOut) {
+          if (fs.existsSync(credsPath)) fs.unlinkSync(credsPath)
+          await m.reply(`${TOP}\n❌ Sessione scaduta. Esegui di nuovo il comando.\n${BOTTOM}`)
+        } else {
+          console.log('🔄 Tentativo di riconnessione SubBot...')
+          await sleep(2000)
+          startSubBot()
+        }
       }
-      if (!isInit) {
-        try { sub.ev.off('messages.upsert', sub.handler) } catch {}
-        try { sub.ev.off('connection.update', sub.connectionUpdate) } catch {}
-        try { sub.ev.off('creds.update', sub.credsUpdate) } catch {}
-      }
-      sub.handler = coreHandler.handler.bind(sub)
-      sub.connectionUpdate = connectionUpdate.bind(sub)
-      sub.credsUpdate = saveCreds.bind(sub, true)
-      sub.ev.on('messages.upsert', sub.handler)
-      sub.ev.on('connection.update', sub.connectionUpdate)
-      sub.ev.on('creds.update', sub.credsUpdate)
-      isInit = false
-      return true
     }
 
-    await creloadHandler(false)
+    sock.ev.on('connection.update', onConnectionUpdate)
+    sock.ev.on('creds.update', saveCreds)
+    sock.ev.on('messages.upsert', async (ev) => {
+      try {
+        const mod = await import('../handler.js?update=' + Date.now())
+        if (mod?.handler) await mod.handler.call(sock, ev)
+      } catch {}
+    })
   }
 
   await startSubBot()
 }
 
-serbotHandler.command = ['serbot', 'qr', 'code']
+handler.command = CMD_NAME
+handler.tags = TAGS
+handler.help = HELP
+handler.private = PRIVATE_ONLY
 
-let byebotHandler = async (m, { conn }) => {
-  try {
-    if (global.conn.user.jid === conn.user.jid) {
-      await conn.reply(m.chat, '⚠️ Il bot principale di ChatUnityBot non può essere disattivato.', m)
-      return
-    }
-    await conn.reply(m.chat, '✅ Sub-bot di ChatUnityBot disattivato con successo.', m)
-    try { conn.ws.close() } catch {}
-  } catch (err) {
-    try { await conn.reply(m.chat, `❌ Errore: ${err.message}`, m) } catch {}
-  }
-}
-byebotHandler.command = ['byebot']
-
-let botsHandler = async (m, { conn }) => {
-  try {
-    if (!global.conns || !Array.isArray(global.conns)) global.conns = []
-    const unique = new Map()
-    global.conns.forEach(c => {
-      try {
-        if (c.user && c.ws?.socket && c.ws.socket.readyState === ws.OPEN) unique.set(c.user.jid, c)
-      } catch {}
-    })
-    const total = unique.size
-    const txt = `🤖 Sub-bots ChatUnityBot attivi: ${total}`
-    await conn.reply(m.chat, txt, m)
-  } catch (err) {
-    try { await conn.reply(m.chat, `❌ Errore: ${err.message}`, m) } catch {}
-  }
-}
-botsHandler.command = ['bots']
-
-let deleteSessionHandler = async (m, { conn }) => {
-  try {
-    const who = (m.mentionedJid && m.mentionedJid[0]) ? m.mentionedJid[0] : m.fromMe ? conn.user.jid : m.sender
-    const uniq = `${who.split('@')[0]}`
-    const folder = `${SESSIONS_DIR}/${uniq}`
-
-    if (global.conns && Array.isArray(global.conns)) {
-      const bot = global.conns.find(c => c.user?.jid?.startsWith(uniq))
-      if (bot) {
-        try { bot.ws.close() } catch {}
-        try { bot.ev.removeAllListeners() } catch {}
-        const idx = global.conns.indexOf(bot)
-        if (idx >= 0) global.conns.splice(idx, 1)
-      }
-    }
-
-    try {
-      fs.rmSync(folder, { recursive: true, force: true })
-      await conn.sendMessage(m.chat, { text: '✅ Sessione ChatUnityBot Sub eliminata con successo.' }, { quoted: m })
-    } catch (err) {
-      if (err.code === 'ENOENT') {
-        await conn.sendMessage(m.chat, { text: '⚠️ Nessuna sessione ChatUnityBot Sub trovata.' }, { quoted: m })
-      } else {
-        console.error(err)
-        await conn.sendMessage(m.chat, { text: `❌ Errore durante l’eliminazione: ${err?.message || err}` }, { quoted: m })
-      }
-    }
-  } catch (err) {
-    console.error(err)
-    try { await conn.sendMessage(m.chat, { text: `❌ Errore: ${err.message}` }, { quoted: m }) } catch {}
-  }
-}
-deleteSessionHandler.command = ['deletesession', 'delsubbot', 'logout']
-
-let setPrimaryHandler = async (m, { conn, usedPrefix, args }) => {
-  try {
-    if (!args[0] && !m.quoted && !(m.mentionedJid && m.mentionedJid.length)) {
-      return conn.reply(m.chat, `⚠️ Menziona il numero di un bot o rispondi al messaggio di un bot.\n> Esempio: *${usedPrefix}setprimary @123456789*`, m)
-    }
-
-    const users = [...new Set(global.conns.filter(c => c.user && c.ws?.socket && c.ws.socket.readyState === ws.OPEN).map(c => c))]
-    let botJid
-    let selectedBot
-
-    if (m.mentionedJid && m.mentionedJid.length > 0) {
-      botJid = m.mentionedJid[0]
-    } else if (m.quoted) {
-      botJid = m.quoted.sender
-    } else {
-      botJid = args[0].replace(/[^0-9]/g, '') + '@s.whatsapp.net'
-    }
-
-    if (botJid === conn.user.jid || botJid === global.conn.user.jid) {
-      selectedBot = conn
-    } else {
-      selectedBot = users.find(c => c.user.jid === botJid)
-    }
-
-    if (!selectedBot) {
-      return conn.reply(m.chat, `⚠️ @${botJid.split('@')[0]} non è un bot della stessa sessione, verifica i bot con *#bots*.`, m, { mentions: [botJid] })
-    }
-
-    const chatData = global.db.data.chats[m.chat] = global.db.data.chats[m.chat] || {}
-    if (chatData.primaryBot === botJid) {
-      return conn.reply(m.chat, `⚠️ @${botJid.split('@')[0]} è già il bot primario.`, m, { mentions: [botJid] })
-    }
-
-    chatData.primaryBot = botJid
-    conn.sendMessage(m.chat, { text: `✅ Il bot @${botJid.split('@')[0]} è stato impostato come primario in questo gruppo. Gli altri bot non risponderanno qui.`, mentions: [botJid] }, { quoted: m })
-  } catch (err) {
-    console.error(err)
-    try { await conn.reply(m.chat, `❌ Errore: ${err.message}`, m) } catch {}
-  }
-}
-setPrimaryHandler.command = ['setprimary']
-setPrimaryHandler.group = true
-setPrimaryHandler.admin = true
-
-export default serbotHandler
-export { byebotHandler as byebot, botsHandler as bots, deleteSessionHandler as deletesession, setPrimaryHandler as setprimary }
+export default handler
+leteSessionHandler as deletesession, setPrimaryHandler as setprimary }
