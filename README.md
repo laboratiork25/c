@@ -2,7 +2,7 @@
   <img src="https://i.ibb.co/PsmK9LGR/9ddcde5b-b8e5-4fd6-bb74-94a0eeab826c.jpg" width="400">
 </p>
 
-<h1 align="center">© ChatUnity-Bot 7.1 🤖</h1>
+<h1 align="center">© ChatUnity-Bot 7.2 🤖</h1>
 <p align="center"><strong>Un bot avanzato per WhatsApp, ricco di funzionalità e divertimento!</strong></p>
 
 <p align="center">
