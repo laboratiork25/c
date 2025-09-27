@@ -1,4 +1,4 @@
-import { WAMessageStubType } from '@whiskeysockets/baileys'
+import { WAMessageStubType } from '@realvare/based'
 import { createCanvas, loadImage, registerFont } from 'canvas'
 import { promises as fs } from 'fs'
 import path from 'path'

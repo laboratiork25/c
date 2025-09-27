@@ -1,6 +1,6 @@
 import fetch from 'node-fetch'
 import FormData from 'form-data'
-import { downloadContentFromMessage } from '@whiskeysockets/baileys'
+import { downloadContentFromMessage } from '@realvare/based'
 
 async function getMediaBuffer(message) {
     try {

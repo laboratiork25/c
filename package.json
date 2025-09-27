@@ -18,22 +18,22 @@
     "eslintfix": "eslint --fix .",
     "localize": "node scripts/localize-plugins.js"
   },
-  "homepage": "https://github.com/chatunitycenter/chatunity-bot-4",
+  "homepage": "https://github.com/chatunitycenter/chatunity-bot",
   "author": {
     "name": "chatunity"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/chatunitycenter/chatunity-bot-4.git"
+    "url": "git+https://github.com/chatunitycenter/chatunity-bot.git"
   },
   "bugs": {
-    "url": "https://github.com/chatunitycenter/chatunity-bot-4/issues"
+    "url": "https://github.com/chatunitycenter/chatunity-bot/issues"
   },
   "license": "GPL-3.0-or-later",
   "dependencies": {
     "@bochilteam/scraper": "^5.0.1",
     "@vitalets/google-translate-api": "^8.0.0",
-    "@whiskeysockets/baileys": "git+https://github.com/realvare/based",
+    "@realvare/based": "git+https://github.com/realvare/based",
     "acrcloud": "^1.4.0",
     "archiver": "^7.0.1",
     "awesome-phonenumber": "^3.4.0",

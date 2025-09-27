@@ -1,4 +1,4 @@
-import pkg from '@whiskeysockets/baileys'
+import pkg from '@realvare/based'
 const { generateWAMessageFromContent } = pkg
 
 let handler = async (m, { conn }) => {
