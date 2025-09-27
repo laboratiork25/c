@@ -17,7 +17,7 @@ const CMD_NAME = ['collegabot', 'jadibot']
 const TAGS = ['serbot']
 const HELP = ['serbot']
 const PRIVATE_ONLY = true
-const BOTNAME = 'chatunity'
+const BOTNAME = 'chatunity-bot'
 
 const TOP = '╭───────────────⟢'
 const BOTTOM = '╰────────────────⟢'
@@ -109,7 +109,7 @@ let handler = async (m, { conn, args, usedPrefix, command }) => {
       syncFullHistory: true,
       browser: wantCode
         ? ['Windows', 'Chrome', '114.0.5735.198']
-        : [`${BOTNAME} (SUB WORK)`, 'Chrome', '2.0.0'],
+        : [`${BOTNAME} (Sub Bot)`, 'Chrome', '2.0.0'],
       version,
       getMessage: async () => ({ conversation: 'Messaggio ricevuto' })
     }
@@ -137,8 +137,7 @@ let handler = async (m, { conn, args, usedPrefix, command }) => {
           await conn.sendMessage(
             m.chat,
             {
-              text:
-                `${TOP}\n🔑 CODICE DI COLLEGAMENTO:\n\n👉 ${code}\n\nUsalo subito per collegare il SubBot!\n${BOTTOM}`
+              text: `${TOP}\n🔑 CODICE DI COLLEGAMENTO:\n\n👉 ${code}\n\nUsalo subito per collegare il SubBot!\n${BOTTOM}`
             },
             { quoted: m }
           )
@@ -193,4 +192,3 @@ handler.help = HELP
 handler.private = PRIVATE_ONLY
 
 export default handler
-leteSessionHandler as deletesession, setPrimaryHandler as setprimary }
