@@ -1,6 +1,5 @@
 import { readdirSync, rmdirSync, existsSync, promises as fs } from 'fs';
 import path from 'path';
-import '../lib/language.js';
 
 const handler = async (m, { conn, usedPrefix }) => {
   if (global.conn.user.jid !== conn.user.jid) {

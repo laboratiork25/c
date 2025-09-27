@@ -1,12 +1,9 @@
+// Questo comando è stato creato da youns sotto proposta di Google Traduttore
 import fetch from 'node-fetch';
-import '../lib/language.js';
 
 var handler = async (m, { text, usedPrefix, command }) => {
-    const userId = m.sender;
-    const groupId = m.isGroup ? m.chat : null;
-    
     if (!text) {
-        await m.reply(global.t('alyaWhatDoYouWant', userId, groupId) || "Che vuoi?");
+        await m.reply("Che vuoi?");
         return;
     }
 
@@ -22,12 +19,12 @@ var handler = async (m, { text, usedPrefix, command }) => {
         if (res && res.result) {
             await m.reply(res.result);
         } else {
-            await m.reply(global.t('alyaNoValidResponse', userId, groupId) || "Non ho ricevuto una risposta valida dall'API. Riprova più tardi.");
+            await m.reply("Non ho ricevuto una risposta valida dall'API. Riprova più tardi.");
         }
     } catch (e) {
         await conn.reply(
             m.chat,
-            global.t('alyaError', userId, groupId, { command: usedPrefix + command }) || `Si è verificato un errore. Per favore, riprova più tardi.\n\n#report ${usedPrefix + command}\n\n${wm}`,
+            `Si è verificato un errore. Per favore, riprova più tardi.\n\n#report ${usedPrefix + command}\n\n${wm}`,
             m
         );
         console.error(`Errore nel comando ${usedPrefix + command}:`, e);

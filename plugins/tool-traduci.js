@@ -1,6 +1,5 @@
 import translate from '@vitalets/google-translate-api'
 import fetch from 'node-fetch'
-import '../lib/language.js';
 let handler = async (m, { args, usedPrefix, command }) => {
     let msg = `uso del comando ${usedPrefix + command} (txt)`
     if (!args || !args[0]) return conn.sendMessage(m.chat, { 
@@ -9,7 +8,7 @@ let handler = async (m, { args, usedPrefix, command }) => {
             forwardingScore: 99,
             isForwarded: true,
             forwardedNewsletterMessageInfo: {
-                newsletterJid: '120363422724720651@newsletter',
+                newsletterJid: '120363259442839354@newsletter',
                 serverMessageId: '',
                 newsletterName: 'ChatUnity'
             }
@@ -33,7 +32,7 @@ let handler = async (m, { args, usedPrefix, command }) => {
                 forwardingScore: 99,
                 isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                    newsletterJid: '120363422724720651@newsletter',
+                    newsletterJid: '120363259442839354@newsletter',
                     serverMessageId: '',
                     newsletterName: 'ChatUnity'
                 }
@@ -50,7 +49,7 @@ let handler = async (m, { args, usedPrefix, command }) => {
                     forwardingScore: 99,
                     isForwarded: true,
                     forwardedNewsletterMessageInfo: {
-                        newsletterJid: '120363422724720651@newsletter',
+                        newsletterJid: '120363259442839354@newsletter',
                         serverMessageId: '',
                         newsletterName: 'ChatUnity'
                     }
@@ -63,7 +62,7 @@ let handler = async (m, { args, usedPrefix, command }) => {
                     forwardingScore: 99,
                     isForwarded: true,
                     forwardedNewsletterMessageInfo: {
-                        newsletterJid: '120363422724720651@newsletter',
+                        newsletterJid: '120363259442839354@newsletter',
                         serverMessageId: '',
                         newsletterName: 'ChatUnity'
                     }

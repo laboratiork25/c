@@ -1,6 +1,5 @@
 import uploadImage from '../lib/uploadImage.js'
 import { sticker } from '../lib/sticker.js'
-import '../lib/language.js';
 let handler = async (m, { conn, text }) => {
 try {
 let q = m.quoted ? m.quoted : m

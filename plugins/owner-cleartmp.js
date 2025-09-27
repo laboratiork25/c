@@ -1,7 +1,6 @@
 import { tmpdir } from 'os'
 import path, { join } from 'path'
 import {
-import '../lib/language.js';
 readdirSync,
 statSync,
 unlinkSync,

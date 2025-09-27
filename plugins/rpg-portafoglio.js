@@ -7,44 +7,21 @@ let handler = async (m, { conn, usedPrefix }) => {
     let user = global.db.data.users[who]
     let name = conn.getName(who)
 
-    if (!(who in global.db.data.users)) throw '🚩 𝐢𝐥 bot 𝐧𝐨𝐧 𝐞 𝐬𝐭𝐚𝐭𝐨 𝐭𝐫𝐨𝐯𝐚𝐭𝐨 𝐧𝐞𝐥 𝐝𝐚𝐭𝐚𝐛𝐚𝐬𝐞'
+    if (!(who in global.db.data.users)) throw '🚩 𝐢𝐥 𝐛𝐭𝐨 𝐧𝐨𝐧 𝐞 𝐬𝐭𝐚𝐭𝐨 𝐭𝐫𝐨𝐯𝐚𝐭𝐨 𝐧𝐞𝐥 𝐝𝐚𝐭𝐚𝐛𝐚𝐬𝐞'
 
 
-    if (!user.limit) user.limit = 15000
+    if (!user.limit) user.limit = 0
     if (!user.bank) user.bank = 0
 
     let userbank = user.bank
     let imgUrl = 'https://i.ibb.co/4RSNsdx9/Sponge-Bob-friendship-wallet-meme-9.png'
-    let message = `
-╭─「 💰 𝐖𝐀𝐋𝐋𝐄𝐓」─
-│
-│ 👤 user: ${name}
-│ 💰 unitycoins: ${formatNumber(user.limit)} 💶
-│ 🏛️ bank: ${formatNumber(userbank)} 💳
-│
-╰───────✦───────
-    `.trim()
 
-    await conn.sendMessage(m.chat, { 
-        text: message,
-        contextInfo: {
-            forwardingScore: 99,
-            isForwarded: true,
-            forwardedNewsletterMessageInfo: {
-                newsletterJid: '120363422724720651@newsletter',
-                serverMessageId: '',
-                newsletterName: 'ChatUnity'
-            }
-        }
-    }, { quoted: m, detectLink: true });
-    return;
-  
     let txt = `
 ╭─「 💰 𝐖𝐀𝐋𝐋𝐄𝐓」─
 │
-│ 👤 user: ${name}
-│ 💰 unitycoins: ${formatNumber(user.limit)} 💶
-│ 🏛️ bank: ${formatNumber(userbank)} 💳
+│ 👤 𝐢𝐥𝐛𝐫𝐨: ${name}
+│ 💰 𝐮𝐧𝐢𝐭𝐲𝐜𝐨𝐢𝐧: ${formatNumber(user.limit)} 💶
+│ 🏛️ 𝐛𝐚𝐧𝐤: ${formatNumber(userbank)} 💳
 │
 ╰───────✦───────
     `.trim()

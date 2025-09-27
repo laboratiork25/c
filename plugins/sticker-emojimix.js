@@ -2,7 +2,6 @@ import MessageType from '@whiskeysockets/baileys'
 import fetch from 'node-fetch'
 import { sticker } from '../lib/sticker.js'
 import fs from "fs"
-import '../lib/language.js';
 
 const fetchJson = (url, options) => new Promise(async (resolve, reject) => {
     fetch(url, options)

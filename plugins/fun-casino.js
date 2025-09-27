@@ -1,12 +1,9 @@
-import '../lib/language.js';
-
 let buatall = 1;
 let cooldowns = {};
 
-let handler = async (m, { conn, args, usedPrefix, command }) => {
-    const userId = m.sender;
-    const groupId = m.isGroup ? m.chat : null;
-    
+const rcanal = "default_value"; // Sostituisci "default_value" con il valore appropriato
+
+let handler = async (m, { conn, args, usedPrefix, command, DevMode }) => {
     let user = global.db.data.users[m.sender];
     let randomaku = Math.floor(Math.random() * 101);
     let randomkamu = Math.floor(Math.random() * 55);
@@ -21,94 +18,79 @@ let handler = async (m, { conn, args, usedPrefix, command }) => {
     // Mostra i bottoni SOLO se non è stato ancora scelto un importo
     if (args.length < 1) {
         // Calcola i tagli disponibili in base ai coins dell'utente
-        const maxUC = Math.max(10, Math.floor((user.limit || 0) / 2));
+        const maxUC = Math.max(10, Math.floor(user.limit / 2));
         const tagli = [10, 50, 100, 250, 500, 1000].filter(n => n <= maxUC);
-        
         return conn.sendMessage(m.chat, {
-            text: global.t('casinoChooseBet', userId, groupId, { 
-                prefix: usedPrefix, 
-                command 
-            }),
+            text: `🚩 Inserisci la quantità di 💶 Unitycoins che vuoi scommettere contro *chatunity-bot*.\n\nEsempio:\n> *${usedPrefix + command}* 100`,
             buttons: tagli.map(n => ({
                 buttonId: `${usedPrefix + command} ${n}`,
-                buttonText: { displayText: global.t('casinoBetButton', userId, groupId, { amount: n }) },
+                buttonText: { displayText: `${n} 💶` },
                 type: 1
             }))
         }, { quoted: m });
     }
 
-    // Applica il cooldown
+    // Applica il cooldown SOLO dopo che l'utente ha scelto una quantità valida
     if (cooldowns[m.sender] && Date.now() - cooldowns[m.sender] < tiempoEspera * 1000) {
         let tiempoRestante = segundosAHMS(Math.ceil((cooldowns[m.sender] + tiempoEspera * 1000 - Date.now()) / 1000));
-        return conn.reply(m.chat, global.t('casinoCooldown', userId, groupId, { time: tiempoRestante }), m);
+        conn.reply(m.chat, `🚩 Hai già avviato una scommessa di recente, aspetta *⏱ ${tiempoRestante}* per scommettere di nuovo.`, m, rcanal);
+        return;
     }
 
     cooldowns[m.sender] = Date.now();
 
     count = count
         ? /all/i.test(count)
-            ? Math.floor((user.limit || 0) / buatall)
+            ? Math.floor(global.db.data.users[m.sender].limit / buatall)
             : parseInt(count)
         : args[0]
         ? parseInt(args[0])
         : 1;
     count = Math.max(1, count);
 
-    if ((user.limit || 0) >= count * 1) {
+    if (user.limit >= count * 1) {
         user.limit -= count * 1;
-        
         if (Aku > Kamu) {
-            // Perso
             conn.reply(
                 m.chat,
-                global.t('casinoLost', userId, groupId, {
-                    botScore: Aku,
-                    playerScore: Kamu,
-                    username,
-                    amount: formatNumber(count)
-                }),
-                m
+                `🌵 Vediamo che numeri avete!\n\n➠ *chatunity-bot*: ${Aku}\n➠ *${username}*: ${Kamu}\n\n> ${username}, *HAI PERSO* ${formatNumber(count)} 💶 Unitycoins.`,
+                m,
+                rcanal
             );
         } else if (Aku < Kamu) {
-            // Vinto
             user.limit += count * 2;
             conn.reply(
                 m.chat,
-                global.t('casinoWon', userId, groupId, {
-                    botScore: Aku,
-                    playerScore: Kamu,
-                    username,
-                    amount: formatNumber(count * 2)
-                }),
-                m
+                `🌵 Vediamo che numeri avete!\n\n➠ *chatunity-bot*: ${Aku}\n➠ *${username}*: ${Kamu}\n\n> ${username}, *HAI VINTO* ${formatNumber(count * 2)} 💶 Unitycoins.`,
+                m,
+                rcanal
             );
         } else {
-            // Pareggio
             user.limit += count * 1;
             conn.reply(
                 m.chat,
-                global.t('casinoTie', userId, groupId, {
-                    botScore: Aku,
-                    playerScore: Kamu,
-                    username,
-                    amount: formatNumber(count * 1)
-                }),
-                m
+                `🌵 Vediamo che numeri avete!\n\n➠ *chatunity-bot*: ${Aku}\n➠ *${username}*: ${Kamu}\n\n> ${username}, ottieni ${formatNumber(count * 1)} 💶 Unitycoins.`,
+                m,
+                rcanal
             );
         }
     } else {
-        conn.reply(m.chat, global.t('casinoInsufficient', userId, groupId, { 
-            amount: formatNumber(count) 
-        }), m);
+        conn.reply(m.chat, `Non hai *${formatNumber(count)} 💶 Unitycoins* da scommettere!`, m, rcanal);
     }
 };
 
 handler.help = ['scommetti <quantità>'];
 handler.tags = ['game'];
-handler.command = /^(scommetti|casinò|casino|bet|gamble|scommetti)$/i;
+handler.command = /^(scommetti|casinò|casino)$/i;
 handler.register = true;
 
+handler.fail = null;
+
 export default handler;
+
+function pickRandom(list) {
+    return list[Math.floor(Math.random() * list.length)];
+}
 
 function segundosAHMS(segundos) {
     let minuti = Math.floor(segundos / 60);

@@ -1,10 +1,4 @@
-import '../lib/language.js';
-
-// Warn handler
-let warnHandler = async (m, { conn, text, args, groupMetadata, usedPrefix, command }) => {
-  const userId = m.sender;
-  const groupId = m.isGroup ? m.chat : null;
-  
+let handler = async (m, { conn, text, args, groupMetadata, usedPrefix, command }) => {
   let war = 2 // <-- numero di warning prima del ban
 
   let who
@@ -14,20 +8,20 @@ let warnHandler = async (m, { conn, text, args, groupMetadata, usedPrefix, comma
     who = m.chat
   }
 
-  if (!who) return m.reply(global.t('warnNoMention', userId, groupId))
+  if (!who) return m.reply("❌ Devi menzionare un utente o rispondere a un suo messaggio.")
 
   // 🔒 BLOCCA AVVERTIMENTI AL BOT
   if (who === conn.user.jid) {
-    return m.reply(global.t('warnBot', userId, groupId))
+    return m.reply("🚫 Non puoi warnare il bot.")
   }
 
   if (!(who in global.db.data.users)) {
-    return m.reply(global.t('warnUserNotFound', userId, groupId))
+    return m.reply("❌ Utente non trovato nel database.")
   }
 
   let user = global.db.data.users[who]
   let warn = user.warn || 0
-  let nomeDelBot = global.db.data.nomedelbot || global.t('defaultBotName', userId, groupId)
+  let nomeDelBot = global.db.data.nomedelbot || `𝐂𝐡𝐚𝐭𝐔𝐧𝐢𝐭𝐲`
 
   const messageOptions = {
     contextInfo: {
@@ -35,9 +29,9 @@ let warnHandler = async (m, { conn, text, args, groupMetadata, usedPrefix, comma
       forwardingScore: 999,
       isForwarded: true,
       forwardedNewsletterMessageInfo: {
-        newsletterJid: '120363422724720651@newsletter',
+        newsletterJid: '120363259442839354@newsletter',
         serverMessageId: '',
-        newsletterName: global.t('newsletterName', userId, groupId, { nomeDelBot })
+        newsletterName: `${nomeDelBot}`
       }
     }
   }
@@ -45,16 +39,13 @@ let warnHandler = async (m, { conn, text, args, groupMetadata, usedPrefix, comma
   if (warn < war) {
     user.warn += 1
     await conn.sendMessage(m.chat, {
-      text: global.t('warnMessage', userId, groupId, { 
-        current: user.warn, 
-        max: war + 1 
-      }),
+      text: `⚠️ 𝐀𝐕𝐕𝐄𝐑𝐓𝐈𝐌𝐄𝐍𝐓𝐎 ${user.warn}/𝟑 (𝟑 𝐰𝐚𝐫𝐧=𝐛𝐚𝐧)`,
       ...messageOptions
     })
   } else if (warn >= war) {
     user.warn = 0
     await conn.sendMessage(m.chat, {
-      text: global.t('warnBanMessage', userId, groupId),
+      text: `⛔ 𝐔𝐓𝐄𝐍𝐓𝐄 𝐑𝐈𝐌𝐎𝐒𝐒𝐎 𝐃𝐎𝐏𝐎 3 𝐀𝐕𝐕𝐄𝐑𝐓𝐈𝐌𝐄𝐍𝐓𝐈 (𝐀𝐯𝐞𝐯𝐚 𝐫𝐨𝐭𝐭𝐨 𝐢𝐥 𝐜𝐚𝐳𝐳𝐨)`,
       ...messageOptions
     })
     await sleep(1000)
@@ -62,14 +53,14 @@ let warnHandler = async (m, { conn, text, args, groupMetadata, usedPrefix, comma
   }
 }
 
-warnHandler.help = ['warn @user']
-warnHandler.tags = ['group']
-warnHandler.command = /^(ammonisci|avvertimento|warn|warning)$/i
-warnHandler.group = true
-warnHandler.admin = true
-warnHandler.botAdmin = true
+handler.help = ['warn @user']
+handler.tags = ['group']
+handler.command = /^(ammonisci|avvertimento|warn|warning)$/i
+handler.group = true
+handler.admin = true
+handler.botAdmin = true
 
-// Aggiungi la funzione sleep mancante
-function sleep(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms))
-}
+export default handler
+
+// Funzione di attesa
+const sleep = async (ms) => new Promise(resolve => setTimeout(resolve, ms))

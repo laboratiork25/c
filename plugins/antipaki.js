@@ -1,4 +1,3 @@
-import '../lib/language.js';
 //ANTIPAKI BY CHATUNITY
 
 let handler = m => m

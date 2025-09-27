@@ -1,7 +1,5 @@
 import fs from 'fs'
 import acrcloud from 'acrcloud'
-import '../lib/language.js'
-
 let acr = new acrcloud({
   host: 'identify-eu-west-1.acrcloud.com',
   access_key: 'c33c767d683f78bd17d4bd4991955d81',
@@ -9,12 +7,10 @@ let acr = new acrcloud({
 })
 
 let handler = async (m) => {
-  const userId = m.sender;
-  const groupId = m.isGroup ? m.chat : null;
   let q = m.quoted ? m.quoted : m
   let mime = (q.msg || q).mimetype || ''
   if (/audio|video/.test(mime)) {
-    if ((q.msg || q).seconds > 20) return m.reply(global.t('shazamFileTooLarge', userId, groupId) || '╯⊱⚠️⊱ *ATTENZIONE | WARNING* ⊱⚠️⊱╮\n\nIl file che hai caricato è troppo grande, ti consigliamo di tagliare il file in un frammento più piccolo. 10-20 secondi di audio sono sufficienti per l\'identificazione')
+    if ((q.msg || q).seconds > 20) return m.reply('╰⊱⚠️⊱ *ATTENZIONE | WARNING* ⊱⚠️⊱╮\n\nIl file che hai caricato è troppo grande, ti consigliamo di tagliare il file in un frammento più piccolo. 10-20 secondi di audio sono sufficienti per l\'identificazione')
     await conn.reply(m.chat, wait, m)
     let media = await q.download()
     let ext = mime.split('/')[1]
@@ -24,13 +20,13 @@ let handler = async (m) => {
     if (code !== 0) throw msg
     let { title, artists, album, genres, release_date } = res.metadata.music[0]
     let txt = `
-${global.t('shazamSearchResult', userId, groupId) || 'RISULTATO DELLA RICERCA'}
+RISULTATO DELLA RICERCA
 
-• 📌 ${global.t('shazamTitle', userId, groupId) || 'TITOLO'}: ${title}
-• 👨‍🎤 ${global.t('shazamArtist', userId, groupId) || 'ARTISTA'}: ${artists !== undefined ? artists.map(v => v.name).join(', ') : global.t('shazamNotFound', userId, groupId) || 'Non trovato'}
-• 💾 ${global.t('shazamAlbum', userId, groupId) || 'ALBUM'}: ${album.name || global.t('shazamNotFound', userId, groupId) || 'Non trovato'}
-• 🌐 ${global.t('shazamGenre', userId, groupId) || 'GENERE'}: ${genres !== undefined ? genres.map(v => v.name).join(', ') : global.t('shazamNotFound', userId, groupId) || 'Non trovato'}
-• 📆 ${global.t('shazamReleaseDate', userId, groupId) || 'DATA DI PUBBLICAZIONE'}: ${release_date || global.t('shazamNotFound', userId, groupId) || 'Non trovato'}
+• 📌 TITOLO: ${title}
+• 👨‍🎤 ARTISTA: ${artists !== undefined ? artists.map(v => v.name).join(', ') : 'Non trovato'}
+• 💾 ALBUM: ${album.name || 'Non trovato'}
+• 🌐 GENERE: ${genres !== undefined ? genres.map(v => v.name).join(', ') : 'Non trovato'}
+• 📆 DATA DI PUBBLICAZIONE: ${release_date || 'Non trovato'}
 `.trim()
     fs.unlinkSync(`./tmp/${m.sender}.${ext}`)
 
@@ -39,7 +35,7 @@ ${global.t('shazamSearchResult', userId, groupId) || 'RISULTATO DELLA RICERCA'}
         forwardingScore: 1,
         isForwarded: true,
         forwardedNewsletterMessageInfo: {
-          newsletterJid: '120363422724720651@newsletter',
+          newsletterJid: '120363259442839354@newsletter',
           serverMessageId: '',
           newsletterName: `ChatUnity`
         },
@@ -48,7 +44,7 @@ ${global.t('shazamSearchResult', userId, groupId) || 'RISULTATO DELLA RICERCA'}
 
     // Invia il messaggio con inoltro
     m.reply(txt, null, { ...messageOptions })
-  } else throw global.t('shazamWrongUsage', userId, groupId) || '╯⊱❗️⊱ *USO ERRATO* ⊱❗️⊱╮\n\nRISPONDI A UN AUDIO O VIDEO'
+  } else throw '╰⊱❗️⊱ *USO ERRATO* ⊱❗️⊱╮\n\nRISPONDI A UN AUDIO O VIDEO'
 }
 handler.command = /^shazam$/i
 export default handler

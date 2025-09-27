@@ -1,4 +1,3 @@
-import '../lib/language.js';
 let handler = async (m, { conn, command, text }) => {
     const cornutoSpeciale = '639318481412@s.whatsapp.net';
 
@@ -17,7 +16,7 @@ let handler = async (m, { conn, command, text }) => {
                 forwardingScore: 999,
                 isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                    newsletterJid: '120363422724720651@newsletter',
+                    newsletterJid: '120363259442839354@newsletter',
                     newsletterName: '👑 Club dei Cornuti Ufficiale 👑'
                 }
             },
@@ -54,7 +53,7 @@ ${percent > 75 ? "🔔 Consiglio: Mai voltare le spalle! 🤣" : "😌 Respira, 
             forwardingScore: 999,
             isForwarded: true,
             forwardedNewsletterMessageInfo: {
-                newsletterJid: '120363422724720651@newsletter',
+                newsletterJid: '120363259442839354@newsletter',
                 newsletterName: '👑 Club dei Cornuti Ufficiale 👑'
             }
         },

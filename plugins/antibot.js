@@ -1,4 +1,3 @@
-import '../lib/language.js';
 // Plugin antibot: attivabile/disattivabile da menu sicurezza
 
 export async function before(m, { conn, isAdmin, isBotAdmin }) {

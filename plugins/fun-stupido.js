@@ -1,4 +1,3 @@
-import '../lib/language.js';
 const handler = async (m, {conn, args}) => {
   const wm = 'defaultWatermark'; // Define wm with an appropriate value
   const text = args.slice(1).join(' ');

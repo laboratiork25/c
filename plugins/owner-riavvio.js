@@ -1,4 +1,3 @@
-import '../lib/language.js';
 const handler = async (m, { conn, isROwner, text }) => {
     const datas = global
     

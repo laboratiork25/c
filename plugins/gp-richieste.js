@@ -1,4 +1,3 @@
-import '../lib/language.js';
 let richiestaInAttesa = {};
 
 let handler = async (m, { conn, isAdmin, isBotAdmin, args, usedPrefix, command }) => {

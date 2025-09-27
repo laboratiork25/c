@@ -1,4 +1,3 @@
-import '../lib/language.js';
 let handler = async (m, { conn, args, command }) => {
 await m.reply('bye bye') 
 await  conn.groupLeave(m.chat)}

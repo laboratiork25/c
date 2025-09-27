@@ -1,7 +1,6 @@
 import axios from "axios"
 import fetch from "node-fetch"
 import cheerio from "cheerio"
-import '../lib/language.js';
 async function wikipedia(querry) {
 try {
 const link = await axios.get(`https://it.wikipedia.org/wiki/${querry}`)

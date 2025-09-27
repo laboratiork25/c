@@ -1,4 +1,3 @@
-import '../lib/language.js';
 
 let handler = async (m, { conn, command, text }) => {
 if (!text) throw `Tagga chi desideri stuprare 🥵🤤`

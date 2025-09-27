@@ -1,5 +1,4 @@
 import pkg from 'canvas';
-import '../lib/language.js';
 const { createCanvas } = pkg;
 
 const games = {};

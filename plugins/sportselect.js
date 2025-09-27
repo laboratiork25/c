@@ -1,4 +1,3 @@
-import '../lib/language.js';
 let handler = async (m, { args }) => {
   const sport = args[0]?.toLowerCase();
   const valid = ['calcio', 'basket', 'tennis', 'formula1', 'mma', 'ciclismo'];

@@ -1,11 +1,8 @@
-import '../lib/language.js';
-
 let cooldowns = {};
 
+const rcanal = "default_value"; // Replace "default_value" with the appropriate value
+
 let handler = async (m, { conn, text, usedPrefix, command }) => {
-    const userId = m.sender;
-    const groupId = m.isGroup ? m.chat : null;
-    
     let punti = 300;
     let tempoAttesa = 5 * 1000;
     let user = global.db.data.users[m.sender];
@@ -14,8 +11,9 @@ let handler = async (m, { conn, text, usedPrefix, command }) => {
         let tempoRestante = secondiAHMS(Math.ceil((cooldowns[m.sender] + tempoAttesa - Date.now()) / 1000));
         return conn.reply(
             m.chat,
-            global.t('pptCooldown', userId, groupId, { time: tempoRestante }),
-            m
+            `[ ✰ ] Hai già avviato una scommessa di recente, aspetta *⏱ ${tempoRestante}* per giocare di nuovo.`,
+            m,
+            rcanal
         );
     }
 
@@ -23,11 +21,11 @@ let handler = async (m, { conn, text, usedPrefix, command }) => {
 
     if (!text) {
         return conn.sendMessage(m.chat, {
-            text: global.t('pptChooseOption', userId, groupId),
+            text: `[ ✰ ] Scegli un'opzione per iniziare il gioco:`,
             buttons: [
-                { buttonId: `${usedPrefix + command} sasso`, buttonText: { displayText: global.t('pptRock', userId, groupId) }, type: 1 },
-                { buttonId: `${usedPrefix + command} carta`, buttonText: { displayText: global.t('pptPaper', userId, groupId) }, type: 1 },
-                { buttonId: `${usedPrefix + command} forbice`, buttonText: { displayText: global.t('pptScissors', userId, groupId) }, type: 1 }
+                { buttonId: `${usedPrefix + command} sasso`, buttonText: { displayText: "🪨 Sasso" }, type: 1 },
+                { buttonId: `${usedPrefix + command} carta`, buttonText: { displayText: "📄 Carta" }, type: 1 },
+                { buttonId: `${usedPrefix + command} forbice`, buttonText: { displayText: "✂️ Forbice" }, type: 1 }
             ]
         }, { quoted: m });
     }
@@ -37,11 +35,11 @@ let handler = async (m, { conn, text, usedPrefix, command }) => {
 
     if (!opzioni.includes(text)) {
         return conn.sendMessage(m.chat, {
-            text: global.t('pptInvalidOption', userId, groupId),
+            text: `[ ✰ ] Scegli un'opzione valida (sasso/carta/forbice) per iniziare il gioco:`,
             buttons: [
-                { buttonId: `${usedPrefix + command} sasso`, buttonText: { displayText: global.t('pptRock', userId, groupId) }, type: 1 },
-                { buttonId: `${usedPrefix + command} carta`, buttonText: { displayText: global.t('pptPaper', userId, groupId) }, type: 1 },
-                { buttonId: `${usedPrefix + command} forbice`, buttonText: { displayText: global.t('pptScissors', userId, groupId) }, type: 1 }
+                { buttonId: `${usedPrefix + command} sasso`, buttonText: { displayText: "🪨 Sasso" }, type: 1 },
+                { buttonId: `${usedPrefix + command} carta`, buttonText: { displayText: "📄 Carta" }, type: 1 },
+                { buttonId: `${usedPrefix + command} forbice`, buttonText: { displayText: "✂️ Forbice" }, type: 1 }
             ]
         }, { quoted: m });
     }
@@ -50,38 +48,33 @@ let handler = async (m, { conn, text, usedPrefix, command }) => {
     let puntiOttenuti = 0;
 
     if (text === astro) {
-        risultato = global.t('pptTie', userId, groupId, { points: 100 });
+        risultato = `[ ✿ ] È stato un pareggio!! Ricevi *100 💶 Unitycoins* come ricompensa.`;
         puntiOttenuti = 100;
     } else if (
         (text === 'sasso' && astro === 'forbice') ||
         (text === 'forbice' && astro === 'carta') ||
         (text === 'carta' && astro === 'sasso')
     ) {
-        risultato = global.t('pptWin', userId, groupId, { points: punti });
+        risultato = `[ ✰ ] HAI VINTO!! Hai appena guadagnato *300 💶 Unitycoins*.`;
         puntiOttenuti = punti;
     } else {
-        risultato = global.t('pptLose', userId, groupId, { points: punti });
+        risultato = `[ ✿ ] HAI PERSO!! Hai appena perso *300 💶 Unitycoins*.`;
         puntiOttenuti = -punti;
     }
 
-    user.limit = (user.limit || 0) + puntiOttenuti;
-    
+    user.limit += puntiOttenuti;
     conn.sendMessage(m.chat, {
-        text: global.t('pptResult', userId, groupId, {
-            userChoice: text,
-            botChoice: astro,
-            result: risultato,
-            currentBalance: user.limit || 0
-        }),
+        text: risultato,
         buttons: [
-            { buttonId: `${usedPrefix + command}`, buttonText: { displayText: global.t('pptRetry', userId, groupId) }, type: 1 }
+            { buttonId: `${usedPrefix + command}`, buttonText: { displayText: "🔄 Riprova" }, type: 1 }
         ]
     }, { quoted: m });
 };
 
 handler.help = ['ppt'];
 handler.tags = ['game'];
-handler.command = /^(scommessa|ppt|piedra|papel|tijera|rps|rockpaperscissors)$/i;
+handler.command = ['scommessa'];
+//handler.group = true
 handler.register = true;
 
 export default handler;

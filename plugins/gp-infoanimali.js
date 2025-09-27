@@ -1,5 +1,4 @@
 import axios from 'axios';
-import '../lib/language.js';
 
 const infoAnimalePlugin = async (m, { conn, text, usedPrefix, command }) => {
   if (!text) {

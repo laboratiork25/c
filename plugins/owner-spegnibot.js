@@ -1,5 +1,4 @@
 import { spawn } from 'child_process';
-import '../lib/language.js';
 
 let handler = async (m, { conn, isROwner, text }) => {
     if (!process.send) return m.react('✖️');

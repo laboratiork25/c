@@ -1,7 +1,6 @@
 //Codice di editfile.js
 
 import fs from 'fs';
-import '../lib/language.js';
 
 let handler = async (message, { text, usedPrefix, command }) => {
   if (!text) throw '𝐈𝐧𝐬𝐞𝐫𝐢𝐬𝐜𝐢 𝐢𝐥 𝐩𝐚𝐭𝐡 𝐝𝐞𝐥 𝐟𝐢𝐥𝐞 𝐝𝐚 𝐞𝐝𝐢𝐭𝐚𝐫𝐞';

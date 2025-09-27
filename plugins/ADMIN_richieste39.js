@@ -1,5 +1,3 @@
-import '../lib/language.js';
-
 setInterval(async () => {
   let chats = global.db.data.chats
   for (let chatId in chats) {
@@ -22,25 +20,22 @@ setInterval(async () => {
 }, 1000)
 
 const handler = async (m, { conn, isAdmin, isBotAdmin, isOwner, command }) => {
-  const userId = m.sender;
-  const groupId = m.isGroup ? m.chat : null;
-  
   if (!(isAdmin || isOwner)) {
-    throw global.t('adminOnlyCommand', userId, groupId) || '*Solo gli admin possono usare questo comando*'
+    throw '*Solo gli admin possono usare questo comando*'
   }
   
   if (!isBotAdmin) {
-    throw global.t('botAdminRequired', userId, groupId) || '*Il bot deve essere admin per usare questa funzione*'
+    throw '*Il bot deve essere admin per usare questa funzione*'
   }
 
   let chat = global.db.data.chats[m.chat]
   
   if (chat.accetta39) {
     chat.accetta39 = false
-    await m.reply(global.t('italianNumbersDisabled', userId, groupId) || '*❌ Accettazione automatica numeri italiani disattivata*')
+    await m.reply('*❌ Accettazione automatica numeri italiani disattivata*')
   } else {
     chat.accetta39 = true
-    await m.reply(global.t('italianNumbersEnabled', userId, groupId) || '*✅ Accettazione automatica numeri italiani attivata*\n\nI numeri italiani (39) verranno accettati automaticamente, gli altri rifiutati')
+    await m.reply('*✅ Accettazione automatica numeri italiani attivata*\n\nI numeri italiani (39) verranno accettati automaticamente, gli altri rifiutati')
   }
 }
 

@@ -1,5 +1,4 @@
 import axios from 'axios';
-import '../lib/language.js';
 
 // Sistema comando diretto (compatibile con handler.js)
 let handler = async (m, { conn, args }) => {

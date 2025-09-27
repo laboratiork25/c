@@ -1,11 +1,8 @@
 import fetch from 'node-fetch';
-import '../lib/language.js';
 
 var handler = async (m, { text, usedPrefix, command }) => {
-    const userId = m.sender;
-    const groupId = m.isGroup ? m.chat : null;
     if (!text) {
-        await m.reply(global.t('supportGreeting', userId, groupId) || "Ciao! sono l'assistente IA di chatunity-bot come posso aiutarti oggi?");
+        await m.reply("Ciao! sono l'assistente IA di chatunity-bot come posso aiutarti oggi?");
         return;
     }
 
@@ -41,15 +38,15 @@ Se non sai rispondere a una domanda, rispondi cortesemente:
         if (res && res.result) {
             await m.reply(res.result);
         } else {
-            await m.reply(global.t('supportNoResponse', userId, groupId) || "Non ho ricevuto una risposta valida dall'API. Riprova più tardi.");
+            await m.reply("Non ho ricevuto una risposta valida dall'API. Riprova più tardi.");
         }
     } catch (e) {
         await conn.reply(
             m.chat,
-            global.t('supportError', userId, groupId) || `Si è verificato un errore. Per favore, riprova più tardi.\n\n#report ${usedPrefix + command}\n\n${wm}`,
+            `Si è verificato un errore. Per favore, riprova più tardi.\n\n#report ${usedPrefix + command}\n\n${wm}`,
             m
         );
-        console.error(global.t('supportConsoleError', userId, groupId) || `Errore nel comando ${usedPrefix + command}:`, e);
+        console.error(`Errore nel comando ${usedPrefix + command}:`, e);
     }
 };
 

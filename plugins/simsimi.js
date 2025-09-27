@@ -1,5 +1,4 @@
 import fetch from 'node-fetch'
-import '../lib/language.js';
 let handler = m => m
 
 handler.before = async (m) => {

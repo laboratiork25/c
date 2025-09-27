@@ -1,36 +1,36 @@
-import '../lib/language.js';
-
 let handler = async (m, { conn, text, usedPrefix, command }) => {
-    const userId = m.sender;
-    const groupId = m.isGroup ? m.chat : null;
-    
     // Verifica del messaggio di report
-    if (!text) return conn.reply(m.chat, global.t('reportNoText', userId, groupId), m)
-    if (text.length < 10) return conn.reply(m.chat, global.t('reportTooShort', userId, groupId), m)
-    if (text.length > 1000) return conn.reply(m.chat, global.t('reportTooLong', userId, groupId), m)
+    if (!text) return conn.reply(m.chat, '⚠ *Inserisci il comando che vuoi segnalare.*', m)
+    if (text.length < 10) return conn.reply(m.chat, '⚠️ *Descrivi meglio il problema (minimo 10 caratteri).*', m)
+    if (text.length > 1000) return conn.reply(m.chat, '⚠️ *Lunghezza massima consentita: 1000 caratteri.*', m)
     
     // Formattazione del report
-    const reportText = global.t('reportFormat', userId, groupId, {
-        sender: m.sender.split`@`[0],
-        pushName: m.pushName || global.t('anonymous', userId, groupId),
-        text: text
-    })
+    const reportText = `*❌️ \`S E G N A L A Z I O N E\` ❌️*
+
+📱 Numero:
+• Wa.me/${m.sender.split`@`[0]}
+
+👤 Utente: 
+• ${m.pushName || 'Anonimo'}
+
+📝 Messaggio:
+• ${text}`
 
     try {
         // Invia al proprietario
         await conn.reply(global.owner[0][0] + '@s.whatsapp.net', 
-            m.quoted ? reportText + '\n\n' + global.t('quotedMessage', userId, groupId) + m.quoted.text : reportText, 
+            m.quoted ? reportText + '\n\n📎 Citazione:\n' + m.quoted.text : reportText, 
             m, 
             { mentions: conn.parseMention(reportText) }
         )
 
         // Invia al canale
         await conn.sendMessage(global.channelid, { 
-            text: m.quoted ? reportText + '\n\n' + global.t('quotedMessage', userId, groupId) + m.quoted.text : reportText, 
+            text: m.quoted ? reportText + '\n\n📎 Citazione:\n' + m.quoted.text : reportText, 
             contextInfo: {
                 externalAdReply: {
-                    title: global.t('reportAdTitle', userId, groupId),
-                    body: global.t('reportAdBody', userId, groupId),
+                    title: "⚠️ SEGNALAZIONE BUG ⚠️",
+                    body: 'Nuova segnalazione ricevuta',
                     thumbnailUrl: fotoperfil,
                     sourceUrl: redes,
                     mediaType: 1,
@@ -41,16 +41,16 @@ let handler = async (m, { conn, text, usedPrefix, command }) => {
         }, { quoted: null })
 
         // Conferma all'utente
-        await m.reply(global.t('reportSuccess', userId, groupId))
+        await m.reply('✅ *La tua segnalazione è stata inviata allo sviluppatore.*\n_⚠ Segnalazioni false possono comportare restrizioni._')
         
     } catch (error) {
-        console.error(global.t('reportError', userId, groupId), error)
-        await m.reply(global.t('reportSuccess', userId, groupId))
+        console.error('Errore nella segnalazione:', error)
+        await m.reply('✅ *La tua segnalazione è stata inviata allo sviluppatore.*\n_⚠ Segnalazioni false possono comportare restrizioni._')
     }
 }
 
 handler.help = ['segnala']
 handler.tags = ['info']
-handler.command = ['segnala', 'report', 'bug', 'errore', 'reporta', 'feedback']
+handler.command = ['segnala', 'report', 'bug', 'errore', 'reporta']
 
 export default handler

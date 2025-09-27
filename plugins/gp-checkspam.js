@@ -1,36 +1,24 @@
 import fetch from "node-fetch";
-import '../lib/language.js';
 
 let handler = async (m, { conn, args }) => {
-    const userId = m.sender;
-    const groupId = m.chat;
-    
-    if (!args[0]) return m.reply(global.t('checkscamNoSite', userId, groupId));
+    if (!args[0]) return m.reply("❌ *Inserisci un sito!*\n📌 _Esempio:_ *.checkscam www.sito.com*");
 
     let sito = args[0].replace(/https?:\/\//, "").replace("www.", "").split("/")[0];
 
     try {
-        let googleResponse = await fetch(`https://transparencyreport.google.com/safe-browsing/search?url=${sito}`);
-        let isScam = googleResponse.status !== 200;
-
-        let messaggio = global.t('checkscamResult', userId, groupId, {
-            site: sito,
-            isScam: isScam,
-            scamUrl: `https://www.scamadviser.com/check-website/${sito}`
-        });
-
-        await conn.sendMessage(m.chat, { text: messaggio }, { quoted: m });
-
+        let response = await fetch(`https://transparencyreport.google.com/safe-browsing/search?url=${sito}`);
+        let isScam = response.status !== 200;
+        
+        let msg = `🔍 *Dominio:* ${sito}\n${isScam ? "⚠️ *RISCHIO SCAM!* ❌" : "✅ *Sito Sicuro!*"}\n\n🔗 [Verifica su ScamAdviser](https://www.scamadviser.com/check-website/${sito})`;
+        
+        await conn.sendMessage(m.chat, { text: msg }, { quoted: m });
     } catch (err) {
-        console.error(err);
-        m.reply(global.t('checkscamError', userId, groupId));
+        m.reply("❌ *Errore! Riprova più tardi.*");
     }
 };
 
-handler.command = ["checkscam", "checksite", "scamcheck"];
+handler.command = ["checkscam"];
 handler.category = "security";
-handler.desc = "Controlla se un sito è scam o sicuro 🔍";
-handler.help = ['checkscam <sito>'];
-handler.tags = ['tools', 'security'];
+handler.desc = "Controlla se un sito è scam 🔍";
 
 export default handler;

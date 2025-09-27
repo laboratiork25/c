@@ -1,4 +1,3 @@
-import '../lib/language.js';
 let handler = async (m) => {
     let funzionitotali = Object.values(global.plugins).filter(v => v.command).length;
     let num1 = ['𝟏', '𝟐', '𝟑', '𝟒', '𝟓', '𝟔', '𝟕', '𝟖', '𝟗'];

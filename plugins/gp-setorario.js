@@ -2,7 +2,6 @@
 
 import fs from 'fs';
 import path from 'path';
-import '../lib/language.js';
 
 // Percorso del file di persistenza
 const SCHEDULE_FILE = path.join(process.cwd(), 'group_schedule.json');

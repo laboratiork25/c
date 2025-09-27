@@ -1,5 +1,4 @@
 import axios from 'axios';
-import '../lib/language.js';
 
 let handler = async (m, { conn, text, usedPrefix, command }) => {
   const [courier, tracking] = text.split(' ');

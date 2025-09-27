@@ -1,48 +1,23 @@
-import '../lib/language.js';
 let handler = async (m, {
   conn, groupMetadata
-}) => {
+  }) => {
   if (!m.isGroup)
-    throw global.t('zizzania_group_only', m.sender)
-  
+  throw ''
   let gruppi = global.db.data.chats[m.chat]
   if (gruppi.spacobot === false)
-    throw global.t('zizzania_disabled', m.sender)
-  
+  throw ''
   let toM = a => '@' + a.split('@')[0]
   let ps = groupMetadata.participants.map(v => v.id)
   let a = ps.getRandom()
   let b
   do b = ps.getRandom()
   while (b === a)
-  
-  const randomPhrase = pickRandom([
-    global.t('zizzania_1'),
-    global.t('zizzania_2'),
-    global.t('zizzania_3'),
-    global.t('zizzania_4'),
-    global.t('zizzania_5'),
-    global.t('zizzania_6'),
-    global.t('zizzania_7'),
-    global.t('zizzania_8'),
-    global.t('zizzania_9'),
-    global.t('zizzania_10'),
-    global.t('zizzania_11'),
-    global.t('zizzania_12'),
-    global.t('zizzania_13'),
-    global.t('zizzania_14'),
-    global.t('zizzania_15')
-  ])
-  
-  conn.reply(m.chat, `${toM(a)} ${randomPhrase} ${toM(b)}`, null, {
-    mentions: [a, b]
-  })
-}
-
-handler.customPrefix = /^\.zizzania$/i
-handler.command = new RegExp
-export default handler
-
-function pickRandom(list) {
+  conn.reply(m.chat, `${toM(a)} ${pickRandom(['vorrebbe leccare i capezzoli di','adora annussare le scoreggie di','vorrebbe disperatamente ballare nudx con','sta notte ha sognato di fare sesso con','fa sesso di nascosto con il cane di','è follemente innamorato della nonna di','ha messo incinta la madre di','passa la notte ad osservare dormire','durante le lezioni scolastiche ha fantasie sessuali su','è la crush di','è la puttana personale di','succhia di nascosto il cazzo di','lecca di notte le orecchie di','piace masturbarsi sulle foto di','ha scopato 9 mesi prima che nascesse con la madre di'])} ${toM(b)}`, null, {
+  mentions: [a, b]
+  })}
+  handler.customPrefix = /^\.zizzania$/i
+  handler.command = new RegExp
+  export default handler
+  function pickRandom(list) {
   return list[Math.floor(Math.random() * list.length)]
-}
+  }

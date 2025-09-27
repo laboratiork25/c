@@ -1,6 +1,5 @@
 import { join } from 'path';
 import { readdirSync, statSync, readFileSync } from 'fs';
-import '../lib/language.js';
 
 const toBold = (str) => {
     const boldChars = {

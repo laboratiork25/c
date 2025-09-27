@@ -1,4 +1,3 @@
-import '../lib/language.js';
 let handler = async (m, { conn, isOwner, text }) => {
     if (!isOwner) return m.reply("❌ Solo l'owner può usare questo comando!");
 

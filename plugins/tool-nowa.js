@@ -1,4 +1,3 @@
-import '../lib/language.js';
 
 let handler = async (m, { conn, text, usedPrefix, command }) => {
 let regex = /x/g

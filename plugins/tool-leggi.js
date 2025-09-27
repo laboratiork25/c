@@ -1,7 +1,6 @@
 
 import fetch from 'node-fetch';
 import {webp2png} from '../lib/webp2mp4.js';
-import '../lib/language.js';
 
 const handler = async (m, {conn}) => {
   const q = m.quoted ? m.quoted : m;

@@ -1,5 +1,4 @@
 import fetch from 'node-fetch'
-import '../lib/language.js';
 
 const regex = /(?:https|git)(?::\/\/|@)github\.com[\/:]([^\/:]+)\/(.+)/i
 var handler = async (m, { args, usedPrefix, command }) => {

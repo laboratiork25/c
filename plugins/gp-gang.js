@@ -1,17 +1,11 @@
-import '../lib/language.js';
 
 let handler = async (m, { conn, text, args, usedPrefix, command }) => {
-    const userId = m.sender;
-    const groupId = m.isGroup ? m.chat : null;
-    
     const gangData = global.db.data.gang = global.db.data.gang || {};
     const gangRequests = global.db.data.gangRequests = global.db.data.gangRequests || {};
     const users = global.db.data.users;
-
-    // 🎯 SISTEMA ACCETTA/RIFIUTA
-    if (command === 'accetta' || command === 'rifiuta') {
+if (command === 'accetta' || command === 'rifiuta') {
         const req = gangRequests[m.sender];
-        if (!req) return m.reply(global.t('noPendingRequest', userId, groupId));
+        if (!req) return;
 
         clearTimeout(req.timeout);
         const g = gangData[req.gangId];
@@ -21,27 +15,12 @@ let handler = async (m, { conn, text, args, usedPrefix, command }) => {
             users[m.sender].gang = { id: req.gangId, role: 'member' };
 
             await conn.sendMessage(m.chat, {
-                text: global.t('gangJoinSuccess', userId, groupId, {
-                    user: m.sender.split('@')[0],
-                    emoji: g.emoji,
-                    name: g.name,
-                    count: g.members.length
-                }),
-                mentions: [m.sender],
-                contextInfo: {
-                    externalAdReply: {
-                        title: global.t('gangWelcomeTitle', userId, groupId),
-                        body: global.t('gangWelcomeBody', userId, groupId, { name: g.name }),
-                        thumbnailUrl: 'https://i.imgur.com/4Q7W7aA.png',
-                        mediaType: 1
-                    }
-                }
+                text: `🎊 @${m.sender.split('@')[0]} è entrato nella gang *${g.emoji} ${g.name} ${g.emoji}*! Ora ci sono ${g.members.length} membri.`,
+                mentions: [m.sender]
             });
         } else {
             await conn.sendMessage(m.chat, {
-                text: global.t('gangReject', userId, groupId, {
-                    user: m.sender.split('@')[0]
-                }),
+                text: `💢 @${m.sender.split('@')[0]} ha rifiutato l'invito nella gang.`,
                 mentions: [m.sender]
             });
         }
@@ -50,152 +29,113 @@ let handler = async (m, { conn, text, args, usedPrefix, command }) => {
         return;
     }
 
-    // 🏴 CREA GANG
-    if (command === 'creagang') {
-        const user = users[m.sender];
-        if (user.gang) {
-            return m.reply(global.t('alreadyInGang', userId, groupId));
-        }
-
-        if (args.length < 2) {
-            return m.reply(global.t('createGangFormat', userId, groupId, { prefix: usedPrefix }));
-        }
-
-        const name = args.slice(0, -1).join(' ');
-        const emoji = args[args.length - 1];
-
-        if (name.length > 20) {
-            return m.reply(global.t('gangNameTooLong', userId, groupId));
-        }
-
-        const gangId = name.toLowerCase().replace(/\s+/g, '_');
-        if (gangData[gangId]) {
-            return m.reply(global.t('gangExists', userId, groupId));
-        }
-
-        // 🎲 Assegna un colore casuale alla gang
-        const gangColors = ['🔴', '🔵', '🟢', '🟡', '🟣', '🟠', '⚫', '⚪'];
-        const randomColor = gangColors[Math.floor(Math.random() * gangColors.length)];
-
-        gangData[gangId] = {
-            id: gangId,
-            name,
-            emoji,
-            color: randomColor,
-            boss: m.sender,
-            members: [m.sender],
-            created: Date.now(),
-            level: 1,
-            exp: 0
-        };
-
-        user.gang = {
-            id: gangId,
-            role: 'boss',
-            joinDate: Date.now()
-        };
-
-        return m.reply(global.t('gangCreated', userId, groupId, {
-            emoji,
-            name,
-            color: randomColor,
-            prefix: usedPrefix
-        }));
+if (command === 'creagang') {
+    const user = users[m.sender];
+    if (user.gang) {
+        return m.reply('Fai già parte di una gang. Lascia la tua gang prima di crearne una nuova.');
     }
 
-    // 🚪 LASCIA GANG
-    if (command === 'lasciagang') {
-        const user = users[m.sender];
-        if (!user.gang) {
-            return m.reply(global.t('notInGang', userId, groupId));
-        }
-
-        const gangId = user.gang.id;
-        const gang = gangData[gangId];
-
-        if (user.gang.role === 'boss') {
-            return m.reply(global.t('bossCannotLeave', userId, groupId));
-        }
-
-        gang.members = gang.members.filter(jid => jid !== m.sender);
-        delete users[m.sender].gang;
-
-        return m.reply(global.t('gangLeft', userId, groupId, {
-            emoji: gang.emoji,
-            name: gang.name
-        }));
+    if (args.length < 2) {
+        return m.reply(`Formato errato. Usa: *${usedPrefix}creagang [nome] [emoji]*\nEsempio: *${usedPrefix}creagang Pirati ☠️*`);
     }
 
-    // 📩 INVITA IN GANG
+    const name = args.slice(0, -1).join(' ');
+    const emoji = args[args.length - 1];
+
+    const gangId = name.toLowerCase().replace(/\s+/g, '_');
+    if (gangData[gangId]) {
+        return m.reply('Esiste già una gang con questo nome.');
+    }
+
+    gangData[gangId] = {
+        id: gangId,
+        name,
+        emoji,
+        boss: m.sender,
+        members: [m.sender]
+    };
+
+    user.gang = {
+        id: gangId,
+        role: 'boss'
+    };
+
+    return m.reply(`✅ Hai creato la gang *${emoji} ${name} ${emoji}*! Ora sei il *boss*. Usa *${usedPrefix}invitogang @user* per invitare altri membri.`);
+}
+
+if (command === 'lasciagang') {
+    const user = users[m.sender];
+    if (!user.gang) {
+        return m.reply('Non fai parte di nessuna gang.');
+    }
+
+    const gangId = user.gang.id;
+    const gang = gangData[gangId];
+
+    // Se l'utente è il boss
+    if (user.gang.role === 'boss') {
+        return m.reply('Sei il boss della gang. Se vuoi sciogliere la gang, usa il comando apposito (es. *lasciagang*).');
+    }
+
+    // Rimuovi membro dalla gang
+    gang.members = gang.members.filter(jid => jid !== m.sender);
+    delete users[m.sender].gang;
+
+    return m.reply(`👋 Hai lasciato la gang *${gang.emoji} ${gang.name} ${gang.emoji}*.`);
+}
+
     if (command === 'invitogang') {
         const user = users[m.sender];
         if (!user.gang) {
-            return m.reply(global.t('notInGang', userId, groupId));
+            return m.reply('Non fai parte di nessuna gang.');
         }
 
         const gangId = user.gang.id;
         const gangInfo = gangData[gangId];
 
         if (user.gang.role !== 'boss') {
-            return m.reply(global.t('onlyBossCanInvite', userId, groupId));
+            return m.reply('Solo il boss può invitare nuovi membri.');
         }
 
         if (!m.mentionedJid || m.mentionedJid.length === 0) {
-            return m.reply(global.t('mentionUser', userId, groupId));
+            return m.reply('Tagga un utente da invitare.');
         }
 
         const mention = m.mentionedJid[0];
         if (users[mention]?.gang) {
-            return m.reply(global.t('userAlreadyInGang', userId, groupId));
+            return m.reply('Questo utente è già in una gang.');
         }
 
-        if (gangInfo.members.length >= 6) {
-            return m.reply(global.t('gangFull', userId, groupId, { max: 6 }));
+        if (gangInfo.members.length >= 4) {
+            return m.reply('La tua gang ha già il numero massimo di membri (4).');
         }
 
         gangRequests[mention] = {
             gangId,
-            inviter: m.sender,
             timeout: setTimeout(() => {
                 delete gangRequests[mention];
                 conn.sendMessage(m.chat, {
-                    text: global.t('inviteExpired', userId, groupId, {
-                        user: mention.split('@')[0]
-                    }),
+                    text: `⏱️ L'invito per @${mention.split('@')[0]} è scaduto.`,
                     mentions: [mention]
                 });
-            }, 60 * 1000)
+            }, 60 * 1000) // 60 secondi
         };
 
         await conn.sendMessage(m.chat, {
-            text: global.t('gangInvite', userId, groupId, {
-                inviter: m.sender.split('@')[0],
-                emoji: gangInfo.emoji,
-                name: gangInfo.name,
-                color: gangInfo.color,
-                members: gangInfo.members.length,
-                max: 6
-            }),
+            text: `🔫 *INVITO DI GANG*\n\n@${m.sender.split('@')[0]} ti invita nella gang *${gangInfo.emoji} ${gangInfo.name} ${gangInfo.emoji}*.\n⏳ Hai 60 secondi per accettare o rifiutare.`,
             mentions: [mention, m.sender],
             buttons: [
-                { buttonId: `${usedPrefix}accetta`, buttonText: { displayText: global.t('acceptButton', userId, groupId) }, type: 1 },
-                { buttonId: `${usedPrefix}rifiuta`, buttonText: { displayText: global.t('rejectButton', userId, groupId) }, type: 1 }
+                { buttonId: `${usedPrefix}accetta`, buttonText: { displayText: '✅ Accetta' }, type: 1 },
+                { buttonId: `${usedPrefix}rifiuta`, buttonText: { displayText: '❌ Rifiuta' }, type: 1 }
             ],
-            headerType: 1,
-            contextInfo: {
-                externalAdReply: {
-                    title: global.t('gangInviteTitle', userId, groupId),
-                    body: global.t('gangInviteBody', userId, groupId, { name: gangInfo.name }),
-                    thumbnailUrl: 'https://i.imgur.com/8Q3aZ7B.png',
-                    mediaType: 1
-                }
-            }
+            headerType: 1
         }, { quoted: m });
     }
 };
 
-handler.help = ['creagang [nome] [emoji]', 'invitogang @user', 'accetta', 'rifiuta', 'lasciagang'];
+
+handler.help = ['invitogang @user', 'accetta', 'rifiuta'];
 handler.tags = ['gang'];
-handler.command = ['creagang', 'invitogang', 'accetta', 'rifiuta', 'lasciagang', 'gangcreate', 'ganginvite', 'leavegang'];
+handler.command = ['creagang','invitogang', 'accetta', 'rifiuta','lasciagang'];
 
 export default handler;

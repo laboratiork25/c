@@ -1,7 +1,6 @@
 import { cpus as _cpus, totalmem, freemem } from 'os'
 import { performance } from 'perf_hooks'
 import { sizeFormatter } from 'human-readable'
-import '../lib/language.js';
 
 let format = sizeFormatter({
   std: 'JEDEC',
@@ -11,16 +10,14 @@ let format = sizeFormatter({
 })
 
 let handler = async (m, { conn, usedPrefix, command }) => {
-  const userId = m.sender;
-  const groupId = m.isGroup ? m.chat : null;
-  
-  let nomeDelBot = global.db.data.nomedelbot || global.t('defaultBotName', userId, groupId)
-  let versioneBot = '5.2'
+  let nomeDelBot = global.db.data.nomedelbot || `𝐂𝐡𝐚𝐭𝐔𝐧𝐢𝐭𝐲`
+  let versioneBot = '5.2' // Specifica la versione del bot
   let old = performance.now()
   let neww = performance.now()
-  let speed = (neww - old).toFixed(2)
+  let speed = (neww - old).toFixed(2) // Limita la velocità a 2 decimali
   let uptime = process.uptime() * 1000
 
+  // CPU info
   const cpus = _cpus().map(cpu => {
     cpu.total = Object.keys(cpu.times).reduce((last, type) => last + cpu.times[type], 0)
     return cpu
@@ -47,18 +44,23 @@ let handler = async (m, { conn, usedPrefix, command }) => {
     }
   })
 
-  let cpuModel = cpus[0]?.model || global.t('unknownModel', userId, groupId)
+  let cpuModel = cpus[0]?.model || 'Unknown Model'
   let cpuSpeed = cpu.speed.toFixed(2)
+  let networkSpeed = 'N/A'
 
-  let caption = global.t('pingText', userId, groupId, {
-    uptime: clockString(uptime),
-    speed,
-    cpuModel,
-    cpuSpeed,
-    usedMem: format(totalmem() - freemem()),
-    totalMem: format(totalmem()),
-    freeMem: format(freemem())
-  })
+  let caption = `╭━〔🚀𝑺𝑻𝑨𝑻𝐎 𝑺𝑰𝑺𝑻𝑬𝑴𝑨🚀〕━┈⊷
+┃◈╭─────────────·๏
+┃◈┃• ⌛ *Uptime*: ${clockString(uptime)}
+┃◈┃• ⚡ *Ping*: ${speed} ms
+┃◈┃
+┃◈┃• 💻 *CPU*: ${cpuModel}
+┃◈┃• 🔋 *Usage*: ${cpuSpeed} MHz 
+┃◈┃
+┃◈┃• 💾 *RAM*: ${format(totalmem() - freemem())} / ${format(totalmem())}
+┃◈┃• 🟢 *Free*: ${format(freemem())}
+╰━━━━━━━━━━━━━┈·๏
+
+`
 
   const profilePictureUrl = await fetchProfilePictureUrl(conn, m.sender)
 
@@ -67,9 +69,9 @@ let handler = async (m, { conn, usedPrefix, command }) => {
       forwardingScore: 999,
       isForwarded: true,
       forwardedNewsletterMessageInfo: {
-        newsletterJid: '120363422724720651@newsletter',
+        newsletterJid: '120363259442839354@newsletter',
         serverMessageId: '',
-        newsletterName: global.t('newsletterName', userId, groupId, { nomeDelBot })
+        newsletterName: `${nomeDelBot}`
       }
     }
   }
@@ -77,15 +79,15 @@ let handler = async (m, { conn, usedPrefix, command }) => {
   if (profilePictureUrl !== 'default-profile-picture-url') {
     try {
       messageOptions.contextInfo.externalAdReply = {
-        title: global.t('pingTitle', userId, groupId, { nomeDelBot }),
-        body: global.t('pingBody', userId, groupId, 6.1),
+        title: nomeDelBot,
+        body: `Versione: 6.0`,
         mediaType: 1,
         renderLargerThumbnail: false,
         previewType: 'thumbnail',
         thumbnail: await fetchThumbnail('https://i.ibb.co/9mWwC5PP/Whats-App-Image-2025-07-06-at-23-32-06.jpg'),
       }
     } catch (error) {
-      console.error(global.t('thumbnailError', userId, groupId), error)
+      console.error('Error fetching thumbnail:', error)
     }
   }
 
@@ -95,7 +97,7 @@ let handler = async (m, { conn, usedPrefix, command }) => {
       ...messageOptions
     })
   } catch (error) {
-    console.error(global.t('sendMessageError', userId, groupId), error)
+    console.error('Error sending message:', error)
   }
 }
 
@@ -103,26 +105,26 @@ async function fetchProfilePictureUrl(conn, sender) {
   try {
     return await conn.profilePictureUrl(sender)
   } catch (error) {
-    console.error(global.t('profilePictureError', null, null), error)
-    return 'default-profile-picture-url'
+    console.error('Error fetching profile picture URL:', error)
+    return 'default-profile-picture-url' // Fallback URL in case of error
   }
 }
 
 async function fetchThumbnail(url) {
   try {
     const response = await fetch(url)
-    if (!response.ok) throw new Error(global.t('fetchError', null, null))
+    if (!response.ok) throw new Error(`Failed to fetch thumbnail: ${response.statusText}`)
     const buffer = await response.buffer()
     return buffer
   } catch (error) {
-    console.error(global.t('thumbnailFetchError', null, null), error)
-    return 'default-thumbnail'
+    console.error('Error fetching thumbnail:', error)
+    return 'default-thumbnail' // Fallback thumbnail in case of error
   }
 }
 
 handler.help = ['ping', 'speed']
 handler.tags = ['info', 'tools']
-handler.command = /^(ping|speed|stat)$/i
+handler.command = /^(ping)$/i
 
 export default handler
 

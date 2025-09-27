@@ -1,4 +1,3 @@
-import '../lib/language.js';
 let handler = async (m, { conn }) => {
   const user = m.sender;
   global.db.data.users[user] = global.db.data.users[user] || {};

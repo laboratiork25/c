@@ -1,4 +1,3 @@
-import '../lib/language.js';
 let handler = async (m, { conn, text, participants }) => {
     try {
       // Funzione per il ritardo

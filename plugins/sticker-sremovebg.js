@@ -3,7 +3,6 @@ import FormData from 'form-data';
 import fs from 'fs';
 import os from 'os';
 import path from "path";
-import '../lib/language.js';
 
 let handler = async (m, { conn, args }) => {
   try {

@@ -1,4 +1,3 @@
-import '../lib/language.js';
 let handler = async (m, { conn, isAdmin }) => {  
 if (m.fromMe) return
 if (isAdmin) throw 'ok'

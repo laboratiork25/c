@@ -1,4 +1,3 @@
-import '../lib/language.js';
 let handler = async (m, { conn, isROwner }) => {
     if (!isROwner) throw 'Questo comando è riservato al proprietario del bot.';
     

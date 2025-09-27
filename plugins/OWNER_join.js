@@ -1,34 +1,48 @@
-import '../lib/language.js';
 
-let handler = async (m, { conn, text, usedPrefix, command, participants, isOwner, groupMetadata }) => {
-  const userId = m.sender;
-  const groupId = m.isGroup ? m.chat : null;
-  const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+const MIN_MEMBERS = 30;
 
-  let linkRegex = /chat.whatsapp.com\/([0-9A-Za-z]{20,24})/i;
-  let [_, code] = text.match(linkRegex) || [];
-  if (!code) throw global.t('invalidLink', userId, groupId) || `Link non valido!`;
+const handler = async (m, { conn, args }) => {
+    try {
+        if (m.isGroup) throw new Error('❌ Questo comando funziona solo in privato.');
+        if (!args[0]) throw new Error('📩 Usa così:\n\n.join <link gruppo>');
 
-  m.reply(global.t('joiningGroup', userId, groupId) || `😎 Attendi 3 secondi, sto entrando nel gruppo`);
-  await delay(3000);
+        const invite = args[0];
+        const match = invite.match(/https:\/\/chat\.whatsapp\.com\/([a-zA-Z0-9]+)/);
+        
+        if (!match) throw new Error('❌ Inserisci un link valido di un gruppo WhatsApp.');
 
-  try {
-      let res = await conn.groupAcceptInvite(code);
-      let b = await conn.groupMetadata(res);
-      let d = b.participants.map(v => v.id);
-      let member = d.toString();
-      let now = new Date() * 1;
+        const code = match[1];
+        const res = await conn.groupGetInviteInfo(code);
+        
+        if (!res) throw new Error('❌ Link non valido o scaduto.');
 
-      await conn.reply(res, global.t('groupJoinGreeting', userId, groupId, { groupName: b.subject, prefix: usedPrefix }) || `Ciao amici di ${b.subject}\n\nI miei comandi sono visualizzabili in ${usedPrefix}menu`, m, { mentions: d });
+        const nome = res.subject || "Gruppo sconosciuto";
+        const membri = res.size || 0;
 
-  } catch (e) {
-      throw global.t('botAlreadyInGroup', userId, groupId) || `Il bot è già nel gruppo`;
-  }
-}
+        if (membri < MIN_MEMBERS) {
+            throw new Error(`❌ Il gruppo *${nome}* ha solo ${membri} membri (minimo richiesto: ${MIN_MEMBERS}).`);
+        }
 
-handler.help = ['join <chat.whatsapp.com>'];
-handler.tags = ['owner'];
-handler.command = ['join'];
-handler.rowner = true;
+        await conn.groupAcceptInvite(code);
+
+        const responseText = res.joinApprovalRequired 
+            ? `📩 Richiesta inviata al gruppo *${nome}* (${membri} membri).`
+            : `✅ Il bot è entrato nel gruppo *${nome}* (${membri} membri).`;
+
+        return m.reply(responseText);
+
+    } catch (e) {
+        if (e.message && (e.message.includes('❌') || e.message.includes('📩'))) {
+            return m.reply(e.message);
+        }
+        
+        console.error('[JOIN_ERROR]', e);
+        return m.reply(`⚠️ Errore durante il join: ${e.message || e}`);
+    }
+};
+
+handler.command = /^entra$/i;
+handler.help = ['join <link gruppo>'];
+handler.tags = ['group'];
 
 export default handler;

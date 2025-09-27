@@ -1,5 +1,4 @@
 import { webp2png } from '../lib/webp2mp4.js'
-import '../lib/language.js';
 let handler = async (m, { conn, usedPrefix, command }) => {
 const notStickerMessage = `rispondi a uno sticker ${usedPrefix + command}`
 if (!m.quoted) throw notStickerMessage

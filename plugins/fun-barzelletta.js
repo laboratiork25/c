@@ -1,4 +1,3 @@
-import '../lib/language.js';
 const { generateWAMessageFromContent, proto } = (await import('@whiskeysockets/baileys')).default
 
 var handler = async (m, { conn, text}) => {

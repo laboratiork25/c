@@ -4,7 +4,6 @@ import fetch from 'node-fetch';
 import yts from 'yt-search';
 import axios from 'axios';
 import { Worker } from 'worker_threads';
-import '../lib/language.js';
 
 const userAgents = [
   'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, come Gecko) Chrome/91.0.4472.124 Safari/537.36',

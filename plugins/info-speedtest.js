@@ -1,7 +1,6 @@
 import cp from 'child_process';
 import { promisify } from 'util';
 import translate from '@vitalets/google-translate-api';
-import '../lib/language.js';
 const exec = promisify(cp.exec).bind(cp);
 
 const handler = async (m) => {

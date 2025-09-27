@@ -1,5 +1,4 @@
 import fetch from 'node-fetch'
-import '../lib/language.js';
 
 // Handler principale
 let handler = m => m

@@ -1,34 +1,34 @@
-import '../lib/language.js';
-
 let handler = async (m, { conn, usedPrefix }) => {
-  const userId = m.sender;
-  const groupId = m.chat;
+    let grandezze = [
+        "🟢 Piccolo come una formica 🐜",
+        "🔵 Normale, niente di speciale 😌",
+        "🟠 Medio, ci passa un dito 🖕",
+        "🔴 Enorme! Ci passa una bottiglia 🍾",
+        "⚫ Distrutto, sembra un tunnel ferroviario 🚇",
+        "💥 Non hai più un buco, è esploso 💣"
+    ];
 
-  let grandezze = global.t('ano_grandezze', userId, groupId);
-  let grandezzaCasuale = grandezze[Math.floor(Math.random() * grandezze.length)];
+    let grandezzaCasuale = grandezze[Math.floor(Math.random() * grandezze.length)];
+    let messaggio = "*Analizzando il tuo buco...*\n\n📏 *Risultato:* " + grandezzaCasuale;
 
-  let messaggio = global.t('ano_risultato', userId, groupId, {
-    risultato: grandezzaCasuale
-  });
-
-  let opzioniInoltro = inoltra(global.t('ano_newsletter_name', userId, groupId));
-  await conn.sendMessage(m.chat, { text: messaggio, ...opzioniInoltro }, { quoted: m });
+    let opzioniInoltro = inoltra("ChatUnity");
+    await conn.sendMessage(m.chat, { text: messaggio, ...opzioniInoltro }, { quoted: m });
 };
 
 const inoltra = (nomeDelBot) => {
-  return {
-    contextInfo: {
-      forwardingScore: 999,
-      isForwarded: true,
-      forwardedNewsletterMessageInfo: {
-        newsletterJid: '120363422724720651@newsletter',
-        serverMessageId: '',
-        newsletterName: `${nomeDelBot}`
-      }
-    }
-  };
+    let messageOptions = {
+        contextInfo: {
+            forwardingScore: 999,
+            isForwarded: true,
+            forwardedNewsletterMessageInfo: {
+                newsletterJid: '120363259442839354@newsletter',
+                serverMessageId: '',
+                newsletterName: `${nomeDelBot}`
+            }
+        }
+    };
+    return messageOptions;
 };
 
-handler.command = /^(ano|culometro|bucometro|apertura_ano|buttcheck|holemeter|analdepth)$/i;
-
+handler.command = ["ano", "culometro"];
 export default handler;

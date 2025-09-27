@@ -1,4 +1,3 @@
-import '../lib/language.js';
 let handler = async(m, { conn }) => {
 
   global.prefix = new RegExp('^[' + (opts['prefix'] || '‎xzXZ/i!#$%+£¢€¥^°=¶∆×÷π√✓©®:;?&.\\-').replace(/[|\\{}()[\]^$+*?.\-\^]/g, '\\$&') + ']')

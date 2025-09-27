@@ -1,20 +1,14 @@
 import axios from "axios";
-import '../lib/language.js';
 
 var handler = async (m, { text, usedPrefix, command, conn }) => {
-  const userId = m.sender
-  const groupId = m.isGroup ? m.chat : null
-  
   if (!text) {
-    const helpMessage = global.t('aiImgHelp', userId, groupId) || "Per favore, scrivi una descrizione per generare l'immagine."
-    await m.reply(helpMessage);
+    await m.reply("Per favore, scrivi una descrizione per generare l'immagine.");
     return;
   }
 
   try {
     await conn.sendPresenceUpdate("composing", m.chat);
-    const processingMessage = global.t('aiImgProcessing', userId, groupId) || "> CREO IMMAGINE ...🔥"
-    await m.reply(processingMessage);
+    await m.reply("> CREO IMMAGINE ...🔥");
 
     let apiUrl;
     switch (command) {

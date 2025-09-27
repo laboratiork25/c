@@ -3,7 +3,6 @@ import { tmpdir } from 'os';
 import path, { join } from 'path';
 import { readdirSync, statSync, unlinkSync, existsSync, readFileSync, watch } from 'fs';
 import fs from 'fs'
-import '../lib/language.js';
 
 function levenshteinDistance(str1, str2) {
   const matrix = [];

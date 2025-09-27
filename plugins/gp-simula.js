@@ -1,4 +1,3 @@
-import '../lib/language.js';
 let handler = async (m, { conn, usedPrefix, command, args: [evento], text }) => {
     if (!evento) return await m.reply(
 `ⓘ 𝐔𝐬𝐨 𝐝𝐞𝐥 𝐜𝐨𝐦𝐚𝐧𝐝𝐨:\n\n> ${usedPrefix + command} benvenuto @user\n> ${usedPrefix + command} addio @user\n> ${usedPrefix + command} promozione/p @user\n> ${usedPrefix + command} retrocessione/r @user`) 

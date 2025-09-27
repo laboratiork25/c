@@ -1,4 +1,3 @@
-import '../lib/language.js';
 let handler = async (m, { conn, isOwner }) => {
 let chats = Object.entries(global.db.data.chats).filter(chat => chat[1].isBanned)
 let users = Object.entries(global.db.data.users).filter(user => user[1].banned)

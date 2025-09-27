@@ -1,5 +1,4 @@
 import { performance } from "perf_hooks";
-import '../lib/language.js';
 
 // Funzione per selezionare un elemento casuale da un array
 function pickRandom(array) {
@@ -19,16 +18,16 @@ let handler = async (m, { conn, text }) => {
     }
     // Se non c'è nulla
     else {
-        return m.reply(global.t('ditalino_no_target', m.sender));
+        return m.reply("Tagga qualcuno o rispondi a un messaggio per iniziare il ditalino.");
     }
 
     let nomeDestinatario = `@${destinatario.split('@')[0]}`;
 
     // Messaggi personalizzati
     let sequenza = [
-        global.t('ditalino_start', m.sender, null, { user: nomeDestinatario }),
-        global.t('ditalino_almost', m.sender),
-        global.t('ditalino_warning', m.sender)
+        `🤟🏻 Inizio una serie di ditalino per *${nomeDestinatario}*...`,
+        "🤟🏻 Ci siamo quasi...",
+        "👋🏻 Riparatevi dalla cascata!!"
     ];
 
     // Invia i messaggi uno alla volta
@@ -41,14 +40,11 @@ let handler = async (m, { conn, text }) => {
     let endTime = performance.now();
     let elapsedTime = (endTime - startTime).toFixed(2);
 
-    let resultMessage = global.t('ditalino_result', m.sender, null, { 
-        user: nomeDestinatario, 
-        time: elapsedTime 
-    });
+    let resultMessage = `✨ *${nomeDestinatario}* è venuta🥵! Sta spruzzando come una cozza dopo *${elapsedTime}ms*!`;
 
     conn.reply(m.chat, resultMessage, m, { mentions: [destinatario] });
 };
 
-handler.command = /^(ditalino|fingering|finger)$/i;
+handler.command = ["ditalino"];
 handler.tags = ["fun"];
 export default handler;

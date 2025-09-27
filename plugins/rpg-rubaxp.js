@@ -1,4 +1,3 @@
-import '../lib/language.js';
 const limiteXP = 3000; // Massimo XP rubabile
 
 const handler = async (m, {conn, usedPrefix, command}) => {
@@ -6,7 +5,7 @@ const handler = async (m, {conn, usedPrefix, command}) => {
   const tempoAttesa = global.db.data.users[m.sender].ultimoFurto + 7200000; // 2 ore
   if (new Date() - global.db.data.users[m.sender].ultimoFurto < 7200000) {
     return conn.reply(m.chat, 
-      global.t('steal_cooldown', m.sender, null, { tempo: formattaTempo(tempoAttesa - new Date()) }), 
+      `⏳ ᴅᴇᴠɪ ᴀsᴘᴇᴛᴛᴀʀᴇ ᴀɴᴄᴏʀᴀ ${formattaTempo(tempoAttesa - new Date())} ᴘʀɪᴍᴀ ᴅɪ ʀᴜʙᴀʀᴇ ᴀɴᴄᴏʀᴀ`, 
       m
     );
   }
@@ -20,9 +19,9 @@ const handler = async (m, {conn, usedPrefix, command}) => {
   }
 
   // Verifiche target
-  if (!target) return conn.reply(m.chat, global.t('tag_required', m.sender), m);
+  if (!target) return conn.reply(m.chat, `📍 ᴅᴇᴠɪ ᴛᴀɢɢᴀʀᴇ ɪʟ ғʀᴏᴄɪᴏ!`, m);
   if (!(target in global.db.data.users)) {
-    return conn.reply(m.chat, global.t('user_not_found', m.sender), m);
+    return conn.reply(m.chat, `⚠️ ᴜᴛᴇɴᴛᴇ ɴᴏɴ ᴛʀᴏᴠᴀᴛᴏ ɴᴇʟ ᴅᴀᴛᴀʙᴀsᴇ`, m);
   }
 
   // Calcolo furto
@@ -31,10 +30,7 @@ const handler = async (m, {conn, usedPrefix, command}) => {
   
   if (user.exp < xpRubati) {
     return conn.reply(m.chat, 
-      global.t('insufficient_target_xp', m.sender, null, { 
-        user: target.split('@')[0], 
-        limite: limiteXP 
-      }), 
+      `😢 @${target.split('@')[0]} ʜᴀ ᴍᴇɴᴏ ᴅɪ *${limiteXP} XP*\nɴᴏɴ ʀᴜʙᴀʀᴇ ʜᴀɪ ᴘᴏᴠᴇʀɪ ғʀᴏᴄɪᴏ`, 
       m, 
       { mentions: [target] }
     );
@@ -45,10 +41,7 @@ const handler = async (m, {conn, usedPrefix, command}) => {
   global.db.data.users[target].exp -= xpRubati;
   
   await conn.reply(m.chat, 
-    global.t('steal_success', m.sender, null, { 
-      amount: xpRubati, 
-      user: target.split('@')[0] 
-    }), 
+    `💰 ʜᴀɪ ʀᴜʙᴀᴛᴏ ${xpRubati} XP ᴀ @${target.split('@')[0]}!`, 
     m, 
     { mentions: [target] }
   );
@@ -62,10 +55,10 @@ function formattaTempo(durata) {
   const minuti = Math.floor((durata / (1000 * 60)) % 60);
   const ore = Math.floor((durata / (1000 * 60 * 60)) % 24);
   
-  return `${ore} ${global.t('hours', m.sender)} ${minuti} ${global.t('minutes', m.sender)} ${secondi} ${global.t('seconds', m.sender)}`;
+  return `${ore} Ora(e) ${minuti} Minuto(i) ${secondi} Secondo(i)`;
 }
 
 handler.help = ['rubaxp'];
 handler.tags = ['rpg'];
-handler.command = /^(rubaxp|stealxp|robxp|rob|steal)$/i;
+handler.command = ['rubaxp'];
 export default handler;

@@ -1,4 +1,3 @@
-import '../lib/language.js';
 let handler = m => m;
 
 handler.all = async function (m, { isBotAdmin }) {

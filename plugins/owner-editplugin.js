@@ -1,6 +1,5 @@
 //plugin for gabs
 import fs from 'fs';
-import '../lib/language.js';
 
 function levenshteinDistance(str1, str2) {
   const matrix = [];

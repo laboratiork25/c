@@ -2,7 +2,6 @@
 import axios from 'axios'
 import fs from 'fs'
 import path from 'path'
-import '../lib/language.js';
 
 function normalize(str) {
     if (!str) return '';

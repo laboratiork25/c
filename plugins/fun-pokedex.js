@@ -1,27 +1,28 @@
 import fetch from 'node-fetch';
-import '../lib/language.js';
 
 const config = {
   emoji: {
     attesa: '⏳',
     completato: '✅',
     errore: '❌'
+  },
+  meta: {
+    sviluppatore: 'ChatUnity',
+    icona: 'https://i.imgur.com/example.png', // URL immagine valida
+    canale: 'https://example.com'
   }
 };
 
 let handler = async (m, { conn, text }) => {
-  let userId = m.sender;
-  let groupId = m.chat.endsWith('@g.us') ? m.chat : null;
-  
-  if (!text) return conn.reply(m.chat, global.t('pokedexNoInput', userId, groupId), m);
+  if (!text) return conn.reply(m.chat, '🚩 Inserisci il nome di un Pokémon', m);
 
   try {
     // Feedback ricerca
     await m.react(config.emoji.attesa);
     
-    // Messaggio di attesa
+    // Modificato per evitare externalAdReply problematico
     await conn.sendMessage(m.chat, { 
-      text: global.t('pokedexSearching', userId, groupId, { pokemon: text }),
+      text: `🔍 Cerco ${text}...`,
       contextInfo: {
         mentionedJid: [m.sender]
       }
@@ -36,19 +37,25 @@ let handler = async (m, { conn, text }) => {
     const pokemon = await response.json();
     if (!pokemon?.name) throw new Error('Pokémon non trovato');
 
-    // Formattazione risposta con variabili localizzate
-    const infoPokemon = global.t('pokedexInfo', userId, groupId, {
-      name: pokemon.name,
-      id: pokemon.id,
-      type: Array.isArray(pokemon.type) ? pokemon.type.join(', ') : pokemon.type,
-      abilities: Array.isArray(pokemon.abilities) ? pokemon.abilities.join(', ') : pokemon.abilities,
-      height: pokemon.height,
-      weight: pokemon.weight,
-      description: pokemon.description || global.t('pokedexNoDescription', userId, groupId),
-      urlName: encodeURIComponent(pokemon.name.toLowerCase())
-    });
+    // Formattazione risposta
+    const infoPokemon = `
+🎌 *Pokédex - ${pokemon.name}*
 
-    // Invio messaggio
+🔹 *Nome:* ${pokemon.name}
+🔹 *ID:* ${pokemon.id}
+🔹 *Tipo:* ${Array.isArray(pokemon.type) ? pokemon.type.join(', ') : pokemon.type}
+🔹 *Abilità:* ${Array.isArray(pokemon.abilities) ? pokemon.abilities.join(', ') : pokemon.abilities}
+🔹 *Altezza:* ${pokemon.height}
+🔹 *Peso:* ${pokemon.weight}
+
+📝 *Descrizione:*
+${pokemon.description || 'Nessuna descrizione disponibile'}
+
+🌐 *Maggiori info:*
+https://www.pokemon.com/it/pokedex/${encodeURIComponent(pokemon.name.toLowerCase())}
+    `.trim();
+
+    // Invio messaggio semplificato
     await conn.sendMessage(m.chat, { 
       text: infoPokemon,
       mentions: [m.sender]
@@ -60,7 +67,7 @@ let handler = async (m, { conn, text }) => {
     console.error('Errore ricerca Pokémon:', error);
     await m.react(config.emoji.errore);
     await conn.sendMessage(m.chat, { 
-      text: global.t('pokedexError', userId, groupId),
+      text: '⚠️ Errore nella ricerca del Pokémon',
       mentions: [m.sender]
     });
   }
@@ -68,5 +75,5 @@ let handler = async (m, { conn, text }) => {
 
 handler.help = ['pokedex <pokémon>'];
 handler.tags = ['utility', 'giochi'];
-handler.command = ['pokedex', 'pokemon', 'pokédex', 'pokémon'];
+handler.command = ['pokedex', 'pokemon'];
 export default handler;

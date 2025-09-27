@@ -1,4 +1,3 @@
-import '../lib/language.js';
 const handler = async (m, {conn}) => {
     const who = m.quoted ? m.quoted.sender : m.mentionedJid && m.mentionedJid[0] ? m.mentionedJid[0] : m.fromMe ? conn.user.jid : m.sender;
     conn.sendFile(m.chat, global.API('https://some-random-api.com', '/canvas/horny', {

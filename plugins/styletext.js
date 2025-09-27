@@ -1,6 +1,5 @@
 import fetch from 'node-fetch'
 import { JSDOM } from 'jsdom'
-import '../lib/language.js';
 let handler = async (m, { conn, text }) => {
 conn.reply(m.chat, Object.entries(await stylizeText(text ? text : m.quoted && m.quoted.text ? m.quoted.text : m.text)).map(([name, value]) => `*${name}*\n${value}`).join`\n\n`, m)
 }

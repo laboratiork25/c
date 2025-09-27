@@ -1,4 +1,3 @@
-import '../lib/language.js';
 const da = [
   'https://tinyurl.com/gdd01',
   'https://tinyurl.com/gdd02',
@@ -12,7 +11,7 @@ let handler = async (m, { conn }) => {
 }
 handler.help = ['dado']
 handler.tags = ['game']
-handler.customPrefix = /^\.dado$/i
+handler.customPrefix = ['dado'];
 handler.command = new RegExp
 export default handler
 

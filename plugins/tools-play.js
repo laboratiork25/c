@@ -1,21 +1,22 @@
 import fetch from "node-fetch";
 import yts from 'yt-search';
 import axios from "axios";
-import '../lib/language.js';
 
 const formatAudio = ['mp3', 'm4a', 'webm', 'acc', 'flac', 'opus', 'ogg', 'wav'];
 const formatVideo = ['360', '480', '720', '1080'];
-const MAX_DURATION = 600;
+const MAX_DURATION = 600; // 5 minuti in secondi
 
 const ddownr = {
   download: async (url, format) => {
     if (!formatAudio.includes(format) && !formatVideo.includes(format)) {
-      throw new Error(global.t('formatNotSupported', null, null));
+      throw new Error('╭━━〔 ❗ 〕━━┈⊷\n┃◈ *Formato non supportato*\n╰━━━━━━━━━━┈·๏');
     }
+
     try {
       const { data } = await axios.get(`https://p.oceansaver.in/ajax/download.php?format=${format}&url=${encodeURIComponent(url)}&api=dfcb6d76f2f6a9894gjkege8a4ab232222`, {
         headers: { 'User-Agent': 'Mozilla/5.0' }
       });
+
       if (data?.success) {
         return {
           id: data.id,
@@ -24,11 +25,11 @@ const ddownr = {
           downloadUrl: await ddownr.cekProgress(data.id)
         };
       } else {
-        throw new Error(global.t('detailsError', null, null));
+        throw new Error('╭━━〔 ❗ 〕━━┈⊷\n┃◈ *Errore nel recupero dei dettagli*\n╰━━━━━━━━━━┈·๏');
       }
     } catch (error) {
-      console.error(global.t('downloadErrorLog', null, null), error.message);
-      throw new Error(global.t('downloadError', null, null));
+      console.error('Errore:', error.message);
+      throw new Error('╭━━〔 ❗ 〕━━┈⊷\n┃◈ *Errore nel download*\n╰━━━━━━━━━━┈·๏');
     }
   },
 
@@ -38,110 +39,50 @@ const ddownr = {
         const { data } = await axios.get(`https://p.oceansaver.in/ajax/progress.php?id=${id}`, {
           headers: { 'User-Agent': 'Mozilla/5.0' }
         });
+
         if (data?.success && data.progress === 1000) {
           return data.download_url;
         }
         await new Promise(resolve => setTimeout(resolve, 3000));
       }
     } catch (error) {
-      console.error(global.t('progressErrorLog', null, null), error.message);
-      throw new Error(global.t('progressError', null, null));
+      console.error('Errore:', error.message);
+      throw new Error('╭━━〔 ❗ 〕━━┈⊷\n┃◈ *Errore nel check progresso*\n╰━━━━━━━━━━┈·๏');
     }
   }
 };
 
 const handler = async (m, { conn, text, usedPrefix, command, args }) => {
-  const userId = m.sender;
-  const groupId = m.isGroup ? m.chat : null;
-
   try {
     if (!text.trim()) {
-      await conn.sendMessage(m.chat, {
-        text: global.t('noInputText', userId, groupId),
+      await conn.sendMessage(m.chat, { 
+        text: `╭━━〔 ❗ 〕━━┈⊷\n┃◈ *Inserisci un titolo o un link*\n╰━━━━━━━━━━┈·๏`,
         contextInfo: {
           forwardingScore: 99,
           isForwarded: true,
           forwardedNewsletterMessageInfo: {
-            newsletterJid: '120363422724720651@newsletter',
+            newsletterJid: '120363259442839354@newsletter',
             serverMessageId: '',
-            newsletterName: global.t('newsletterName', userId, groupId)
+            newsletterName: 'ChatUnity'
           }
         }
       }, { quoted: m });
       return;
     }
 
-    // Nuova integrazione SoundCloud
-    if (command === 'playsc') {
-      const soundcloudUrl = text.trim();
-      if (!soundcloudUrl) {
-        await conn.sendMessage(m.chat, {
-          text: global.t('noInputText', userId, groupId),
-          contextInfo: {
-            forwardingScore: 99,
-            isForwarded: true,
-            forwardedNewsletterMessageInfo: {
-              newsletterJid: '120363422724720651@newsletter',
-              serverMessageId: '',
-              newsletterName: global.t('newsletterName', userId, groupId)
-            }
-          }
-        }, { quoted: m });
-        return;
-      }
-      try {
-        const scResult = await axios.get(`https://delirius-apiofc.vercel.app/download/soundcloud?url=${encodeURIComponent(soundcloudUrl)}`);
-        if (scResult.data?.url) {
-          await conn.sendMessage(m.chat, {
-            audio: { url: scResult.data.url },
-            mimetype: "audio/mpeg",
-            fileName: (scResult.data.title || 'audio') + ".mp3"
-          }, { quoted: m });
-        } else {
-          await conn.sendMessage(m.chat, {
-            text: global.t('noValidLink', userId, groupId),
-            contextInfo: {
-              forwardingScore: 99,
-              isForwarded: true,
-              forwardedNewsletterMessageInfo: {
-                newsletterJid: '120363422724720651@newsletter',
-                serverMessageId: '',
-                newsletterName: global.t('newsletterName', userId, groupId)
-              }
-            }
-          }, { quoted: m });
-        }
-      } catch (error) {
-        await conn.sendMessage(m.chat, {
-          text: global.t('downloadError', userId, groupId),
-          contextInfo: {
-            forwardingScore: 99,
-            isForwarded: true,
-            forwardedNewsletterMessageInfo: {
-              newsletterJid: '120363422724720651@newsletter',
-              serverMessageId: '',
-              newsletterName: global.t('newsletterName', userId, groupId)
-            }
-          }
-        }, { quoted: m });
-      }
-      return;
-    }
-
-    // Gestione comandi YouTube come sopra (play/playaudio/playvideo)
-
+    // Gestione bottoni: playaudio/playvideo
     if (command === 'playaudio' || command === 'playvideo') {
       const search = await yts(text);
       if (!search.all.length) {
-        await conn.sendMessage(m.chat, {
-          text: global.t('noResults', userId, groupId),
+        await conn.sendMessage(m.chat, { 
+          text: '╭━━〔 ❗ 〕━━┈⊷\n┃◈ *Nessun risultato trovato*\n╰━━━━━━━━━━┈·๏',
           contextInfo: {
             forwardingScore: 99,
             isForwarded: true,
             forwardedNewsletterMessageInfo: {
-              newsletterJid: '120363422724720651@newsletter',
+              newsletterJid: '120363259442839354@newsletter',
               serverMessageId: '',
-              newsletterName: global.t('newsletterName', userId, groupId)
+              newsletterName: 'ChatUnity'
             }
           }
         }, { quoted: m });
@@ -152,28 +93,23 @@ const handler = async (m, { conn, text, usedPrefix, command, args }) => {
       const thumb = (await conn.getFile(thumbnail))?.data;
 
       if (command === 'playaudio') {
-        await conn.sendMessage(m.chat, {
-          text: global.t('audioComing', userId, groupId)
-        }, { quoted: m });
+        await conn.sendMessage(m.chat, { text: '🎵 𝐚𝐮𝐝𝐢𝐨 𝐢𝐧 𝐚𝐫𝐫𝐢𝐯𝐨 𝐚𝐭𝐭𝐞𝐧𝐝𝐢 𝐪𝐮𝐚𝐥𝐜𝐡𝐞 𝐢𝐬𝐭𝐚𝐧𝐭𝐞...' }, { quoted: m });
         const api = await ddownr.download(url, 'mp3');
-        await conn.sendMessage(m.chat, {
-          audio: { url: api.downloadUrl },
+        await conn.sendMessage(m.chat, { 
+          audio: { url: api.downloadUrl }, 
           mimetype: "audio/mpeg",
           contextInfo: {
             forwardingScore: 99,
             isForwarded: true,
             forwardedNewsletterMessageInfo: {
-              newsletterJid: '120363422724720651@newsletter',
+              newsletterJid: '120363259442839354@newsletter',
               serverMessageId: '',
-              newsletterName: global.t('newsletterName', userId, groupId)
+              newsletterName: 'ChatUnity'
             }
           }
         }, { quoted: m });
       } else {
-        await conn.sendMessage(m.chat, {
-          text: global.t('videoComing', userId, groupId)
-        }, { quoted: m });
-
+        await conn.sendMessage(m.chat, { text: '🎬 𝐯𝐢𝐝𝐞𝐨 𝐢𝐧 𝐚𝐫𝐫𝐢𝐯𝐨 𝐚𝐭𝐭𝐞𝐧𝐝𝐢 𝐪𝐮𝐚𝐥𝐜𝐡𝐞 𝐢𝐬𝐭𝐚𝐧𝐭𝐞...' }, { quoted: m });
         let sources = [
           `https://api.siputzx.my.id/api/d/ytmp4?url=${url}`,
           `https://api.zenkey.my.id/api/download/ytmp4?apikey=zenkey&url=${url}`,
@@ -190,30 +126,30 @@ const handler = async (m, { conn, text, usedPrefix, command, args }) => {
                 video: { url: downloadUrl },
                 fileName: `${title}.mp4`,
                 mimetype: 'video/mp4',
-                caption: global.t('downloadComplete', userId, groupId),
+                caption: '✅ *Download completato!*',
                 thumbnail: thumb,
                 contextInfo: {
                   forwardingScore: 99,
                   isForwarded: true,
                   forwardedNewsletterMessageInfo: {
-                    newsletterJid: '120363422724720651@newsletter',
+                    newsletterJid: '120363259442839354@newsletter',
                     serverMessageId: '',
-                    newsletterName: global.t('newsletterName', userId, groupId)
+                    newsletterName: 'ChatUnity'
                   }
                 }
               }, { quoted: m });
             }
           }
         }
-        await conn.sendMessage(m.chat, {
-          text: global.t('noValidLink', userId, groupId),
+        await conn.sendMessage(m.chat, { 
+          text: '╭━━〔 ❗ 〕━━┈⊷\n┃◈ *Nessun link valido trovato*\n╰━━━━━━━━━━┈·๏',
           contextInfo: {
             forwardingScore: 99,
             isForwarded: true,
             forwardedNewsletterMessageInfo: {
-              newsletterJid: '120363422724720651@newsletter',
+              newsletterJid: '120363259442839354@newsletter',
               serverMessageId: '',
-              newsletterName: global.t('newsletterName', userId, groupId)
+              newsletterName: 'ChatUnity'
             }
           }
         }, { quoted: m });
@@ -221,18 +157,19 @@ const handler = async (m, { conn, text, usedPrefix, command, args }) => {
       return;
     }
 
+    // Solo .play mostra i bottoni, non scarica nulla
     if (command === 'play') {
       const search = await yts(text);
       if (!search.all.length) {
-        await conn.sendMessage(m.chat, {
-          text: global.t('noResults', userId, groupId),
+        await conn.sendMessage(m.chat, { 
+          text: '╭━━〔 ❗ 〕━━┈⊷\n┃◈ *Nessun risultato trovato*\n╰━━━━━━━━━━┈·๏',
           contextInfo: {
             forwardingScore: 99,
             isForwarded: true,
             forwardedNewsletterMessageInfo: {
-              newsletterJid: '120363422724720651@newsletter',
+              newsletterJid: '120363259442839354@newsletter',
               serverMessageId: '',
-              newsletterName: global.t('newsletterName', userId, groupId)
+              newsletterName: 'ChatUnity'
             }
           }
         }, { quoted: m });
@@ -242,17 +179,15 @@ const handler = async (m, { conn, text, usedPrefix, command, args }) => {
       const videoInfo = search.all[0];
       const durationInSeconds = videoInfo.seconds;
       if (durationInSeconds > MAX_DURATION) {
-        return await conn.sendMessage(m.chat, {
-          text: global.t('videoTooLong', userId, groupId, {
-            timestamp: videoInfo.timestamp
-          }),
+        return await conn.sendMessage(m.chat, { 
+          text: `╭━━〔 ❗ 〕━━┈⊷\n┃◈ *Video troppo lungo!*\n┃◈ La durata massima consentita è 5 minuti\n┃◈ Durata attuale: ${videoInfo.timestamp}\n╰━━━━━━━━━━┈·๏`,
           contextInfo: {
             forwardingScore: 99,
             isForwarded: true,
             forwardedNewsletterMessageInfo: {
-              newsletterJid: '120363422724720651@newsletter',
+              newsletterJid: '120363259442839354@newsletter',
               serverMessageId: '',
-              newsletterName: global.t('newsletterName', userId, groupId)
+              newsletterName: 'ChatUnity'
             }
           }
         }, { quoted: m });
@@ -260,25 +195,27 @@ const handler = async (m, { conn, text, usedPrefix, command, args }) => {
 
       const { title, thumbnail, timestamp, views, ago, url, author } = videoInfo;
       const formattedViews = new Intl.NumberFormat().format(views);
-
-      const infoMessage = global.t('videoInfo', userId, groupId, {
-        title,
-        timestamp,
-        views: formattedViews,
-        author: author?.name || global.t('unknownAuthor', userId, groupId),
-        ago,
-        url
-      });
+      const infoMessage = `
+╭〔*🎥 𝑰𝑵𝑭𝑶 𝑽𝑰𝑫𝑬𝑶*〕┈⊷
+┃◈╭─────────·๏
+┃◈┃• ✍️𝒕𝒊𝒕𝒐𝒍𝒐: ${title}
+┃◈┃• ⏳𝒅𝒖𝒓𝒂𝒕𝒂: ${timestamp}
+┃◈┃• 👀𝒗𝒊𝒔𝒖𝒂𝒍: ${formattedViews}
+┃◈┃• 🔰𝒄𝒂𝒏𝒂𝒍𝒆: ${author?.name ||"Sconosciuto"}
+┃◈┃• 🔳𝒑𝒖𝒃𝒃𝒍𝒊𝒄𝒂𝒕𝒐: ${ago}
+┃◈┃• 🔗𝒍𝒊𝒏𝒌: ${url}
+┃◈└───────┈⊷
+╰━━━━━━━━━┈·๏`;
 
       const thumb = (await conn.getFile(thumbnail))?.data;
 
       await conn.sendMessage(m.chat, {
         text: infoMessage,
-        footer: global.t('chooseFormat', userId, groupId),
+        footer: 'Scegli un formato:',
         buttons: [
-          { buttonId: `${usedPrefix}playaudio ${title}`, buttonText: { displayText: global.t('buttonAudio', userId, groupId) }, type: 1 },
-          { buttonId: `${usedPrefix}playvideo ${title}`, buttonText: { displayText: global.t('buttonVideo', userId, groupId) }, type: 1 },
-          { buttonId: `${usedPrefix}salva ${title}`, buttonText: { displayText: global.t('buttonSave', userId, groupId) }, type: 1 }
+          { buttonId: `${usedPrefix}playaudio ${title}`, buttonText: { displayText: "🎵 𝒔𝒄𝒂𝒓𝒊𝒄𝒂 𝒂𝒖𝒅𝒊𝒐" }, type: 1 },
+          { buttonId: `${usedPrefix}playvideo ${title}`, buttonText: { displayText: "🎬 𝒔𝒄𝒂𝒓𝒊𝒄𝒂 𝒗𝒊𝒅𝒆𝒐" }, type: 1 },
+          { buttonId: `${usedPrefix}salva ${title}`, buttonText: { displayText: "💾 𝒔𝒂𝒍𝒗𝒂 𝒏𝒆𝒍𝒍𝒂 𝒑𝒍𝒂𝒚𝒍𝒊𝒔𝒕" }, type: 1 }
         ],
         viewOnce: true,
         headerType: 4,
@@ -286,9 +223,9 @@ const handler = async (m, { conn, text, usedPrefix, command, args }) => {
           forwardingScore: 99,
           isForwarded: true,
           forwardedNewsletterMessageInfo: {
-            newsletterJid: '120363422724720651@newsletter',
+            newsletterJid: '120363259442839354@newsletter',
             serverMessageId: '',
-            newsletterName: global.t('newsletterName', userId, groupId)
+            newsletterName: 'chatunity'
           },
           externalAdReply: {
             mediaType: 1,
@@ -302,25 +239,25 @@ const handler = async (m, { conn, text, usedPrefix, command, args }) => {
       return;
     }
 
+    // ...rimuovi invio automatico audio/video da qui...
   } catch (error) {
-    await conn.sendMessage(m.chat, {
-      text: error.message.startsWith('╭━━') ? error.message : global.t('genericError', userId, groupId, {
-        error: error.message
-      }),
+    await conn.sendMessage(m.chat, { 
+      text: error.message.startsWith('╭━━') ? error.message : `╭━━〔 ❗ 〕━━┈⊷\n┃◈ *Errore:* ${error.message}\n╰━━━━━━━━━━┈·๏`,
       contextInfo: {
         forwardingScore: 99,
         isForwarded: true,
         forwardedNewsletterMessageInfo: {
-          newsletterJid: '120363422724720651@newsletter',
+          newsletterJid: '120363259442839354@newsletter',
           serverMessageId: '',
-          newsletterName: global.t('newsletterName', userId, groupId)
+          newsletterName: 'chatunity'
         }
       }
     }, { quoted: m });
   }
 };
 
-handler.command = handler.help = ['play', 'playaudio', 'playvideo', 'ytmp4', 'play2', 'youtube', 'yt', 'playsc'];
+handler.command = handler.help = ['play', 'playaudio', 'playvideo', 'ytmp4', 'play2'];
 handler.tags = ['downloader'];
 
 export default handler;
+

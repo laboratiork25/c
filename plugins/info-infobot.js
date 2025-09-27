@@ -4,7 +4,6 @@ import { performance } from 'perf_hooks'
 import { sizeFormatter } from 'human-readable'
 import ws from 'ws'
 import fs from 'fs'
-import '../lib/language.js';
 
 let format = sizeFormatter({
     std: 'JEDEC',

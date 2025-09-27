@@ -1,6 +1,5 @@
 import { pinterest } from '@bochilteam/scraper';
 import axios from 'axios';
-import '../lib/language.js';
 
 // Configurazione messaggi
 const lenguajeGB = {

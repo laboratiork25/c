@@ -1,41 +1,42 @@
-import '../lib/language.js';
-
 let handler = async (m, { conn, command, text }) => {
-  const userId = m.sender;
-  const groupId = m.chat;
+    // Genera un livello casuale di alcol nel sangue
+    let width = Math.floor(Math.random() * 101);
 
-  let width = Math.floor(Math.random() * 101);
+    // Determina il messaggio in base al livello
+    let finalPhrase = width >= 70 
+        ? "🌿 Attenti che si pippa pure la farina" 
+        : width >= 30 
+        ? "🌿 Non sa pippare, aumenta le dosi!!" 
+        : "🌿 Un'esempio da seguire, complimenti.";
 
-  let phraseKey = width >= 70
-    ? 'drogato_phrase_high'
-    : width >= 30
-    ? 'drogato_phrase_mid'
-    : 'drogato_phrase_low';
+    // Creazione del messaggio
+    let message = `
+『💬』 ══ •⊰✰⊱• ══ 『💬』
 
-  let message = global.t('drogato_message', userId, groupId, {
-    name: text || 'Tu',
-    percent: width,
-    phrase: global.t(phraseKey, userId, groupId)
-  });
+MOMENTO DEL DRUG TEST! 🌿 
+━━━━━━━━━━━━━━
+ ${text ? text : 'Tu'} ha un tasso alcolemico del ${width}%! 🌿
+『💬』 ══ •⊰✰⊱• ══ 『💬』
 
-  const messageOptions = {
-    contextInfo: {
-      forwardingScore: 1,
-      isForwarded: true,
-      forwardedNewsletterMessageInfo: {
-        newsletterJid: '120363422724720651@newsletter',
-        serverMessageId: '',
-        newsletterName: global.t('drogato_newsletter_name', userId, groupId)
-      },
-    }
-  };
+${finalPhrase}
+`.trim();
 
-  m.reply(message, null, {
-    mentions: conn.parseMention(message),
-    ...messageOptions
-  });
+    const messageOptions = {
+        contextInfo: {
+            forwardingScore: 1,
+            isForwarded: true,
+            forwardedNewsletterMessageInfo: {
+                newsletterJid: '120363259442839354@newsletter',
+                serverMessageId: '',
+                newsletterName: `ChatUnity` // Utilizzo della variabile botName
+            },
+        }
+    };
+
+    // Invia il messaggio con le menzioni e le opzioni
+    m.reply(message, null, { mentions: conn.parseMention(message), ...messageOptions });
 };
 
-handler.command = /^(drogato|droga|stonato|fumato)$/i;
+handler.command = /^(drogato)$/i;
 
 export default handler;

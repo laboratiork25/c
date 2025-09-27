@@ -1,4 +1,3 @@
-import '../lib/language.js';
 /* Creado por https://github.com/FG98F */
 
 let handler = async (m, { conn }) => {	

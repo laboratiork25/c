@@ -1,7 +1,6 @@
 import yts from 'yt-search';
 import fs from 'fs';
 import path from 'path';
-import '../lib/language.js';
 
 // ==================== 🎨 DESIGN & EMOJIS ====================
 const BOT_THEME = {
@@ -34,12 +33,9 @@ class MusicPlayer {
     return result.all.length ? result.all[0] : null;
   }
 
-  static formatSong(song, userId, groupId) {
-    return global.t('songFormat', userId, groupId, {
-      title: song.title,
-      timestamp: song.timestamp || global.t('notAvailable', userId, groupId),
-      author: song.author?.name || global.t('unknownAuthor', userId, groupId)
-    });
+  static formatSong(song) {
+    return `${BOT_THEME.EMOJIS.MUSIC} *${song.title}*\n` +
+           `⏳ ${song.timestamp || 'N/A'} | 📺 ${song.author?.name || 'Sconosciuto'}`;
   }
 }
 
@@ -66,6 +62,7 @@ const DB = {
 
   update(userId, updater) {
     const data = this.read();
+    // Assicurati che l'array esista
     if (!Array.isArray(data[userId])) data[userId] = [];
     updater(data[userId]);
     this.write(data);
@@ -76,21 +73,22 @@ const DB = {
 const handler = async (m, { conn, text, args, command, usedPrefix }) => {
   DB.init();
   const userId = m.sender;
-  const groupId = m.chat;
+  // Forza sempre la playlist personale quando il comando arriva da bottone
   const isButton = !!m?.key?.id && !text;
   const targetUser = isButton ? userId : (m.quoted?.sender && m.quoted.sender !== userId ? m.quoted.sender : userId);
-  const userName = (m.quoted?.sender && m.quoted.sender !== userId) ? (m.quoted.pushName || global.t('user', userId, groupId)) : null;
+  const userName = (m.quoted?.sender && m.quoted.sender !== userId) ? (m.quoted.pushName || 'Utente') : null;
 
+  // Gestione comando playlist anche se text è vuoto (bottone)
   if (command === 'playlist' && (!text || text.trim() === '')) {
     const songs = DB.read()[targetUser] || [];
 
     if (!songs.length) {
-      return m.reply(global.t('emptyPlaylist', userId, groupId, { userName: userName }));
+      return m.reply(`${BOT_THEME.EMOJIS.INFO} ${userName ? `${userName} non ha brani salvati` : 'La tua playlist è vuota!'}`);
     }
 
     let message = `${BOT_THEME.FRAME.TOP}\n` +
                  `${BOT_THEME.FRAME.MIDDLE}\n` +
-                 `${BOT_THEME.FRAME.LINE} ${BOT_THEME.EMOJIS.PLAYLIST} ${userName ? global.t('userPlaylist', userId, groupId, { userName: userName }) : global.t('yourPlaylist', userId, groupId)}\n`;
+                 `${BOT_THEME.FRAME.LINE} ${BOT_THEME.EMOJIS.PLAYLIST} ${userName ? `Playlist di ${userName}` : 'La tua playlist'}\n`;
 
     songs.slice(0, 10).forEach((song, index) => {
       message += `${BOT_THEME.FRAME.LINE} ${index + 1}. ${song.title}\n` +
@@ -98,7 +96,7 @@ const handler = async (m, { conn, text, args, command, usedPrefix }) => {
     });
 
     if (songs.length > 10) {
-      message += `${BOT_THEME.FRAME.LINE} ${global.t('moreSongs', userId, groupId, { count: songs.length - 10 })}\n`;
+      message += `${BOT_THEME.FRAME.LINE} ...e altri ${songs.length - 10} brani\n`;
     }
 
     message += `${BOT_THEME.FRAME.BOTTOM}\n\n` +
@@ -108,40 +106,41 @@ const handler = async (m, { conn, text, args, command, usedPrefix }) => {
       ...songs.slice(0, 5).map((song, i) => (
         { buttonId: `${usedPrefix}play ${song.title}`, buttonText: { displayText: `${i + 1}🎵 ${song.title.slice(0, 20)}` }, type: 1 }
       )),
-      { buttonId: `${usedPrefix}salva`, buttonText: { displayText: `${BOT_THEME.EMOJIS.SAVE} ${global.t('saveNew', userId, groupId)}` }, type: 1 }
+      { buttonId: `${usedPrefix}salva`, buttonText: { displayText: `${BOT_THEME.EMOJIS.SAVE} Salva nuovo` }, type: 1 }
     ];
 
     if (!userName) {
       buttons.push(
-        { buttonId: `${usedPrefix}elimina`, buttonText: { displayText: `${BOT_THEME.EMOJIS.DELETE} ${global.t('delete', userId, groupId)}` }, type: 1 }
+        { buttonId: `${usedPrefix}elimina`, buttonText: { displayText: `${BOT_THEME.EMOJIS.DELETE} Elimina` }, type: 1 }
       );
     }
     buttons.push(
-      { buttonId: `${usedPrefix}menu`, buttonText: { displayText: `${BOT_THEME.EMOJIS.BACK} ${global.t('back', userId, groupId)}` }, type: 1 }
+      { buttonId: `${usedPrefix}menu`, buttonText: { displayText: `${BOT_THEME.EMOJIS.BACK} Indietro` }, type: 1 }
     );
 
     return conn.sendMessage(m.chat, {
       text: message,
       buttons: buttons,
-      footer: global.t('selectSong', userId, groupId),
+      footer: 'Seleziona un brano da riprodurre',
       viewOnce: true,
       headerType: 4
     }, { quoted: m });
   }
 
   try {
+    // 🎵 SALVA CANZONE
     if (command === 'salva') {
-      if (!text) return m.reply(global.t('specifySong', userId, groupId));
+      if (!text) return m.reply(`${BOT_THEME.EMOJIS.ERROR} Specifica un brano da cercare`);
 
       const loadingMsg = await m.reply(`${BOT_THEME.FRAME.TOP}\n` +
         `${BOT_THEME.FRAME.MIDDLE}\n` +
-        `${BOT_THEME.FRAME.LINE} ${BOT_THEME.EMOJIS.LOADING} ${global.t('searching', userId, groupId, { query: text })}\n` +
+        `${BOT_THEME.FRAME.LINE} ${BOT_THEME.EMOJIS.LOADING} Cerco "${text}"...\n` +
         `${BOT_THEME.FRAME.BOTTOM}`);
 
       const song = await MusicPlayer.search(text);
       if (!song) {
         await conn.sendMessage(m.chat, { delete: loadingMsg.key });
-        return m.reply(global.t('noResults', userId, groupId));
+        return m.reply(`${BOT_THEME.EMOJIS.ERROR} Nessun risultato trovato`);
       }
 
       let exists = false;
@@ -159,36 +158,37 @@ const handler = async (m, { conn, text, args, command, usedPrefix }) => {
       await conn.sendMessage(m.chat, { delete: loadingMsg.key });
 
       if (exists) {
-        return m.reply(global.t('songExists', userId, groupId, { prefix: usedPrefix }));
+        return m.reply(`${BOT_THEME.EMOJIS.ERROR} Canzone già in playlist! Usa .playlist per vedere i brani salvati.`);
       }
 
       return conn.sendMessage(m.chat, {
         text: `${BOT_THEME.FRAME.TOP}\n` +
               `${BOT_THEME.FRAME.MIDDLE}\n` +
-              `${BOT_THEME.FRAME.LINE} ${BOT_THEME.EMOJIS.SUCCESS} ${global.t('songSaved', userId, groupId)}\n` +
-              `${BOT_THEME.FRAME.LINE} ${MusicPlayer.formatSong(song, userId, groupId)}\n` +
+              `${BOT_THEME.FRAME.LINE} ${BOT_THEME.EMOJIS.SUCCESS} *Canzone salvata!*\n` +
+              `${BOT_THEME.FRAME.LINE} ${MusicPlayer.formatSong(song)}\n` +
               `${BOT_THEME.FRAME.BOTTOM}\n\n` +
               `${BOT_THEME.EMOJIS.HEART} ${BOT_THEME.FRAME.SIGNATURE}`,
         buttons: [
-          { buttonId: `${usedPrefix}playlist`, buttonText: { displayText: `${BOT_THEME.EMOJIS.PLAYLIST} ${global.t('viewPlaylist', userId, groupId)}` }, type: 1 },
-          { buttonId: `${usedPrefix}play ${song.title}`, buttonText: { displayText: `${BOT_THEME.EMOJIS.MUSIC} ${global.t('play', userId, groupId)}` }, type: 1 },
-          { buttonId: `${usedPrefix}elimina`, buttonText: { displayText: `${BOT_THEME.EMOJIS.DELETE} ${global.t('delete', userId, groupId)}` }, type: 1 }
+          { buttonId: `${usedPrefix}playlist`, buttonText: { displayText: `${BOT_THEME.EMOJIS.PLAYLIST} Vedi Playlist` }, type: 1 },
+          { buttonId: `${usedPrefix}play ${song.title}`, buttonText: { displayText: `${BOT_THEME.EMOJIS.MUSIC} Riproduci` }, type: 1 },
+          { buttonId: `${usedPrefix}elimina`, buttonText: { displayText: `${BOT_THEME.EMOJIS.DELETE} Elimina` }, type: 1 }
         ],
         viewOnce: true,
         headerType: 4
       }, { quoted: m });
     }
 
+    // 📋 VISUALIZZA PLAYLIST
     if (command === 'playlist') {
       const songs = DB.read()[targetUser] || [];
 
       if (!songs.length) {
-        return m.reply(global.t('emptyPlaylist', userId, groupId, { userName: userName }));
+        return m.reply(`${BOT_THEME.EMOJIS.INFO} ${userName ? `${userName} non ha brani salvati` : 'La tua playlist è vuota!'}`);
       }
 
       let message = `${BOT_THEME.FRAME.TOP}\n` +
                    `${BOT_THEME.FRAME.MIDDLE}\n` +
-                   `${BOT_THEME.FRAME.LINE} ${BOT_THEME.EMOJIS.PLAYLIST} ${userName ? global.t('userPlaylist', userId, groupId, { userName: userName }) : global.t('yourPlaylist', userId, groupId)}\n`;
+                   `${BOT_THEME.FRAME.LINE} ${BOT_THEME.EMOJIS.PLAYLIST} ${userName ? `Playlist di ${userName}` : 'La tua playlist'}\n`;
 
       songs.slice(0, 10).forEach((song, index) => {
         message += `${BOT_THEME.FRAME.LINE} ${index + 1}. ${song.title}\n` +
@@ -196,7 +196,7 @@ const handler = async (m, { conn, text, args, command, usedPrefix }) => {
       });
 
       if (songs.length > 10) {
-        message += `${BOT_THEME.FRAME.LINE} ${global.t('moreSongs', userId, groupId, { count: songs.length - 10 })}\n`;
+        message += `${BOT_THEME.FRAME.LINE} ...e altri ${songs.length - 10} brani\n`;
       }
 
       message += `${BOT_THEME.FRAME.BOTTOM}\n\n` +
@@ -208,7 +208,7 @@ const handler = async (m, { conn, text, args, command, usedPrefix }) => {
 
       if (!userName) {
         buttons.push(
-          { buttonId: `${usedPrefix}elimina`, buttonText: { displayText: `${BOT_THEME.EMOJIS.DELETE} ${global.t('delete', userId, groupId)}` }, type: 1 }
+          { buttonId: `${usedPrefix}elimina`, buttonText: { displayText: `${BOT_THEME.EMOJIS.DELETE} Elimina` }, type: 1 }
         );
       }
 
@@ -216,14 +216,15 @@ const handler = async (m, { conn, text, args, command, usedPrefix }) => {
         text: message,
         buttons: [
           ...buttons,
-          { buttonId: `${usedPrefix}menu`, buttonText: { displayText: `${BOT_THEME.EMOJIS.BACK} ${global.t('back', userId, groupId)}` }, type: 1 },
-          { buttonId: `${usedPrefix}salva`, buttonText: { displayText: `${BOT_THEME.EMOJIS.SAVE} ${global.t('saveNew', userId, groupId)}` }, type: 1 }
+          { buttonId: `${usedPrefix}menu`, buttonText: { displayText: `${BOT_THEME.EMOJIS.BACK} Indietro` }, type: 1 },
+          { buttonId: `${usedPrefix}salva`, buttonText: { displayText: `${BOT_THEME.EMOJIS.SAVE} Salva nuovo` }, type: 1 }
         ],
         viewOnce: true,
         headerType: 4
       }, { quoted: m });
     }
 
+    // 🗑️ ELIMINA CANZONE
     if (command === 'elimina') {
       const index = parseInt(args[0]) - 1;
       const songs = DB.read()[userId] || [];
@@ -231,22 +232,22 @@ const handler = async (m, { conn, text, args, command, usedPrefix }) => {
       if (isNaN(index)) {
         let message = `${BOT_THEME.FRAME.TOP}\n` +
                       `${BOT_THEME.FRAME.MIDDLE}\n` +
-                      `${BOT_THEME.FRAME.LINE} ${BOT_THEME.EMOJIS.DELETE} ${global.t('selectDelete', userId, groupId)}\n`;
+                      `${BOT_THEME.FRAME.LINE} ${BOT_THEME.EMOJIS.DELETE} *Seleziona brano da eliminare*\n`;
 
         songs.slice(0, 10).forEach((song, i) => {
           message += `${BOT_THEME.FRAME.LINE} ${i + 1}. ${song.title}\n`;
         });
 
         message += `${BOT_THEME.FRAME.BOTTOM}\n\n` +
-                   `${global.t('deleteUsage', userId, groupId, { prefix: usedPrefix })}\n` +
+                   `Usa: .elimina <numero>\n` +
                    `${BOT_THEME.EMOJIS.HEART} ${BOT_THEME.FRAME.SIGNATURE}`;
 
         const buttons = songs.slice(0, 5).map((_, i) => (
-          { buttonId: `${usedPrefix}elimina ${i + 1}`, buttonText: { displayText: `${i + 1}🗑️ ${global.t('delete', userId, groupId)}` }, type: 1 }
+          { buttonId: `${usedPrefix}elimina ${i + 1}`, buttonText: { displayText: `${i + 1}🗑️ Elimina` }, type: 1 }
         ));
 
         buttons.push(
-          { buttonId: `${usedPrefix}playlist`, buttonText: { displayText: `${BOT_THEME.EMOJIS.BACK} ${global.t('back', userId, groupId)}` }, type: 1 }
+          { buttonId: `${usedPrefix}playlist`, buttonText: { displayText: `${BOT_THEME.EMOJIS.BACK} Indietro` }, type: 1 }
         );
 
         return conn.sendMessage(m.chat, { 
@@ -258,7 +259,7 @@ const handler = async (m, { conn, text, args, command, usedPrefix }) => {
       }
 
       if (index < 0 || index >= songs.length) {
-        return m.reply(global.t('invalidNumber', userId, groupId));
+        return m.reply(`${BOT_THEME.EMOJIS.ERROR} Numero non valido!`);
       }
 
       const [deletedSong] = songs.splice(index, 1);
@@ -267,14 +268,14 @@ const handler = async (m, { conn, text, args, command, usedPrefix }) => {
       return conn.sendMessage(m.chat, {
         text: `${BOT_THEME.FRAME.TOP}\n` +
               `${BOT_THEME.FRAME.MIDDLE}\n` +
-              `${BOT_THEME.FRAME.LINE} ${BOT_THEME.EMOJIS.SUCCESS} ${global.t('songDeleted', userId, groupId)}\n` +
+              `${BOT_THEME.FRAME.LINE} ${BOT_THEME.EMOJIS.SUCCESS} *Brano eliminato!*\n` +
               `${BOT_THEME.FRAME.LINE} 🎵 ${deletedSong.title}\n` +
               `${BOT_THEME.FRAME.BOTTOM}\n\n` +
               `${BOT_THEME.EMOJIS.HEART} ${BOT_THEME.FRAME.SIGNATURE}`,
         buttons: [
-          { buttonId: `${usedPrefix}playlist`, buttonText: { displayText: `${BOT_THEME.EMOJIS.PLAYLIST} ${global.t('viewPlaylist', userId, groupId)}` }, type: 1 },
-          { buttonId: `${usedPrefix}salva ${deletedSong.title}`, buttonText: { displayText: `${BOT_THEME.EMOJIS.SAVE} ${global.t('restore', userId, groupId)}` }, type: 1 },
-          { buttonId: `${usedPrefix}salva`, buttonText: { displayText: `${BOT_THEME.EMOJIS.SAVE} ${global.t('saveNew', userId, groupId)}` }, type: 1 }
+          { buttonId: `${usedPrefix}playlist`, buttonText: { displayText: `${BOT_THEME.EMOJIS.PLAYLIST} Vedi Playlist` }, type: 1 },
+          { buttonId: `${usedPrefix}salva ${deletedSong.title}`, buttonText: { displayText: `${BOT_THEME.EMOJIS.SAVE} Ripristina` }, type: 1 },
+          { buttonId: `${usedPrefix}salva`, buttonText: { displayText: `${BOT_THEME.EMOJIS.SAVE} Salva nuovo` }, type: 1 }
         ],
         viewOnce: true,
         headerType: 4
@@ -283,7 +284,7 @@ const handler = async (m, { conn, text, args, command, usedPrefix }) => {
 
   } catch (error) {
     console.error('Handler error:', error);
-    return m.reply(global.t('errorOccurred', userId, groupId, { error: error.message }));
+    return m.reply(`${BOT_THEME.EMOJIS.ERROR} Errore: ${error.message}`);
   }
 };
 
@@ -294,6 +295,6 @@ handler.help = [
   'elimina <n> - Rimuove un brano'
 ];
 handler.tags = ['music'];
-handler.command = ['salva', 'save', 'playlist', 'elimina', 'delete'];
+handler.command = ['salva', 'playlist', 'elimina'];
 
 export default handler;

@@ -1,6 +1,5 @@
 import { webp2mp4 } from '../lib/webp2mp4.js'
 import { ffmpeg } from '../lib/converter.js'
-import '../lib/language.js';
 let handler = async (m, { conn, usedPrefix, command }) => {
 if (!m.quoted) throw `rispondi a uno sticker ${usedPrefix + command}`
 let mime = m.quoted.mimetype || ''

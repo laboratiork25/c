@@ -1,68 +1,118 @@
-import { googleImage } from '@bochilteam/scraper'
-import { existsSync } from 'fs'
-import axios from 'axios'
-import '../lib/language.js'
+import { googleImage } from '@bochilteam/scraper';
+import { existsSync } from 'fs';
+import axios from 'axios';
 
-const bannedWords = [
-  'porn', 'sex', 'nude', 'naked', 'xxx', 'adult', 'nsfw',
-    'porno', 'sesso', 'nudo', 'nuda', 'adulti', 'vietato'
-]
+const forbiddenWords = [
+    "esempio_termine_vietato"
+];
 
-const handler = async (m, { conn, text, usedPrefix, command }) => {
-    const userId = m.sender
-    const groupId = m.isGroup ? m.chat : null
-    
-    if (!text) {
-        return conn.reply(m.chat, global.t('imageSearchHelp', userId, groupId, {
-            prefix: usedPrefix,
-            command: command
-        }), m)
-    }
-    
-    const searchTerm = text.toLowerCase()
-    const hasBannedWord = bannedWords.some(word => searchTerm.includes(word))
-    
-    if (hasBannedWord) {
-        return conn.reply(m.chat, global.t('imageSearchBanned', userId, groupId), m)
-    }
-    
-    await conn.reply(m.chat, global.t('smsWait', userId, groupId), m)
-    
-    try {
-        const results = await googleImage(text)
-        
-        if (!results || results.length === 0) {
-            return conn.reply(m.chat, global.t('imageSearchNoResults', userId, groupId), m)
-        }
-        
-        const randomImage = results[Math.floor(Math.random() * Math.min(results.length, 10))]
-        
-        if (!randomImage || !randomImage.url) {
-            return conn.reply(m.chat, global.t('imageSearchError', userId, groupId), m)
-        }
-        
-        const caption = global.t('imageSearchResult', userId, groupId, {
-            searchTerm: text
-        })
-        
-        await conn.sendFile(m.chat, randomImage.url, 'image.jpg', caption, m)
-        
-    } catch (error) {
-        console.error('Image search error:', error)
-        
-        let errorMessage
-        if (error.message?.includes('network') || error.message?.includes('timeout')) {
-            errorMessage = global.t('imageSearchNetworkError', userId, groupId)
-        } else {
-            errorMessage = global.t('smsError', userId, groupId)
-        }
-        
-        await conn.reply(m.chat, errorMessage, m)
+function shuffle(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+        const randomIndex = Math.floor(Math.random() * (i + 1));
+        [array[i], array[randomIndex]] = [array[randomIndex], array[i]];
     }
 }
 
-handler.help = ['cercimg', 'immagine', 'img', 'image']
-handler.tags = ['tools']
-handler.command = /^(cercimg|immagine|img|image|imagesearch)$/i
+const handler = async (message, { conn, text, usedPrefix, command }) => {
+    const requiredFiles = [
+        './termini.jpeg',
+        './plugins/OWNER_file.js', 
+        './CODE_OF_CONDUCT.md',
+        './bal.png'
+    ];
+    
+    for (const file of requiredFiles) {
+        if (!existsSync(file)) {
+            return conn.reply(message.chat, 'Questo comando è disponibile solo con la base di ChatUnity.', message);
+        }
+    }
+    
+    const searchTerm = text || message.quoted?.text;
+    
+    if (!searchTerm) {
+        return conn.reply(
+            message.chat, 
+            `> ⓘ Uso del comando:\n> ${usedPrefix}${command} <parola chiave>`, 
+            message
+        );
+    }
+    
+    const aiPrompt = `
+Controlla se nel seguente testo è presente un termine inappropriato o ostile, in qualsiasi lingua:
 
-export default handler
+"${searchTerm}"
+
+Se contiene contenuti sessuali, violenti, razzisti, illegali, deepfake, o simili, rispondi solo con "vietato", altrimenti rispondi "ok".
+`;
+    
+    try {
+        const aiResponse = await axios.post('https://luminai.my.id', {
+            content: aiPrompt,
+            user: message.pushName || 'utente',
+            prompt: 'Rispondi con una singola parola.',
+            webSearchMode: false
+        });
+        
+        const result = aiResponse.data?.result?.toLowerCase();
+        
+        if (result.includes('vietato')) {
+            return conn.reply(message.chat, '⚠ Contenuto non permesso.', message);
+        }
+    } catch (error) {
+        console.log('Filtro GPT fallito, fallback su lista manuale.');
+        
+        if (forbiddenWords.some(word => searchTerm.toLowerCase().includes(word))) {
+            return conn.reply(message.chat, '⚠ Questo contenuto non è permesso.', message);
+        }
+    }
+    
+    const randomNum = Math.floor(Math.random() * 1000);
+    const enhancedSearchTerm = searchTerm + ' ' + randomNum;
+    
+    const searchResults = await googleImage(enhancedSearchTerm);
+    
+    if (!searchResults || searchResults.length === 0) {
+        return conn.reply(message.chat, 'Nessuna immagine trovata 😢', message);
+    }
+    
+    shuffle(searchResults);
+    
+    const selectedImages = searchResults.slice(0, 10);
+    
+    const imageCards = selectedImages.map((imageUrl, index) => ({
+        image: { url: imageUrl },
+        title: `Immagine #${index + 1}`,
+        body: `Risultato per: ${searchTerm}`,
+        footer: 'Powered by ChatUnity',
+        buttons: [{
+            name: 'cta_url',
+            buttonParamsJson: JSON.stringify({
+                display_text: 'Apri immagine',
+                url: imageUrl
+            })
+        }]
+    }));
+    
+    await conn.sendMessage(message.chat, {
+        text: `🔍 Risultati per: ${searchTerm}`,
+        title: 'Risultati immagini',
+        subtitle: 'Ecco le immagini trovate su Google',
+        footer: 'Powered by ChatUnity',
+        cards: imageCards
+    }, { quoted: message });
+    
+    await conn.sendMessage(message.chat, {
+        text: '🔄 Vuoi cercare altre immagini con lo stesso termine?',
+        footer: 'Powered by ChatUnity',
+        buttons: [{
+            buttonId: usedPrefix + 'cercaimmagine ' + searchTerm,
+            buttonText: { displayText: 'Cerca di nuovo' },
+            type: 1
+        }],
+        headerType: 1
+    }, { quoted: message });
+};
+
+handler.command = ['cercaimmagine'];
+
+export default handler;

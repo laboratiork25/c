@@ -1,4 +1,3 @@
-import '../lib/language.js';
 // antimedia by Onix, di Riad
 export async function before(m, { conn }) {
     if (!m.isGroup || m.isBaileys) return true;

@@ -5,7 +5,6 @@ import { readFileSync, unlinkSync } from 'fs';
 import { join, dirname } from 'path';
 import ffmpeg from 'fluent-ffmpeg'; 
 import { fileURLToPath } from 'url';
-import '../lib/language.js';
 
 const defaultLang = 'it'; // Lingua di default per la sintesi vocale
 const defaultResponse = "Cazzo vuoi"; // Frase di default
@@ -37,17 +36,15 @@ function changeAudioSpeed(inputFilePath, outputFilePath, speed = 1.5) {
             .audioFilters(`atempo=${speed}`)
             .on('end', () => resolve(outputFilePath))
             .on('error', (err) => {
-                reject(new Error(global.t ? global.t('voiceFFmpegError') : "ffmpeg non trovato o errore nell'elaborazione audio. Assicurati che ffmpeg sia installato e accessibile nel PATH."));
+                reject(new Error("ffmpeg non trovato o errore nell'elaborazione audio. Assicurati che ffmpeg sia installato e accessibile nel PATH."));
             })
             .save(outputFilePath);
     });
 }
 
 var handler = async (m, { text, usedPrefix, command, conn }) => {
-    const userId = m.sender;
-    const groupId = m.isGroup ? m.chat : null;
     if (!text) {
-        text = global.t('voiceDefaultResponse', userId, groupId) || defaultResponse;
+        text = defaultResponse;
     }
 
     try {
@@ -62,7 +59,7 @@ var handler = async (m, { text, usedPrefix, command, conn }) => {
             // Richiesta all'API AI con il prompt personalizzato
             let apii = await fetch(`https://apis-starlights-team.koyeb.app/starlight/gemini?text=${encodeURIComponent(prompt)}`);
             let res = await apii.json();
-            responseText = res.result || global.t('voiceNoUnderstand', userId, groupId) || "Non ho capito, puoi ripetere?";
+            responseText = res.result || "Non ho capito, puoi ripetere?";
         } else {
             // Altrimenti, usa la risposta predefinita
             responseText = text;
@@ -81,7 +78,7 @@ var handler = async (m, { text, usedPrefix, command, conn }) => {
         if (modifiedAudioPath && typeof modifiedAudioPath === 'string') {
             await conn.sendFile(m.chat, modifiedAudioPath, 'risposta.mp3', null, m, true);
         } else {
-            await conn.reply(m.chat, global.t('voiceInvalidFile', userId, groupId) || "Errore: file audio non valido.", m);
+            await conn.reply(m.chat, "Errore: file audio non valido.", m);
         }
 
         // Pulisce i file dopo l'invio
@@ -89,8 +86,8 @@ var handler = async (m, { text, usedPrefix, command, conn }) => {
         try { unlinkSync(modifiedAudioPath); } catch {}
 
     } catch (e) {
-        await conn.reply(m.chat, global.t('voiceError', userId, groupId) || `Errore: ${e?.message || "Errore sconosciuto"}\nRiprova più tardi.`, m);
-        console.error(global.t('voiceConsoleError', userId, groupId) || `Errore nel comando ${usedPrefix + command}:`, e);
+        await conn.reply(m.chat, `Errore: ${e?.message || "Errore sconosciuto"}\nRiprova più tardi.`, m);
+        console.error(`Errore nel comando ${usedPrefix + command}:`, e);
     }
 };
 

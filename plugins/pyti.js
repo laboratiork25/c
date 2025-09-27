@@ -1,9 +1,4 @@
-import '../lib/language.js';
-
 let handler = async (m, { conn }) => {
-  const userId = m.sender;
-  const groupId = m.isGroup ? m.chat : null;
-  
   const user = m.sender;
   global.db.data.users[user] = global.db.data.users[user] || {};
   const data = global.db.data.users[user];
@@ -12,23 +7,19 @@ let handler = async (m, { conn }) => {
 
   const rimanenti = Math.max(15 - data.pityCounter, 0);
 
-  let messaggio = global.t('pitySystem', userId, groupId, {
-    pityCounter: data.pityCounter,
-    remaining: rimanenti
-  });
+  let messaggio = `📊 *Sistema Pity Darkness*\n\n`;
+  messaggio += `🔁 Pacchetti aperti senza Darkness: *${data.pityCounter}*\n`;
+  messaggio += `🎯 Prossimo Darkness garantito tra: *${rimanenti}* pacchetti\n`;
 
   if (data.pityCounter >= 15) {
-    messaggio += global.t('pityGuaranteed', userId, groupId);
+    messaggio += `\n✨ Il prossimo pacchetto ha un Darkness *garantito*!`;
   }
 
-  await conn.sendMessage(m.chat, { 
-    text: messaggio, 
-    mentions: [user] 
-  }, { quoted: m });
+  await conn.sendMessage(m.chat, { text: messaggio, mentions: [user] }, { quoted: m });
 };
 
 handler.help = ['pity'];
 handler.tags = ['pokemon'];
-handler.command = /^(pity|pitycounter|darknesscounter)$/i;
+handler.command = /^pity$/i;
 
 export default handler;

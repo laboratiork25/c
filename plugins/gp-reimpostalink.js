@@ -1,4 +1,3 @@
-import '../lib/language.js';
 
 let handler = async(m, { conn }) => {
     let nomeDelBot = global.db.data.nomedelbot || `𝐂𝐡𝐚𝐭𝐔𝐧𝐢𝐭𝐲`
@@ -10,7 +9,7 @@ let handler = async(m, { conn }) => {
         forwardingScore: 999,
         isForwarded: true,
         forwardedNewsletterMessageInfo: {
-          newsletterJid: '120363422724720651@newsletter',
+          newsletterJid: '120363259442839354@newsletter',
           serverMessageId: '',
           newsletterName: `${nomeDelBot}`
         }

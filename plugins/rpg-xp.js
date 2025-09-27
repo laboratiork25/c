@@ -1,7 +1,6 @@
 import fs from 'fs/promises'
 import path from 'path'
 import { createCanvas, loadImage, registerFont } from 'canvas'
-import '../lib/language.js'
 
 const dbPath = path.resolve('./xp-counter.json')
 const DEFAULT_AVATAR_URL = 'https://i.ibb.co/BKHtdBNp/default-avatar-profile-icon-1280x1280.jpg'
@@ -72,7 +71,7 @@ async function createXPImage(username,level,xpCurrent,xpNeeded,pfpUrl,groupUrl){
 
   ctx.font='bold 28px Montserrat'; ctx.fillStyle='#fff'; ctx.textAlign='left'
   ctx.fillText(username,contentX+140,centerY-20)
-  ctx.font='24px Montserrat'; ctx.fillText(global.t('xp_level_display', null, { level: level }),contentX+140,centerY+20)
+  ctx.font='24px Montserrat'; ctx.fillText(`Livello: ${level}`,contentX+140,centerY+20)
 
   const barX = contentX+140, barY = centerY + 50, barWidth = cardW - 140 - 30, barHeight = 20
   if(xpCurrent>0){
@@ -82,16 +81,19 @@ async function createXPImage(username,level,xpCurrent,xpNeeded,pfpUrl,groupUrl){
     ctx.fillStyle='#fff'
     ctx.beginPath(); ctx.roundRect(barX,barY,barWidth*percent,barHeight,10); ctx.fill()
     ctx.font='16px Montserrat'; ctx.fillStyle='#000000'; ctx.textAlign='center'
-    ctx.fillText(global.t('xp_progress_display', null, { current: xpCurrent, needed: xpNeeded }), barX + barWidth/2, barY + barHeight-4)
+    ctx.fillText(`${xpCurrent} / ${xpNeeded} XP`, barX + barWidth/2, barY + barHeight-4)
   }
 
+// davide toglimi il footer e ti bestemmio in faccia, o almeno ti bestemmio in chat <3
+
+
   ctx.font='18px Montserrat'; ctx.fillStyle='#fff'; ctx.textAlign='center'
-  ctx.fillText(global.t('xp_footer_text'), margin+cardW/2, margin+cardH-20)
+  ctx.fillText('˙ . ᵗˢᵏ ꒷ . 𝐧𝐞𝐱𝐮𝑠 𖦹˙🪽', margin+cardW/2, margin+cardH-20)
 
   return canvas.toBuffer('image/png')
 }
 
-let handler = async (m, { conn, usedPrefix }) => {
+let handler = async (m,{conn,usedPrefix})=>{
   const db = await readDB()
   if(!db[m.sender]) db[m.sender]={exp:0}
   const user = db[m.sender]
@@ -108,12 +110,7 @@ let handler = async (m, { conn, usedPrefix }) => {
   ])
 
   const xpImage = await createXPImage(userName,level,xpCurrent,xpNeeded,pfpUrl,groupUrl)
-
-  const caption = 
-    `👤 ${userName}\n` +
-    `📈 Livello: ${level}\n` +
-    `⭐ Exp: ${user.exp}\n` +
-    `🔜 Prossimo livello tra: ${xpToNext} exp`;
+  const caption = `✨ *XP PROFILE* ✨\n▸ *UTENTE*: ${userName}\n▸ *LIVELLO*: ${level}\n▸ *XP TOTALI*: ${user.exp}\n▸ *PROSSIMO LIVELLO*: ${xpToNext} XP`
 
   await conn.sendMessage(m.chat,{image:xpImage,caption,mentions:[m.sender]},{quoted:m})
   await writeDB(db)
@@ -121,6 +118,8 @@ let handler = async (m, { conn, usedPrefix }) => {
 
 handler.help=['xp']
 handler.tags=['rpg']
-handler.command=/^(xp|exp|esperienza|experience|level|lvl)$/i
+handler.command=['xp','exp','esperienza']
 handler.register=true
 export default handler
+
+

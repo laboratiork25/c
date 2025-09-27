@@ -1,5 +1,4 @@
 import axios from 'axios';
-import '../lib/language.js';
 
 // Funzione cmd locale (semplificata per uso diretto nel plugin)
 function cmd(info, func) {

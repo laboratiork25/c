@@ -1,4 +1,3 @@
-import '../lib/language.js';
 let handler = async (message, { conn, participants, groupMetadata }) => {
     const groupAdmins = participants.filter(member => member.admin);
     const adminList = groupAdmins.map(admin => `• @${admin.id.split('@')[0]}`).join('\n');

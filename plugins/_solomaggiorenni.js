@@ -1,4 +1,3 @@
-import '../lib/language.js';
 // Plugin: Solo Maggiorenni (Abilita/disabilita phsearch per +18)
 // Attiva con: .attiva solomaggiorenni | .disabilita solomaggiorenni
 

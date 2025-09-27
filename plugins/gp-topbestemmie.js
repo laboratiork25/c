@@ -1,47 +1,22 @@
-import '../lib/language.js';
+//Plugin creato da Gab333 - Velocizzato
 let handler = async (m, { conn }) => {
-    if (!m.isGroup) return; 
+    if (!m.isGroup) return
     
-    let groupMetadata = await conn.groupMetadata(m.chat);
-    let participants = groupMetadata.participants;
-  
-
-    let users = global.db.data.users;
-  
-
+    let participants = (await conn.groupMetadata(m.chat)).participants
     let groupUsers = participants
-      .map(p => ({
-        id: p.id,
-        bestemmie: users[p.id]?.blasphemy || 0, 
-      }))
-      .filter(u => u.bestemmie > 0) 
-      .sort((a, b) => b.bestemmie - a.bestemmie) 
-      .slice(0, 10); 
-  
-    let text = global.t('blasphemy_top_title', m.sender) + '\n\n';
-    groupUsers.forEach((user, index) => {
-      text += global.t('blasphemy_top_entry', m.sender, null, {
-        position: index + 1,
-        user: user.id.split('@')[0],
-        count: user.bestemmie
-      }) + '\n';
-    });
-  
-    if (groupUsers.length === 0) {
-      text = global.t('blasphemy_no_data', m.sender);
-    }
- 
-    await conn.sendMessage(
-      m.chat,
-      { 
-        text, 
-        mentions: groupUsers.map(u => u.id) 
-      },
-      { quoted: m }
-    );
-  };
-  
+        .map(p => ({ id: p.id, bestemmie: global.db.data.users[p.id]?.blasphemy || 0 }))
+        .filter(u => u.bestemmie > 0)
+        .sort((a, b) => b.bestemmie - a.bestemmie)
+        .slice(0, 10)
+    
+    let text = groupUsers.length ? 
+        `🏆 Top 10 Bestemmiatori del Gruppo 🏆\n\n` + 
+        groupUsers.map((user, i) => `${i + 1}. @${user.id.split('@')[0]} - ${user.bestemmie} bestemmie`).join('\n') :
+        "😇 Nessuno ha bestemmiato in questo gruppo!"
+    
+    conn.sendMessage(m.chat, { text, mentions: groupUsers.map(u => u.id) }, { quoted: m })
+}
 
-  handler.command = /^(topbestemmie|bestemmietop|blasphemytop|swearrank|curseleaderboard)$/i;
-  handler.group = true;
-  export default handler;
+handler.command = ['topbestemmie', 'bestemmietop']
+handler.group = true
+export default handler

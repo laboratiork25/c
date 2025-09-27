@@ -1,4 +1,3 @@
-import '../lib/language.js';
 let handler = async (m, { conn, text }) => {
     let id = m.chat
     conn.math = conn.math ? conn.math : {}

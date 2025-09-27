@@ -1,12 +1,8 @@
-import '../lib/language.js';
 let handler = async (m, { conn, command, text }) => {
-    let nomeDelBot = global.db.data.nomedelbot || global.t('default_bot_name', m.sender)
+    let nomeDelBot = global.db.data.nomedelbot || `𝐂𝐡𝐚𝐭𝐔𝐧𝐢𝐭𝐲`
   
-    let love = global.t('hate_calculator', m.sender, null, { 
-        user1: text, 
-        user2: 'te', 
-        percentage: Math.floor(Math.random() * 100) 
-    })
+    let love = `──────────────\n𝐂𝐀𝐋𝐂𝐎𝐋𝐀𝐓𝐎𝐑𝐄 𝐃𝐈 𝐎𝐃𝐈𝐎 😡
+  L'odio tra ${text} e te: ${Math.floor(Math.random() * 100)}%\n──────────────`.trim()
   
     await conn.sendMessage(m.chat, {
       text: love,
@@ -15,7 +11,7 @@ let handler = async (m, { conn, command, text }) => {
         forwardingScore: 999,
         isForwarded: true,
         forwardedNewsletterMessageInfo: {
-          newsletterJid: '120363422724720651@newsletter',
+          newsletterJid: '120363259442839354@newsletter',
           serverMessageId: '',
           newsletterName: `${nomeDelBot}`
         }
@@ -23,7 +19,7 @@ let handler = async (m, { conn, command, text }) => {
     })
   }
   
-  handler.command = /^(odio|hate|hatred|dislike)$/i
+  handler.command = /^(odio)$/i
   handler.tags = ['fun']
   handler.help = ['odio @tag']
   

@@ -1,4 +1,3 @@
-import '../lib/language.js';
 let handler = async (m, { conn,usedPrefix, text }) => {
 if(isNaN(text) && !text.match(/@/g)){
 	

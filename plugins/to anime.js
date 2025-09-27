@@ -1,5 +1,4 @@
 import uploadImage from '../lib/uploadImage.js'
-import '../lib/language.js';
 let handler = async (m, { conn, text, args, usedPrefix, command }) => {
 let q = m.quoted ? m.quoted : m
 let mime = (q.msg || q).mimetype || q.mediaType || ""

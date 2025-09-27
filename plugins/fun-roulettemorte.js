@@ -1,5 +1,4 @@
 import { delay } from '@whiskeysockets/baileys';
-import '../lib/language.js';
 
 const salasRuleta = {};
 

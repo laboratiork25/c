@@ -1,4 +1,3 @@
-import '../lib/language.js';
 const handler = async (m, { conn, usedPrefix }) => {
   const sender = m.sender;
   const userData = global.db.data.users[sender];

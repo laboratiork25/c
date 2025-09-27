@@ -1,6 +1,5 @@
 import os from 'os';
 import { execSync } from 'child_process';
-import '../lib/language.js';
 
 const formatBytes = (bytes, decimali = 2) => {
     if (bytes === 0) return '0 Bytes';
@@ -17,15 +16,12 @@ const getSpazioDisco = () => {
         const [ , dimensione, usato, disponibile, percentuale ] = stdout.split(/\s+/);
         return { dimensione, usato, disponibile, percentuale };
     } catch (error) {
-        console.error(global.t('diskSpaceError', m.sender, m.isGroup ? m.chat : null));
+        console.error('✧ Errore nel recupero spazio disco:', error);
         return null;
     }
 };
 
 const handler = async (m, { conn }) => {
-    const userId = m.sender;
-    const groupId = m.isGroup ? m.chat : null;
-    
     const memoriaTotale = os.totalmem();
     const memoriaLibera = os.freemem();
     const memoriaUsata = memoriaTotale - memoriaLibera;
@@ -37,32 +33,38 @@ const handler = async (m, { conn }) => {
     const usoNode = process.memoryUsage();
     const spazioDisco = getSpazioDisco();
 
-    const messaggio = global.t('systemStatusText', userId, groupId, {
-        nomeHost,
-        piattaforma,
-        architettura,
-        memoriaTotale: formatBytes(memoriaTotale),
-        memoriaLibera: formatBytes(memoriaLibera),
-        memoriaUsata: formatBytes(memoriaUsata),
-        tempoAttivo,
-        rss: formatBytes(usoNode.rss),
-        heapTotal: formatBytes(usoNode.heapTotal),
-        heapUsed: formatBytes(usoNode.heapUsed),
-        external: formatBytes(usoNode.external),
-        arrayBuffers: formatBytes(usoNode.arrayBuffers),
-        dimensioneDisco: spazioDisco ? spazioDisco.dimensione : global.t('notAvailable', userId, groupId),
-        usatoDisco: spazioDisco ? spazioDisco.usato : global.t('notAvailable', userId, groupId),
-        disponibileDisco: spazioDisco ? spazioDisco.disponibile : global.t('notAvailable', userId, groupId),
-        percentualeDisco: spazioDisco ? spazioDisco.percentuale : global.t('notAvailable', userId, groupId)
-    });
+    const messaggio = `✅️ *STATO DEL SISTEMA*
 
-    const rcanal = {};
+🚩 *Host ⪼* ${nomeHost}
+🏆 *Piattaforma ⪼* ${piattaforma}
+💫 *Architettura ⪼* ${architettura}
+🥷 *RAM Totale ⪼* ${formatBytes(memoriaTotale)}
+🚀 *RAM Libera ⪼* ${formatBytes(memoriaLibera)}
+⌛️ *RAM Usata ⪼* ${formatBytes(memoriaUsata)}
+🕒 *Tempo di Attività ⪼* ${tempoAttivo}
+
+🪴 *Utilizzo Memoria Node.js:* 
+→ RSS: ${formatBytes(usoNode.rss)}
+→ Heap Totale: ${formatBytes(usoNode.heapTotal)}
+→ Heap Usato: ${formatBytes(usoNode.heapUsed)}
+→ Memoria Esterna: ${formatBytes(usoNode.external)}
+→ Array Buffer: ${formatBytes(usoNode.arrayBuffers)}
+${spazioDisco ? `
+
+☁️ *Spazio su Disco:*
+→ Dimensione Totale: ${spazioDisco.dimensione}
+→ Usato: ${spazioDisco.usato}
+→ Disponibile: ${spazioDisco.disponibile}
+→ Percentuale Utilizzo: ${spazioDisco.percentuale}` : 'Errore nel rilevamento.'}
+`;
+
+    const rcanal = {}; // Definisci o inizializza 'rcanal' appropriatamente
     await conn.reply(m.chat, messaggio.trim(), m, rcanal);
 };
 
 handler.help = ['sistema'];
 handler.tags = ['info'];
-handler.command = ['system', 'sistema', 'status', 'stats'];
+handler.command = ['system', 'sistema'];
 handler.register = true;
 
 export default handler;

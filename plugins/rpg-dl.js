@@ -1,4 +1,3 @@
-import '../lib/language.js';
 let handler = async (m, { conn, args, participants }) => {
     let users = Object.entries(global.db.data.users).map(([key, value]) => {
       return {...value, jid: key}
@@ -17,17 +16,17 @@ let handler = async (m, { conn, args, participants }) => {
     let len = args[0] && args[0].length > 0 ? Math.min(10, Math.max(parseInt(args[0]), 5)) : Math.min(5, sortedExp.length)
     
     let text = `
-╭─═[ *${global.t('top_unitycoins_title', m.sender, null, { len: len })}* ]═⋆
+╭─═[ *𝐭𝐨𝐩 ${len} 𝐮𝐧𝐢𝐭𝐲𝐜𝐨𝐢𝐧 💶* ]═⋆
 │╭─────────···
- ✩│${global.t('your_position_unitycoins', m.sender, null, { position: usersLim.indexOf(m.sender) + 1, total: usersLim.length })}
- ✩│ ${sortedLim.slice(0, len).map(({ jid, limit }, i) => `${i + 1}. ${participants.some(p => jid === p.jid) ? `(${conn.getName(jid)}) wa.me/` : '@'}${jid.split`@`[0]} *${limit} ${global.t('unitycoins_symbol', m.sender)}*`).join`\n✩│ `}
+ ✩│𝐥𝐚 𝐭𝐮𝐚 𝐩𝐨𝐬𝐢𝐳𝐢𝐨𝐧𝐞: *${usersLim.indexOf(m.sender) + 1}* su *${usersLim.length}*
+ ✩│ ${sortedLim.slice(0, len).map(({ jid, limit }, i) => `${i + 1}. ${participants.some(p => jid === p.jid) ? `(${conn.getName(jid)}) wa.me/` : '@'}${jid.split`@`[0]} *${limit} 💶*`).join`\n✩│ `}
   │╰─────────···
   ╰────═┅═────
   
-  ╭─═[ *${global.t('top_xp_title', m.sender, null, { len: len })}* ]═⋆
+  ╭─═[ *TOP ${len} XP 💫* ]═⋆
   │╭────────────···
-  ✩│${global.t('your_position_xp', m.sender, null, { position: usersExp.indexOf(m.sender) + 1, total: usersExp.length })}
-  ✩│ ${sortedExp.slice(0, len).map(({ jid, exp }, i) => `${i + 1}. ${participants.some(p => jid === p.jid) ? `(${conn.getName(jid)}) wa.me/` : '@'}${jid.split`@`[0]} *${exp} ${global.t('xp_symbol', m.sender)}*`).join`\n✩│ `}
+  ✩│ 𝐥𝐚 𝐭𝐮𝐚 𝐩𝐨𝐬𝐢𝐳: *${usersExp.indexOf(m.sender) + 1}* 𝐬𝐮 *${usersExp.length}*
+  ✩│ ${sortedExp.slice(0, len).map(({ jid, exp }, i) => `${i + 1}. ${participants.some(p => jid === p.jid) ? `(${conn.getName(jid)}) wa.me/` : '@'}${jid.split`@`[0]} *${exp} 💫*`).join`\n✩│ `}
   │╰────────────···
   ╰─────═┅═─────
   `.trim()
@@ -40,7 +39,7 @@ let handler = async (m, { conn, args, participants }) => {
   
   handler.help = ['classifica']
   handler.tags = ['rpg']
-  handler.command = /^(classifica|leaderboard|lb|rank|ranking)$/i
+  handler.command = ['classifica', 'lb', 'leaderboard'] 
   handler.register = true
   
   // Funzioni di utilità

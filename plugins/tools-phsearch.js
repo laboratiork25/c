@@ -2,7 +2,6 @@
 
 import cheerio from 'cheerio';
 import axios from 'axios';
-import '../lib/language.js';
 
 let handler = async (m, { conn, args, command, usedPrefix }) => {
   const emoji = "🔞";

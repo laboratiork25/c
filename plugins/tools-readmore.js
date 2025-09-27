@@ -1,4 +1,3 @@
-import '../lib/language.js';
 let handler = async (m, { conn, text }) => {
     let [l, r] = text.split`|`
     if (!l) l = ''

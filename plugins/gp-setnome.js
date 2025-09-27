@@ -1,4 +1,3 @@
-import '../lib/language.js';
 // Definizione delle stringhe in italiano
 const lenguajeIT = {
     smsNam2: () => "⚠️ Per favore inserisci il nuovo nome per il gruppo",

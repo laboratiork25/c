@@ -1,4 +1,3 @@
-import '../lib/language.js';
 // Crediti by Gabs & AntiPrivato Aggiornato
 
 export async function before(m, { conn, isAdmin, isBotAdmin, isOwner, isROwner }) {

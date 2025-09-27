@@ -1,5 +1,4 @@
 import fetch from 'node-fetch'
-import '../lib/language.js';
 
 const rarityCosts = {
   'Comune': 100,

@@ -15,20 +15,18 @@ let handler = async (m, { conn, usedPrefix }) => {
         : `💰 𝐢𝐥 𝐛𝐫𝐨 @${who.split('@')[0]} 𝐚
    𝐡𝐚 *${user.bank} 💶 𝐮𝐧𝐢𝐭𝐲𝐜𝐨𝐢𝐧* 𝐢𝐧 𝐛𝐚𝐧𝐜𝐚🏛️.`}`;
 
-    // Invia l'immagine cubank.jpg
-    await conn.sendMessage(m.chat, {
-        image: { url: 'icone/cubank.jpg' },
-        caption: message,
+    await conn.sendMessage(m.chat, { 
+        text: message,
         contextInfo: {
             forwardingScore: 99,
             isForwarded: true,
             forwardedNewsletterMessageInfo: {
-                newsletterJid: '120363422724720651@newsletter',
+                newsletterJid: '120363259442839354@newsletter',
                 serverMessageId: '',
                 newsletterName: 'ChatUnity'
             }
         }
-    }, { quoted: m });
+    }, { quoted: m, detectLink: true });
 };
 
 handler.help = ['bank'];

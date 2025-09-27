@@ -1,5 +1,4 @@
 import axios from 'axios';
-import '../lib/language.js';
 
 const bibbiaPlugin = async (m, { conn, text, usedPrefix, command }) => {
   // Se non c’è testo, chiediamo a GPT un versetto casuale

@@ -1,8 +1,8 @@
+
 import { createHash } from 'crypto';
 import PhoneNumber from 'awesome-phonenumber';
 import fetch from 'node-fetch';
 import fs from 'fs';
-import '../lib/language.js';
 
 const handler = async (m, { conn, usedPrefix, command }) => {
   try {
@@ -15,18 +15,20 @@ const handler = async (m, { conn, usedPrefix, command }) => {
     const user = global.db.data.users[who];
     const friends = user.amici || [];
 
-    const lastFriend = friends[friends.length - 1]; 
-    const lastFriendName = lastFriend ? lastFriend.split('@')[0] : global.t('no_friends', m.sender);
+    const lastFriend = friends[friends.length - 1];
+    const lastFriendName = lastFriend ? lastFriend.split('@')[0] : 'Nessuno';
 
     const friendList = friends.length > 0
       ? friends.map((friend, index) => `${index + 1}. @${friend.split('@')[0]}`).join('\n')
-      : global.t('no_friends', m.sender);
+      : 'Nessuno';
 
-    const message = global.t('friends_list', m.sender, null, {
-      name: user.name && user.name.trim() !== '' ? user.name : global.t('unknown_user', m.sender),
-      lastFriend: friends.length > 0 ? "@" + lastFriendName : global.t('no_friends', m.sender),
-      friendList: friends.length > 0 ? friendList : global.t('no_friends_list', m.sender)
-    });
+    const message = `📜 *Lista Amici di ${user.name && user.name.trim() !== '' ? user.name : 'Sconosciuto'}*
+┌───────────────
+│ 👤 *Ultimo Amico:* ${friends.length > 0 ? "@" + lastFriendName : 'Nessuno'}
+│
+│ 👥 *Lista Completa:*
+${friends.length > 0 ? friendList : '│   Nessuno complimenti lupo solitario'}
+└───────────────`;
 
     await conn.sendMessage(m.chat, {
       text: message,
@@ -35,9 +37,9 @@ const handler = async (m, { conn, usedPrefix, command }) => {
 
   } catch (err) {
     console.error('Error in handler:', err);
-    conn.reply(m.chat, global.t('friends_error', m.sender));
+    conn.reply(m.chat, "❌ Si è verificato un errore durante l'esecuzione del comando.");
   }
 };
 
-handler.command = /^(listamici|friendslist|myfriends|amici)$/i;
+handler.command = ['listamici'];
 export default handler;

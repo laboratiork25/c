@@ -1,4 +1,3 @@
-import '../lib/language.js';
 let handler = async (m, { usedPrefix }) => {
     try {
         delete global.chatgpt.data.users[m.sender]  

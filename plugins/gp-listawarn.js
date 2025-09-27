@@ -1,4 +1,3 @@
-import '../lib/language.js';
 let handler = async (m, { conn, isOwner }) => {
   let adv = Object.entries(global.db.data.users).filter(user => user[1].warn)
   let warns = global.db.data.users.warn

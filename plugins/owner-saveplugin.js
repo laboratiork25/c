@@ -1,5 +1,4 @@
 import fs from 'fs'
-import '../lib/language.js';
 let handler = async (m, { text, usedPrefix, command }) => {
     if (!text) throw `uhm.. che nome do al plugin?`
     if (!m.quoted.text) throw `Rispondi al msg!`

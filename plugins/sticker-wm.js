@@ -1,5 +1,4 @@
 import { addExif } from '../lib/sticker.js'
-import '../lib/language.js';
 let handler = async (m, { conn, text }) => {
 if (!m.quoted) throw 'rispondi a uno sticker'
 let stiker = false

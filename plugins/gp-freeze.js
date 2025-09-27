@@ -1,5 +1,4 @@
 import fetch from 'node-fetch';
-import '../lib/language.js';
 
 const handler = async (_0x498b4a, { conn, command, text, isAdmin }) => {
     if (!isAdmin) throw '𝑪𝒐𝒎𝒂𝒏𝒅𝒐 𝒅𝒊𝒔𝒑𝒐𝒏𝒊𝒃𝒊𝒍𝒆 𝒔𝒐𝒍𝒐 𝒑𝒆𝒓 𝒂𝒅𝒎𝒊𝒏🌟';

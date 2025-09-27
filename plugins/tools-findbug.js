@@ -1,6 +1,5 @@
 import fs from 'fs'
 import path from 'path'
-import '../lib/language.js';
 
 let handler = async (m, { conn, text, usedPrefix, command }) => {
     let isOwner = false

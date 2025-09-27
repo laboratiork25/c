@@ -1,4 +1,3 @@
-import '../lib/language.js';
 let handler = async (m, { conn }) => {
     try {
         // Messaggio principale senza pulsanti

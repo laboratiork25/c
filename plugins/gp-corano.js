@@ -1,5 +1,4 @@
 import axios from 'axios';
-import '../lib/language.js';
 
 const coranoPlugin = async (m, { conn, text, usedPrefix, command }) => {
   const prompt = text

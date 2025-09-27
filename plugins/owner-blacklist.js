@@ -1,5 +1,4 @@
 import fs from 'fs';
-import '../lib/language.js';
 
 // Percorso del file blacklist
 const path = './blacklist.json';

@@ -1,4 +1,3 @@
-import '../lib/language.js';
 let handler = async (m, { args }) => {
    let user = global.db.data.users[m.sender];
 

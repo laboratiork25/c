@@ -1,8 +1,7 @@
 import fs from "fs";
 import path from "path";
-import '../lib/language.js';
 
-const PLAY_FOLDER = "./play"; 
+const PLAY_FOLDER = "./play"; // 📂 Cartella MP3
 
 let handler = async (m, { conn, isAdmin, isOwner }) => {
     if (!isAdmin && !isOwner) {

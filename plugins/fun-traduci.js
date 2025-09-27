@@ -1,5 +1,4 @@
 import axios from 'axios';
-import '../lib/language.js';
 
 const langMap = {
   "🇿🇦 Africano": "af",
@@ -68,24 +67,20 @@ const langMap = {
 };
 
 let handler = async (m, { conn, args }) => {
-  const userId = m.sender;
-  const groupId = m.isGroup ? m.chat : null;
-
   if (!args.length) {
-    let tutorial = global.t('translateUsage', userId, groupId);
-    
+    let tutorial = `*🌍 Uso del comando .traduci 🌍*\n`;
+    tutorial += `📌 Formato: *.traduci <testo> <lingua>*\n📖 Esempio: *.traduci ciao giapponese*\n\n`;
+    tutorial += `🌐 *Lingue supportate:* 🌐\n\n`;
+
     for (const [nome, codice] of Object.entries(langMap)) {
-      tutorial += global.t('languageEntry', userId, groupId, {
-        name: nome,
-        code: codice
-      });
+      tutorial += `🔹 ${nome} = \`${codice}\`\n`;
     }
 
     return conn.reply(m.chat, tutorial, m);
   }
 
   if (args.length < 2) {
-    return conn.reply(m.chat, global.t('translateSyntax', userId, groupId), m);
+    return conn.reply(m.chat, `⚠️ Uso corretto: *.traduci <testo> <lingua>*\n📖 Esempio: *.traduci ciao cinese*`, m);
   }
 
   const text = args.slice(0, -1).join(" ");
@@ -93,32 +88,27 @@ let handler = async (m, { conn, args }) => {
   const targetLang = Object.values(langMap).includes(langInput) ? langInput : langMap[Object.keys(langMap).find(k => k.toLowerCase().includes(langInput))];
 
   if (!targetLang) {
-    return conn.reply(m.chat, global.t('languageNotFound', userId, groupId), m);
+    return conn.reply(m.chat, `❌ Lingua non riconosciuta. Usa *.traduci* per vedere la lista delle lingue disponibili.`, m);
   }
 
   try {
     const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=${targetLang}&dt=t&q=${encodeURIComponent(text)}`;
     const { data } = await axios.get(url);
-    const translatedText = data[0]?.[0]?.[0] || global.t('noTranslation', userId, groupId);
+    const translatedText = data[0]?.[0]?.[0] || "Nessuna traduzione trovata.";
 
     return conn.reply(
       m.chat,
-      global.t('translationResult', userId, groupId, {
-        text,
-        langInput,
-        targetLang,
-        translatedText
-      }),
+      `🌍 *Traduzione:* 🌍\n📌 *Testo originale:* ${text}\n📖 *Lingua di destinazione:* ${langInput} (${targetLang})\n\n🔹 *Risultato:* ${translatedText}`,
       m
     );
   } catch (error) {
-    console.error(global.t('translationErrorLog', userId, groupId), error);
-    return conn.reply(m.chat, global.t('translationError', userId, groupId), m);
+    console.error("Errore nella traduzione:", error);
+    return conn.reply(m.chat, `❌ Errore nella traduzione. Verifica i parametri e riprova.`, m);
   }
 };
 
 handler.help = ['traduci <testo> <lingua>'];
 handler.tags = ['tools'];
-handler.command = /^(traduci|translate|trad)$/i;
+handler.command = /^traduci$/i;
 
 export default handler;

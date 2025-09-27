@@ -1,4 +1,3 @@
-import '../lib/language.js';
 let handler = async (message, { conn, text }) => {
     if (!text && !message.mentionedJid?.[0] && !message.quoted) {
         return conn.reply(message.chat, '❗ Tagga, rispondi o scrivi il numero (es: 3934xxxxxxx)', message);

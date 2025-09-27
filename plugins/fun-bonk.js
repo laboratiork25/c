@@ -1,5 +1,4 @@
 import jimp from 'jimp';
-import '../lib/language.js';
 
 let handler = async (m, { conn, text }) => {
     try {

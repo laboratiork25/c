@@ -1,28 +1,22 @@
-import '../lib/language.js';
 let tradeRequests = {}
 
 let handler = async (m, { conn, args, command }) => {
     global.db.data.users = global.db.data.users || {}
     let sender = m.sender
-    let userId = m.sender
-    let groupId = m.chat.endsWith('@g.us') ? m.chat : null
     let users = global.db.data.users
     let username = `@${sender.split('@')[0]}`
 
     if (command === 'scambia') {
         let target = m.mentionedJid?.[0]
-        if (!target) return m.reply(global.t('tradeUsage', userId, groupId))
+        if (!target) return m.reply(`📌 Usa:\n.scambia @utente <tuo_numero> <suo_numero>`)
         
         let myIndex = parseInt(args[1]) - 1
         let theirIndex = parseInt(args[2]) - 1
         let myPokemons = users[sender]?.pokemons || []
         let theirPokemons = users[target]?.pokemons || []
 
-        if (!myPokemons[myIndex]) return m.reply(global.t('tradeInvalidSelf', userId, groupId, { number: args[1] }))
-        if (!theirPokemons[theirIndex]) return m.reply(global.t('tradeInvalidOther', userId, groupId, { 
-            number: args[2], 
-            user: target.split('@')[0] 
-        }), null, { mentions: [target] })
+        if (!myPokemons[myIndex]) return m.reply(`❌ Il tuo Pokémon n. ${args[1]} non esiste.`)
+        if (!theirPokemons[theirIndex]) return m.reply(`❌ Il Pokémon n. ${args[2]} di @${target.split('@')[0]} non esiste.`, null, { mentions: [target] })
 
         tradeRequests[target] = {
             from: sender,
@@ -33,25 +27,13 @@ let handler = async (m, { conn, args, command }) => {
         let myPoke = myPokemons[myIndex]
         let theirPoke = theirPokemons[theirIndex]
 
-        let txt = global.t('tradeRequestHeader', userId, groupId) + '\n\n' +
-                  global.t('tradeRequestFrom', userId, groupId, { user: username }) + '\n' +
-                  global.t('tradeRequestOffer', userId, groupId, { 
-                      pokemon: myPoke.name, 
-                      level: myPoke.level 
-                  }) + '\n' +
-                  global.t('tradeRequestFor', userId, groupId, { 
-                      pokemon: theirPoke.name, 
-                      level: theirPoke.level, 
-                      targetUser: target.split('@')[0] 
-                  }) + '\n\n' +
-                  global.t('tradeRequestAccept', userId, groupId, { targetUser: target.split('@')[0] })
-        
+        let txt = `🔁 *Richiesta di Scambio*\n\n${username} vuole scambiare:\n📤 *${myPoke.name}* (Lv. ${myPoke.level})\ncon\n📥 *${theirPoke.name}* (Lv. ${theirPoke.level}) di @${target.split('@')[0]}\n\n✅ @${target.split('@')[0]}, rispondi con *.accetta* per confermare.`
         return conn.reply(m.chat, txt, m, { mentions: [target, sender] })
     }
 
     if (command === 'accetta') {
         let trade = tradeRequests[sender]
-        if (!trade) return m.reply(global.t('tradeNoRequest', userId, groupId))
+        if (!trade) return m.reply('❌ Nessuna richiesta di scambio trovata.')
 
         let { from, myIndex, theirIndex } = trade
         let myPokemons = users[sender]?.pokemons || []
@@ -62,7 +44,7 @@ let handler = async (m, { conn, args, command }) => {
 
         if (!myPoke || !theirPoke) {
             delete tradeRequests[sender]
-            return m.reply(global.t('tradePokemonUnavailable', userId, groupId))
+            return m.reply('❌ Uno dei Pokémon non è più disponibile.')
         }
 
         // Effettua lo scambio
@@ -71,12 +53,7 @@ let handler = async (m, { conn, args, command }) => {
 
         delete tradeRequests[sender]
 
-        return m.reply(global.t('tradeCompleted', userId, groupId, { 
-            user1: from.split('@')[0], 
-            user2: sender.split('@')[0], 
-            pokemon1: theirPoke.name, 
-            pokemon2: myPoke.name 
-        }), null, {
+        return m.reply(`✅ Scambio completato tra @${from.split('@')[0]} e @${sender.split('@')[0]}!\n\n🎁 ${theirPoke.name} ⇄ ${myPoke.name}`, null, {
             mentions: [from, sender]
         })
     }
@@ -84,6 +61,6 @@ let handler = async (m, { conn, args, command }) => {
 
 handler.help = ['scambia @utente <tuo_num> <suo_num>', 'accetta']
 handler.tags = ['pokemon']
-handler.command = /^(scambia|trade|accetta|accept)$/i
+handler.command = /^scambia|accetta$/i
 
 export default handler

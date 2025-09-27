@@ -1,4 +1,3 @@
-import '../lib/language.js';
 const setgenereHandler = async (m, { conn, usedPrefix, command, text }) => {
   const who = m.sender; // L'utente che invia il comando
 

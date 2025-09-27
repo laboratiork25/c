@@ -1,41 +1,42 @@
-import '../lib/language.js';
-
 let handler = async (m, { conn, command, text }) => {
-  const userId = m.sender;
-  const groupId = m.chat;
+    // Genera un livello casuale di alcol nel sangue
+    let width = Math.floor(Math.random() * 101);
 
-  let width = Math.floor(Math.random() * 101);
+    // Determina il messaggio in base al livello
+    let finalPhrase = width >= 70 
+        ? "🍾 Amico se hai bisogno di parlare io ci sono.." 
+        : width >= 30 
+        ? "🥂 Beve in modo responsabile, o quasi..." 
+        : "🚰 Totalmente sobrio, niente sbronze per oggi!";
 
-  let finalKey = width >= 70
-    ? 'alcol_phrase_high'
-    : width >= 30
-    ? 'alcol_phrase_mid'
-    : 'alcol_phrase_low';
+    // Creazione del messaggio
+    let message = `
+『💬』 ══ •⊰✰⊱• ══ 『💬』
 
-  let message = global.t('alcol_message', userId, groupId, {
-    name: text || 'Tu',
-    percent: width,
-    phrase: global.t(finalKey, userId, groupId)
-  });
+MOMENTO DEL TEST DELL'ALCOL! 🍷 
+━━━━━━━━━━━━━━
+ ${text ? text : 'Tu'} ha un tasso alcolemico del ${width}%! 🍷
+『💬』 ══ •⊰✰⊱• ══ 『💬』
 
-  const messageOptions = {
-    contextInfo: {
-      forwardingScore: 1,
-      isForwarded: true,
-      forwardedNewsletterMessageInfo: {
-        newsletterJid: '120363422724720651@newsletter',
-        serverMessageId: '',
-        newsletterName: global.t('alcol_newsletter_name', userId, groupId)
-      },
-    }
-  };
+${finalPhrase}
+`.trim();
 
-  m.reply(message, null, {
-    mentions: conn.parseMention(message),
-    ...messageOptions
-  });
+    const messageOptions = {
+        contextInfo: {
+            forwardingScore: 1,
+            isForwarded: true,
+            forwardedNewsletterMessageInfo: {
+                newsletterJid: '120363259442839354@newsletter',
+                serverMessageId: '',
+                newsletterName: `ChatUnity` // Utilizzo della variabile botName
+            },
+        }
+    };
+
+    // Invia il messaggio con le menzioni e le opzioni
+    m.reply(message, null, { mentions: conn.parseMention(message), ...messageOptions });
 };
 
-handler.command = /^(alcolizzato|alcol|ubriaco|vino|birra)$/i;
+handler.command = /^(alcolizzato|alcol)$/i;
 
 export default handler;
