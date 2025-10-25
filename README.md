@@ -37,10 +37,44 @@
 [![Tutorial Installazione](https://img.shields.io/badge/Tutorial-Installazione-FF0000?style=for-the-badge&logo=youtube&logoColor=white)](https://youtube.com/shorts/qek7wWadhtI?feature=share)
 
 ```bash
-termux-setup-storage
-apt update -y && yes | apt upgrade && pkg install -y bash wget mpv
-cd /sdcard
-wget -O - https://raw.githubusercontent.com/chatunitycenter/chatunity-bot/main/chatunity.sh | bash
+
+termux-setup-storage && \
+pkg update && pkg upgrade -y && \
+pkg install x11-repo tur-repo -y && \
+pkg install git nodejs ffmpeg imagemagick yarn libcairo pango libjpeg-turbo giflib libpixman pkg-config freetype fontconfig xorgproto build-essential python libvips sqlite clang make chromium binutils -y && \
+pip install setuptools && \
+export GYP_DEFINES="android_ndk_path=''" && \
+cd ~ && \
+git clone https://github.com/chatunitycenter/chatunity-bot.git && \
+cd chatunity-bot && \
+yarn install && \
+pip install yt-dlp && \
+yarn start
+
+```
+
+---
+
+---
+
+## 🚀 Installazione (MTMANAGER/ZARCH)
+
+[![Tutorial Installazione](https://img.shields.io/badge/Tutorial-Installazione-FF0000?style=for-the-badge&logo=youtube&logoColor=white)](https://youtube.com/shorts/qek7wWadhtI?feature=share)
+
+```bash
+
+termux-setup-storage && \
+pkg update && pkg upgrade -y && \
+pkg install x11-repo tur-repo -y && \
+pkg install git nodejs ffmpeg imagemagick yarn libcairo pango libjpeg-turbo giflib libpixman pkg-config freetype fontconfig xorgproto build-essential python libvips sqlite clang make chromium binutils -y && \
+pip install setuptools && \
+export GYP_DEFINES="android_ndk_path=''" && \
+cd ~ && \
+cd /sdcard/chatunity-bot && \
+yarn install && \
+pip install yt-dlp && \
+yarn start
+
 ```
 
 ---
