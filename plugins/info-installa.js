@@ -29,61 +29,82 @@ let prova = { "key": {"participants":"0@s.whatsapp.net", "remoteJid": "status@br
 }}, "participant": "0@s.whatsapp.net"
 }
 let info = `
-『💬』 ══ •⊰✰⊱• ══ 『💬』
-
-𝐒𝐂𝐀𝐑𝐈𝐂𝐀 𝐂𝐇𝐀𝐓𝐔𝐍𝐈𝐓𝐘-𝐁𝐎𝐓
+⋆ ︵︵ ★ 💬 𝐂𝐇𝐀𝐓𝐔𝐍𝐈𝐓𝐘-𝐁𝐎𝐓 💬 ★ ︵︵ ⋆
 
 Segui questi passaggi per installare ChatUnity Bot correttamente su Termux
 
-repository termux https://github.com/chatunitycenter/chatunity-bot
+꒷꒦ ✦ ୧・︶ : ︶ ꒷꒦ ‧₊ ୧
+୧ 📂 Repository: https://github.com/chatunitycenter/chatunity-bot
+୧ 🎥 Video Tutorial: https://youtu.be/-FZYK-vj4BY
+꒷꒦ ✦ ୧・︶ : ︶ ꒷꒦ ‧₊ ୧
 
-video yt tutorial https://youtube.com/shorts/qek7wWadhtI?si=MrrA3bLWWAsLmpw6
-
-『💬』 ══ •⊰✰⊱• ══ 『💬』
-
-1. Scaricare e installare Termux
+╭★────★────★────★────★────★
+|ㅤㅤㅤㅤㅤㅤㅤ꒰¡PASSO 1!꒱
+|˚₊꒷ 📥 ꒱ ฅ﹕Scaricare e installare Termux ₊˚๑
+╰★────★────★────★────★────★
 
 Scarica la versione corretta di Termux dal link seguente:
-
 🔗 Scarica Termux 0.119.1
+https://www.mediafire.com/file/0npdmv51pnttps0/com.termux_0.119.1-119_minAPI21(arm64-v8a),armeabi-v7a,x86,x86_64)(nodpi)_apkmirror.com.apk/file
 
-https://www.mediafire.com/file/0npdmv51pnttps0/com.termux_0.119.1-119_minAPI21(arm64-v8a,armeabi-v7a,x86,x86_64)(nodpi)_apkmirror.com.apk/file
+╭﹕₊˚ ★ ⁺˳ꕤ₊⁺・꒱
+━━✫ 📦 INSTALLAZIONE COMPLETA (Termux)
+╰﹕₊˚ ★ ⁺˳ꕤ₊⁺・꒱
 
-Dopo aver scaricato il file APK, installalo sul tuo dispositivo e concedi i permessi richiesti.
+Copia e incolla il comando completo:
 
-『💬』 ══ •⊰✰⊱• ══ 『💬』
+termux-setup-storage && \
+pkg update && pkg upgrade -y && \
+pkg install x11-repo tur-repo -y && \
+pkg install git nodejs ffmpeg imagemagick yarn libcairo pango libjpeg-turbo giflib libpixman pkg-config freetype fontconfig xorgproto build-essential python libvips sqlite clang make chromium binutils -y && \
+pip install setuptools && \
+export GYP_DEFINES="android_ndk_path=''" && \
+cd ~ && \
+git clone https://github.com/chatunitycenter/chatunity-bot.git && \
+cd chatunity-bot && \
+yarn install && \
+pip install yt-dlp && \
+yarn start
 
-2. Configurare Termux
+╭﹕₊˚ ★ ⁺˳ꕤ₊⁺・꒱
+━━✫ 📦 INSTALLAZIONE ZIP (MT Manager / ZArchiver)
+╰﹕₊˚ ★ ⁺˳ꕤ₊⁺・꒱
 
-Apri Termux ed esegui il seguente comando:
+Se hai scaricato la ZIP del bot, usa questo comando:
 
-termux-setup-storage
+🔗 Scarica ZIP: https://www.mediafire.com/file/la6evdeof2m6pl7/chatunity-bot-main.zip/file
 
-Quando richiesto, concedi le autorizzazioni necessarie.
+Dopo aver estratto la cartella nella memoria interna (/sdcard/), esegui:
 
-『💬』 ══ •⊰✰⊱• ══ 『💬』
+termux-setup-storage && \
+pkg update && pkg upgrade -y && \
+pkg install x11-repo tur-repo -y && \
+pkg install git nodejs ffmpeg imagemagick yarn libcairo pango libjpeg-turbo giflib libpixman pkg-config freetype fontconfig xorgproto build-essential python libvips sqlite clang make chromium binutils -y && \
+pip install setuptools && \
+export GYP_DEFINES="android_ndk_path=''" && \
+cd /sdcard/chatunity-bot && \
+yarn install && \
+pip install yt-dlp && \
+yarn start
 
-3. Installare ChatUnity Bot
+Dopo l’installazione, il bot si avvierà automaticamente.
 
-Ora esegui il seguente comando per aggiornare Termux:
+┊ ┊ ┊ ┊‿ ˚➶ ｡˚
+┊ ┊ ┊ ┊. ➶ ˚
+┊ ┊ ┊ ˚✧ Se riscontri problemi, verifica di aver seguito
+┊ ˚➶ ｡˚ ☁︎ tutti i passaggi correttamente e controlla
+☁︎ eventuali messaggi di errore su Termux
 
-apt update -y && yes | apt upgrade && pkg install -y bash wget mpv && wget -O - https://raw.githubusercontent.com/chatunitycenter/chatunity-bot/main/chatunity.sh | bash
-
-『💬』 ══ •⊰✰⊱• ══ 『💬』
-
-4. Avviare ChatUnity Bot
-
-Dopo l’installazione, potrai avviare il bot utilizzando il comando che verrà mostrato al termine del processo.
-
-Se riscontri problemi, verifica di aver seguito tutti i passaggi correttamente e controlla eventuali messaggi di errore su Termux.
-
-『💬』 ══ •⊰✰⊱• ══ 『💬』
+╰♡꒷ ๑ ⋆˚₊⋆───ʚ˚ɞ───⋆˚₊⋆ ๑ ⪩
+୧・𝐂𝐎𝐋𝐋𝐀𝐁: ${collab}
+୧・© ChatUnity Bot
+╰♡꒷ ๑ ⋆˚₊⋆───ʚ˚ɞ───⋆˚₊⋆ ๑ ⪩
 `.trim() 
 conn.reply(m.chat, info,prova, m, {
 contextInfo: { externalAdReply :{ mediaUrl: null, mediaType: 1, description: null, 
 title: '𝙸𝙽𝙵𝙾 𝙳𝙴𝙻 𝙱𝙾𝚃',
 body: 'ChatUnity',         
-previewType: 0, thumbnail: fs.readFileSync("./menu/Menu2.jpg"),
+previewType: 0, thumbnail: fs.readFileSync("./menu/principale.jpeg"),
 sourceUrl: `https://github.com/chatunitycenter/chatunity-bot`}}})
 }
 handler.help = ['infobot', 'speed']
