@@ -65,7 +65,7 @@ ${commandList.split('\n').map(line => `୧ ${line.trim()}`).join('\n')}
 
 ╰♡꒷ ๑ ⋆˚₊⋆───ʚ˚ɞ───⋆˚₊⋆ ๑ ⪩
   ୧・*${versionText}:* ${vs}
-  ୧・${collabText}
+  ୧・𝐂𝐎𝐋𝐋𝐀𝐁: ${collab}
   ୧・*${supportText}:* (.supporto)
 ╰♡꒷ ๑ ⋆˚₊⋆───ʚ˚ɞ───⋆˚₊⋆ ๑ ⪩
 `.trim();

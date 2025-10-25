@@ -88,7 +88,7 @@ export async function handler(chatUpdate) {
             groupData.suspendedUntil = now + 45000;
 
             await conn.sendMessage(chatId, {
-                text: `『 ⚠ 』 [translate:Anti-spam comandi]\n\n[translate:Troppi comandi in poco tempo!]\n[translate:Attendi] *45 [translate:secondi]* [translate:prima di usare altri comandi.]\n\n> [translate:sviluppato da sam aka vare]`,
+                text: `『 ⚠ 』 Anti-spam comandi]\n\nTroppi comandi in poco tempo!]\n :Attendi] *45  :secondi]*  :prima di usare altri comandi.]\n\n>  :sviluppato da sam aka vare]`,
                 mentions: [m.sender]
             });
             return;
@@ -570,12 +570,12 @@ export async function participantsUpdate({ id, participants, action }) {
                 forwardingScore: 99,
                 isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                    newsletterJid: '120363422724720651@newsletter',
+                    newsletterJid: '120363259442839354@newsletter',
                     serverMessageId: '',
                     newsletterName: `${nomeDelBot}`
                 },
                 externalAdReply: {
-                    "title": `${action === 'add' ? '[translate:𝐌𝐞𝐬𝐬𝐚𝐠𝐠𝐢𝐨 𝐝𝐢 𝐛𝐞𝐧𝐯𝐞𝐧𝐮𝐭𝐨]' : '[translate:𝐌𝐞𝐬𝐬𝐚𝐠𝐠𝐢𝐨 𝐝𝐢 𝐚𝐝𝐝𝐢𝐨]'}`,
+                    "title": `${action === 'add' ? ' :𝐌𝐞𝐬𝐬𝐚𝐠𝐠𝐢𝐨 𝐝𝐢 𝐛𝐞𝐧𝐯𝐞𝐧𝐮𝐭𝐨]' : ' :𝐌𝐞𝐬𝐬𝐚𝐠𝐠𝐢𝐨 𝐝𝐢 𝐚𝐝𝐝𝐢𝐨]'}`,
                     "previewType": "PHOTO",
                     "thumbnailUrl": ``,
                     "thumbnail": apii.data,
@@ -593,8 +593,8 @@ export async function groupsUpdate(groupsUpdate) {
         if (!id) continue
         let chats = global.db.data.chats[id],
             text = ''
-        if (groupUpdate.icon) text = (chats.sIcon || this.sIcon || conn.sIcon || '`[translate:immagine modificata]`').replace('@icon', groupUpdate.icon)
-        if (groupUpdate.revoke) text = (chats.sRevoke || this.sRevoke || conn.sRevoke || '`[translate:link reimpostato, nuovo link:]`\n@revoke').replace('@revoke', groupUpdate.revoke)
+        if (groupUpdate.icon) text = (chats.sIcon || this.sIcon || conn.sIcon || '` :immagine modificata]`').replace('@icon', groupUpdate.icon)
+        if (groupUpdate.revoke) text = (chats.sRevoke || this.sRevoke || conn.sRevoke || '` :link reimpostato, nuovo link:]`\n@revoke').replace('@revoke', groupUpdate.revoke)
         if (!text) continue
         await this.sendMessage(id, { text, mentions: this.parseMention(text) })
     }
@@ -606,7 +606,7 @@ export async function callUpdate(callUpdate) {
     for (let nk of callUpdate) {
         if (nk.isGroup == false) {
             if (nk.status == "offer") {
-                let callmsg = await this.reply(nk.from, `[translate:ciao] @${nk.from.split('@')[0]}, [translate:c'è anticall.]`, false, { mentions: [nk.from] })
+                let callmsg = await this.reply(nk.from, ` :ciao] @${nk.from.split('@')[0]},  :c'è anticall.]`, false, { mentions: [nk.from] })
                 let vcard = `BEGIN:VCARD\nVERSION:5.0\nN:;𝐂𝐡𝐚𝐭𝐔𝐧𝐢𝐭𝐲;;;\nFN:𝐂𝐡𝐚𝐭𝐔𝐧𝐢𝐭𝐲\nORG:𝐂𝐡𝐚𝐭𝐔𝐧𝐢𝐭𝐲\nTITLE:\nitem1.TEL;waid=393773842461:+39 3515533859\nitem1.X-ABLabel:𝐂𝐡𝐚𝐭𝐔𝐧𝐢𝐭𝐲\nX-WA-BIZ-DESCRIPTION:ofc\nX-WA-BIZ-NAME:𝐂𝐡𝐚𝐭𝐔𝐧𝐢𝐭𝐲\nEND:VCARD`
                 await this.sendMessage(nk.from, { contacts: { displayName: 'Unlimited', contacts: [{ vcard }] } }, { quoted: callmsg })
                 await this.updateBlockStatus(nk.from, 'block')

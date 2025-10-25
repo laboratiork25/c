@@ -63,6 +63,7 @@ function generateMenuText(prefix, userId, groupId) {
 • 👑 *${global.t('listWarnCommand', userId, groupId) || 'listawarn'}*
 • 👑 *${global.t('linkCommand', userId, groupId) || 'link'}*
 • 👑 *${global.t('linkQrCommand', userId, groupId) || 'linkqr'}*
+• 👑 *${global.t('linkQrCommand', userId, groupId) || 'richieste'}*
     `.trim();
 
     return `

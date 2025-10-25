@@ -71,7 +71,7 @@ const handler = async (m, { conn, text, usedPrefix, command }) => {
           forwardingScore: 99,
           isForwarded: true,
           forwardedNewsletterMessageInfo: {
-            newsletterJid: '120363422724720651@newsletter',
+            newsletterJid: '120363259442839354@newsletter',
             serverMessageId: '',
             newsletterName: 'ChatUnity'
           }
@@ -93,7 +93,7 @@ const handler = async (m, { conn, text, usedPrefix, command }) => {
             forwardingScore: 99,
             isForwarded: true,
             forwardedNewsletterMessageInfo: {
-              newsletterJid: '120363422724720651@newsletter',
+              newsletterJid: '120363259442839354@newsletter',
               serverMessageId: '',
               newsletterName: 'ChatUnity'
             }
@@ -122,7 +122,7 @@ const handler = async (m, { conn, text, usedPrefix, command }) => {
             forwardingScore: 99,
             isForwarded: true,
             forwardedNewsletterMessageInfo: {
-              newsletterJid: '120363422724720651@newsletter',
+              newsletterJid: '120363259442839354@newsletter',
               serverMessageId: '',
               newsletterName: 'ChatUnity'
             }
@@ -149,7 +149,7 @@ const handler = async (m, { conn, text, usedPrefix, command }) => {
               forwardingScore: 99,
               isForwarded: true,
               forwardedNewsletterMessageInfo: {
-                newsletterJid: '120363422724720651@newsletter',
+                newsletterJid: '120363259442839354@newsletter',
                 serverMessageId: '',
                 newsletterName: 'ChatUnity'
               }
@@ -173,7 +173,7 @@ const handler = async (m, { conn, text, usedPrefix, command }) => {
             forwardingScore: 99,
             isForwarded: true,
             forwardedNewsletterMessageInfo: {
-              newsletterJid: '120363422724720651@newsletter',
+              newsletterJid: '120363259442839354@newsletter',
               serverMessageId: '',
               newsletterName: 'ChatUnity'
             }
@@ -197,7 +197,7 @@ const handler = async (m, { conn, text, usedPrefix, command }) => {
             forwardingScore: 99,
             isForwarded: true,
             forwardedNewsletterMessageInfo: {
-              newsletterJid: '120363422724720651@newsletter',
+              newsletterJid: '120363259442839354@newsletter',
               serverMessageId: '',
               newsletterName: 'ChatUnity'
             }
@@ -240,7 +240,7 @@ const handler = async (m, { conn, text, usedPrefix, command }) => {
           forwardingScore: 99,
           isForwarded: true,
           forwardedNewsletterMessageInfo: {
-            newsletterJid: '120363422724720651@newsletter',
+            newsletterJid: '120363259442839354@newsletter',
             serverMessageId: '',
             newsletterName: 'chatunity'
           },
@@ -268,7 +268,7 @@ const handler = async (m, { conn, text, usedPrefix, command }) => {
         forwardingScore: 99,
         isForwarded: true,
         forwardedNewsletterMessageInfo: {
-          newsletterJid: '120363422724720651@newsletter',
+          newsletterJid: '120363259442839354@newsletter',
           serverMessageId: '',
           newsletterName: 'chatunity'
         }

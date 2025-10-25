@@ -98,7 +98,7 @@ function generateMenuText(prefix, botName, userCount, userId, groupId) {
 
 ╰♡꒷ ๑ ⋆˚₊⋆──ʚ˚ɞ──⋆˚₊⋆ ๑ ⪩
   ୧・*${versionText}:* ${vs}
-  ୧・${collabText}: ${collab}
+  ୧・𝐂𝐎𝐋𝐋𝐀𝐁: ${collab}
   ୧・${usersText}: ${userCount}
 ╰♡꒷ ๑ ⋆˚₊⋆──ʚ˚ɞ──⋆˚₊⋆ ๑ ⪩
 `.trim();
