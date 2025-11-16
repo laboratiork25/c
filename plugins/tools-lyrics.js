@@ -2,18 +2,12 @@ import { getTracks } from "@green-code/music-track-data";
 import { googleImage } from "@bochilteam/scraper";
 import got from "got";
 import cheerio from "cheerio";
-import fs from "fs";
+import axios from "axios";
 
 const handler = async (m, { conn, text, usedPrefix, command }) => {
-  const datas = global;
-  const idioma =
-    datas.db.data.users[m.sender].language || global.defaultLenguaje;
-  const _translate = JSON.parse(
-    fs.readFileSync(`./lib/languages/${idioma}.json`),
-  );
-  const tradutor = _translate.plugins.buscador_lyrics;
   const teks = text ? text : m.quoted && m.quoted.text ? m.quoted.text : "";
-  if (!teks) throw `*${tradutor.texto1} ${usedPrefix + command} beret ojala*`;
+  if (!teks) throw `*Inserisci il titolo della canzone che vuoi cercare.\nEsempio: ${usedPrefix + command} beret ojala*`;
+  
   try {
     const result = await getTracks(teks);
     let lyrics;
@@ -50,7 +44,8 @@ const handler = async (m, { conn, text, usedPrefix, command }) => {
       .replace("http://cdn-preview-", "https://cdns-preview-")
       .replace(".deezer.com", ".dzcdn.net");
 
-    const textoLetra = `${tradutor.texto2[0]} *${tituloL || ""}*\n${tradutor.texto2[1]}  *${artistaL || ""}*\n\n${tradutor.texto2[2]} \n${lyrics.lyrics || "Lyrics not found."}`;
+    const textoLetra = `🎵 *Titolo:* ${tituloL || ""}\n🎤 *Artista:* ${artistaL || ""}\n\n📝 *Testo:*\n${lyrics.lyrics || "Testo non trovato."}`;
+    
     await conn.sendMessage(
       m.chat,
       { image: { url: img }, caption: textoLetra },
@@ -67,23 +62,23 @@ const handler = async (m, { conn, text, usedPrefix, command }) => {
     );
   } catch (e) {
     console.log(`Error: ${e.message}`);
-    throw `*${tradutor.texto2[3]}*`;
+    throw `*Si è verificato un errore durante la ricerca del testo della canzone. Riprova più tardi.*`;
   }
 };
+
 handler.help = ["lirik", "letra"].map((v) => v + " <Apa>");
 handler.tags = ["internet"];
 handler.command = /^(lirik|lyrics|lyric|letra)$/i;
 export default handler;
 
-/* Creditos: https://github.com/darlyn1234 */
 async function searchLyrics(term) {
   try {
-    if (!term) return "🟥 Provide the name of the song to search the lyrics";
+    if (!term) return "🟥 Fornisci il nome della canzone per cercare il testo";
     const geniusResponse = await axios.get(
       `https://deliriussapi-oficial.vercel.app/search/genius?q=${term}`,
     );
     const geniusData = geniusResponse.data;
-    if (!geniusData.length) return `🟨 Couldn't find any lyrics for "${term}"`;
+    if (!geniusData.length) return `🟨 Non è stato possibile trovare il testo per "${term}"`;
     const lyricsUrl = geniusData[0].url;
     const lyricsResponse = await axios.get(
       `https://deliriussapi-oficial.vercel.app/search/lyrics?url=${lyricsUrl}&parse=false`,
@@ -111,5 +106,4 @@ async function searchLyrics(term) {
       message: new Error(error).message,
     };
   }
-
 }
