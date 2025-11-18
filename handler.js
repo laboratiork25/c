@@ -545,17 +545,8 @@ export async function participantsUpdate({ id, participants, action }) {
                 let groupMetadata = await this.groupMetadata(id).catch(_ => null) || (conn.chats[id] || {}).metadata
                 for (let user of participants) {
 
-                    
                     let pp = './menu/principale.jpeg'
-                    try {
-                        pp = await this.profilePictureUrl(user, 'image')
-                    } catch (e) {}
-                    let apii
-                    try {
-                        apii = await this.getFile(pp)
-                    } catch (e) {
-                        apii = await this.getFile('./menu/principale.jpeg')
-                    }
+                    let apii = await this.getFile(pp)
 
                     if (action === 'add') {
                         text = (chat.sWelcome || this.welcome || conn.welcome || 'benvenuto, @user!')
