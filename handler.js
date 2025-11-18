@@ -542,15 +542,25 @@ export async function participantsUpdate({ id, participants, action }) {
         case 'add':
         case 'remove':
             if (chat.welcome) {
-                let groupMetadata = await this.groupMetadata(id) || (conn.chats[id] || {}).metadata
+                let groupMetadata = await this.groupMetadata(id).catch(_ => null) || (conn.chats[id] || {}).metadata
                 for (let user of participants) {
+
+                    
                     let pp = './menu/principale.jpeg'
-                    let apii = await this.getFile(pp)
+                    try {
+                        pp = await this.profilePictureUrl(user, 'image')
+                    } catch (e) {}
+                    let apii
+                    try {
+                        apii = await this.getFile(pp)
+                    } catch (e) {
+                        apii = await this.getFile('./menu/principale.jpeg')
+                    }
 
                     if (action === 'add') {
                         text = (chat.sWelcome || this.welcome || conn.welcome || 'benvenuto, @user!')
                             .replace('@subject', await this.getName(id))
-                            .replace('@desc', groupMetadata.desc?.toString() || 'bot')
+                            .replace('@desc', groupMetadata?.desc?.toString() || 'bot')
                             .replace('@user', '@' + user.split('@')[0])
                     } else if (action === 'remove') {
                         text = (chat.sBye || this.bye || conn.bye || 'bye bye, @user!')
