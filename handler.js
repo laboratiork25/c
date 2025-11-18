@@ -535,6 +535,8 @@ export async function participantsUpdate({ id, participants, action }) {
 
     let chat = global.db.data.chats[id] || {}
     let text = ''
+    let nomeDelBot = global.db.data.nomedelbot || `𝐂𝐡𝐚𝐭𝐔𝐧𝐢𝐭𝐲-𝐁𝐨𝐭`
+    let jidCanale = global.db.data.jidcanale || '120363259442839354@newsletter'
 
     switch (action) {
         case 'add':
@@ -542,42 +544,44 @@ export async function participantsUpdate({ id, participants, action }) {
             if (chat.welcome) {
                 let groupMetadata = await this.groupMetadata(id) || (conn.chats[id] || {}).metadata
                 for (let user of participants) {
-                    let pp = './icone/benvenuto.png'
-                    try {
-                        pp = await this.profilePictureUrl(user, 'image')
-                    } catch (e) {
-                    } finally {
-                        let apii = await this.getFile(pp)
+                    let pp = './menu/principale.jpeg'
+                    let apii = await this.getFile(pp)
 
-                        if (action === 'add') {
-                            text = (chat.sWelcome || this.welcome || conn.welcome || 'benvenuto, @user!')
-                                .replace('@subject', await this.getName(id))
-                                .replace('@desc', groupMetadata.desc?.toString() || 'bot')
-                                .replace('@user', '@' + user.split('@')[0])
-                        } else if (action === 'remove') {
-                            text = (chat.sBye || this.bye || conn.bye || 'bye bye, @user!')
-                                .replace('@user', '@' + user.split('@')[0])
-                        }
+                    if (action === 'add') {
+                        text = (chat.sWelcome || this.welcome || conn.welcome || 'benvenuto, @user!')
+                            .replace('@subject', await this.getName(id))
+                            .replace('@desc', groupMetadata.desc?.toString() || 'bot')
+                            .replace('@user', '@' + user.split('@')[0])
+                    } else if (action === 'remove') {
+                        text = (chat.sBye || this.bye || conn.bye || 'bye bye, @user!')
+                            .replace('@user', '@' + user.split('@')[0])
+                    }
 
-                        this.sendMessage(id, { 
-                            text: text, 
-                            contextInfo:{ 
-                                mentionedJid:[user],
-                                "externalAdReply": {
-                                    "title": (
-                                        action === 'add' 
-                                            ? '𝐁𝐄𝐍𝐕𝐄𝐍𝐔𝐓𝐎/𝐀 👋🏻' 
-                                            : '𝐀𝐃𝐃𝐈𝐎 👋🏻'
-                                    ), 
-                                    "body": ``, 
-                                    "previewType": "PHOTO", 
-                                    "thumbnailUrl": ``, 
-                                    "thumbnail": apii.data,
-                                    "mediaType": 1
-                                }
+                    this.sendMessage(id, { 
+                        text: text, 
+                        contextInfo:{ 
+                            mentionedJid:[user],
+                            forwardingScore: 99,
+                            isForwarded: true,
+                            forwardedNewsletterMessageInfo: {
+                                newsletterJid: jidCanale,
+                                serverMessageId: '',
+                                newsletterName: `${nomeDelBot}`
+                            },
+                            "externalAdReply": {
+                                "title": (
+                                    action === 'add' 
+                                        ? '𝐁𝐄𝐍𝐕𝐄𝐍𝐔𝐓𝐎/𝐀 👋🏻' 
+                                        : '𝐀𝐃𝐃𝐈𝐎 👋🏻'
+                                ), 
+                                "body": ``, 
+                                "previewType": "PHOTO", 
+                                "thumbnailUrl": ``, 
+                                "thumbnail": apii.data,
+                                "mediaType": 1
                             }
-                        }) 
-                    } 
+                        }
+                    }) 
                 } 
             }
             break
