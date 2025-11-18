@@ -1,4 +1,4 @@
-//Plugin fatto da Axtral_WiZaRd
+// Plugin fatto da Axtral_WiZaRd
 import fs from 'fs';
 
 const handler = m => m;
@@ -7,7 +7,7 @@ handler.before = async function (message, { conn }) {
     const imageFallback = 'media/fallback.png'; 
 
     const fetchBuffer = async (url) => {
-        // local file
+        // File locale
         if (!url) return null;
         if (!/^https?:\/\//i.test(url)) {
             try {
@@ -16,7 +16,7 @@ handler.before = async function (message, { conn }) {
                 return null;
             }
         }
-        // remote URL: use global fetch if available, otherwise dynamic import node-fetch
+        // URL remoto
         try {
             const fetchFn = globalThis.fetch || (await import('node-fetch').then(m => m.default));
             const res = await fetchFn(url);
@@ -32,7 +32,7 @@ handler.before = async function (message, { conn }) {
     const chat = global.db.data.chats[message.chat] || {};
     const detectEnabled = chat.detect;
 
-  
+    // PROMOZIONE
     if (message.messageStubType === 29 && detectEnabled) {
         let profilePicture;
         try {
@@ -43,11 +43,12 @@ handler.before = async function (message, { conn }) {
 
         const promotedUser = message.messageStubParameters[0];
         const sender = message.sender;
-        const promotedUsername = promotedUser.split('@')[0];
-        const senderUsername = sender.split('@')[0];
+
+        const promotedName = await conn.getName(promotedUser);
+        const senderName = await conn.getName(sender);
 
         await conn.sendMessage(message.chat, {
-            text: `@${senderUsername} 𝐡𝐚 𝐩𝐫𝐨𝐦𝐨𝐬𝐬𝐨 @${promotedUsername}`,
+            text: `${senderName} 𝐡𝐚 𝐩𝐫𝐨𝐦𝐨𝐬𝐬𝐨 ${promotedName}`,
             contextInfo: {
                 mentionedJid: [sender, promotedUser],
                 externalAdReply: {
@@ -58,7 +59,7 @@ handler.before = async function (message, { conn }) {
         }, { quoted: null });
     }
 
-  
+    // RETROCESSIONE
     if (message.messageStubType === 30 && detectEnabled) {
         let profilePicture;
         try {
@@ -69,11 +70,12 @@ handler.before = async function (message, { conn }) {
 
         const demotedUser = message.messageStubParameters[0];
         const sender = message.sender;
-        const demotedUsername = demotedUser.split('@')[0];
-        const senderUsername = sender.split('@')[0];
+
+        const demotedName = await conn.getName(demotedUser);
+        const senderName = await conn.getName(sender);
 
         await conn.sendMessage(message.chat, {
-            text: `@${senderUsername} 𝐡𝐚 𝐫𝐞𝐭𝐫𝐨𝐜𝐞𝐬𝐬𝐨 @${demotedUsername}`,
+            text: `${senderName} 𝐡𝐚 𝐫𝐞𝐭𝐫𝐨𝐜𝐞𝐬𝐬𝐨 ${demotedName}`,
             contextInfo: {
                 mentionedJid: [sender, demotedUser],
                 externalAdReply: {
@@ -86,4 +88,3 @@ handler.before = async function (message, { conn }) {
 };
 
 export default handler;
-        
