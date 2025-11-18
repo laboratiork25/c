@@ -1,3 +1,4 @@
+
 // Plugin fatto da Axtral_WiZaRd
 import fs from 'fs';
 
@@ -48,7 +49,7 @@ handler.before = async function (message, { conn }) {
         const senderName = await conn.getName(sender);
 
         await conn.sendMessage(message.chat, {
-            text: `${senderName} 𝐡𝐚 𝐩𝐫𝐨𝐦𝐨𝐬𝐬𝐨 ${promotedName}`,
+            text: `@${sender.split('@')[0]} (${senderName}) ha promosso @${promotedUser.split('@')[0]} (${promotedName})`,
             contextInfo: {
                 mentionedJid: [sender, promotedUser],
                 externalAdReply: {
@@ -75,7 +76,7 @@ handler.before = async function (message, { conn }) {
         const senderName = await conn.getName(sender);
 
         await conn.sendMessage(message.chat, {
-            text: `${senderName} 𝐡𝐚 𝐫𝐞𝐭𝐫𝐨𝐜𝐞𝐬𝐬𝐨 ${demotedName}`,
+            text: `@${sender.split('@')[0]} (${senderName}) ha retrocesso @${demotedUser.split('@')[0]} (${demotedName})`,
             contextInfo: {
                 mentionedJid: [sender, demotedUser],
                 externalAdReply: {
