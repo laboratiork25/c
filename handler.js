@@ -542,47 +542,51 @@ export async function participantsUpdate({ id, participants, action }) {
         case 'add':
         case 'remove':
             if (chat.welcome) {
-                let groupMetadata = await this.groupMetadata(id).catch(_ => null) || (conn.chats[id] || {}).metadata
+                let groupMetadata = await this.groupMetadata(id) || (conn.chats[id] || {}).metadata
                 for (let user of participants) {
-
                     let pp = './menu/principale.jpeg'
-                    let apii = await this.getFile(pp)
+                    try {
+                        pp = await this.profilePictureUrl(user, 'image')
+                    } catch (e) {
+                    } finally {
+                        let apii = await this.getFile(pp)
 
-                    if (action === 'add') {
-                        text = (chat.sWelcome || this.welcome || conn.welcome || 'benvenuto, @user!')
-                            .replace('@subject', await this.getName(id))
-                            .replace('@desc', groupMetadata?.desc?.toString() || 'bot')
-                            .replace('@user', '@' + user.split('@')[0])
-                    } else if (action === 'remove') {
-                        text = (chat.sBye || this.bye || conn.bye || 'bye bye, @user!')
-                            .replace('@user', '@' + user.split('@')[0])
-                    }
-
-                    this.sendMessage(id, { 
-                        text: text, 
-                        contextInfo:{ 
-                            mentionedJid:[user],
-                            forwardingScore: 99,
-                            isForwarded: true,
-                            forwardedNewsletterMessageInfo: {
-                                newsletterJid: jidCanale,
-                                serverMessageId: '',
-                                newsletterName: `${nomeDelBot}`
-                            },
-                            "externalAdReply": {
-                                "title": (
-                                    action === 'add' 
-                                        ? '𝐁𝐄𝐍𝐕𝐄𝐍𝐔𝐓𝐎/𝐀 👋🏻' 
-                                        : '𝐀𝐃𝐃𝐈𝐎 👋🏻'
-                                ), 
-                                "body": ``, 
-                                "previewType": "PHOTO", 
-                                "thumbnailUrl": ``, 
-                                "thumbnail": apii.data,
-                                "mediaType": 1
-                            }
+                        if (action === 'add') {
+                            text = (chat.sWelcome || this.welcome || conn.welcome || 'benvenuto, @user!')
+                                .replace('@subject', await this.getName(id))
+                                .replace('@desc', groupMetadata.desc?.toString() || 'bot')
+                                .replace('@user', '@' + user.split('@')[0])
+                        } else if (action === 'remove') {
+                            text = (chat.sBye || this.bye || conn.bye || 'bye bye, @user!')
+                                .replace('@user', '@' + user.split('@')[0])
                         }
-                    }) 
+
+                        this.sendMessage(id, { 
+                            text: text, 
+                            contextInfo:{ 
+                                mentionedJid:[user],
+                                forwardingScore: 99,
+                                isForwarded: true,
+                                forwardedNewsletterMessageInfo: {
+                                    newsletterJid: jidCanale,
+                                    serverMessageId: '',
+                                    newsletterName: `${nomeDelBot}`
+                                },
+                                "externalAdReply": {
+                                    "title": (
+                                        action === 'add' 
+                                            ? '𝐌𝐞𝐬𝐬𝐚𝐠𝐠𝐢𝐨 𝐝𝐢 𝐛𝐞𝐧𝐯𝐞𝐧𝐮𝐭𝐨' 
+                                            : '𝐌𝐞𝐬𝐬𝐚𝐠𝐠𝐢𝐨 𝐝𝐢 𝐚𝐝𝐝𝐢𝐨'
+                                    ), 
+                                    "body": ``, 
+                                    "previewType": "PHOTO", 
+                                    "thumbnailUrl": ``, 
+                                    "thumbnail": apii.data,
+                                    "mediaType": 1
+                                }
+                            }
+                        }) 
+                    } 
                 } 
             }
             break
