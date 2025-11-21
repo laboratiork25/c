@@ -52,6 +52,8 @@ let handler = async (m, { conn, text, participants, command, usedPrefix }) => {
     { quoted: m }
   );
 };
-
+handler.help = ['bacia @user', 'kiss @user']
 handler.command = ['bacia', 'kiss'];
+handler.tag = ['fun']
 export default handler;
+
