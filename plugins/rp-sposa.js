@@ -184,5 +184,7 @@ const handleDivorzia = (m, user, users, userId, groupId) => {
 };
 
 handler.group = true;
+handler.tag = ['rp']
+handler.help = ['sposa @user', 'divorzia @user', 'marry @user', 'divorce @user']
 handler.command = /^(sposa|divorzia|marry|divorce)$/i;
 export default handler;
