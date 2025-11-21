@@ -125,7 +125,9 @@ if (
 
                 //inventario
                 if (!isNumber(user.money)) user.money = 0 
-                if (!isNumber(user.joincount)) user.joincount = 0   
+                if (!isNumber(user.joincount)) user.joincount = 0
+                if (!isNumber(user.limit)) user.limit = 100
+                if (!isNumber(user.credito)) user.credito = 100
 
                 //negozio ****da creare****
                 
