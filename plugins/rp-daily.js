@@ -71,8 +71,9 @@ let handler = async (m) => {
     return m.reply(claimMsg);
 };
 
+handler.help = ['daily', 'claim']
 handler.command = ['daily', 'claim'];
-
+handler.tag = ['rp']
 export default handler;
 
 function secondiAdHMS(seconds) {
