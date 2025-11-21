@@ -7,6 +7,8 @@ const handler = async (m) => {
     user.blasphemy = 0;
   };
   
+  handler.help = ['azzerabestemmie @user']
   handler.command = /^(azzerabestemmie)$/i;
+  handler.tag = ['owner']
   handler.owner = true;
   export default handler;
