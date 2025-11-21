@@ -40,6 +40,7 @@ let handler = async (m, { conn, text, usedPrefix, command }) => {
   await conn.reply(groupId, resultMessage, m, { mentions: [destinatario] });
 };
 
+handler.help = ['ditalino @user', 'finger @user']
 handler.command = ['ditalino', 'finger'];
 handler.tags = ['fun'];
 export default handler;
