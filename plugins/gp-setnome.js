@@ -35,7 +35,9 @@ const lenguajeIT = {
     }
   }
   
+  handler.help = ['setname `nomegruppo`', 'setnome `nomegruppo`']
   handler.command = /^(setname|setnome)$/i
+  handler.tag = ['gruppo']
   handler.group = true
   handler.admin = true
   handler.botAdmin = true
