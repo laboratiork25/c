@@ -107,16 +107,28 @@ if (
             if (typeof user !== 'object') global.db.data.users[m.sender] = {}
             
             if (user) {
+
+                //permessi
+                if (!('name' in user)) user.name = m.name   
+                if (!('muto' in user)) user.muto = false  
+                if (!('premium' in user)) user.premium = false           
+                if (!isNumber(user.premiumDate)) user.premiumDate = -1
+                //sezione statistiche nel gruppo
                 if (!isNumber(user.messaggi)) user.messaggi = 0
                 if (!isNumber(user.blasphemy)) user.blasphemy = 0
-                if (!isNumber(user.exp)) user.exp = 0
+                if (!isNumber(user.warn)) user.warn = 0 //da rivedere perche a me piace di piu il mio sistema di avvertimenti, chiedo se si puo cambiare
+                if (!isNumber(user.exp)) user.exp = 0 //piu scrivi piu exp prendi
+                if (!isNumber(user.level)) user.level = 0 //sale di livello con l'exp
+                if (!('rank' in user)) user.rank = '*Random wz*' // sali di livello e cambiera rank, es. clash of clans bronzo III II I, argento oro ecc. oppure da metterci cose divertenti
+                if (!isNumber(user.salute)) user.salute = 100 //quando arrivi a 0 perdi tutti i progessi (da capire cosa si perde), la salute deve tornare a 100
+                if (!isNumber(user.vita)) user.vita = 0 //queste sono seconde vite, se la salute scende a 0 le vite ti salvano dalla morte
+
+                //inventario
                 if (!isNumber(user.money)) user.money = 0 
-                if (!isNumber(user.warn)) user.warn = 0
-                if (!isNumber(user.joincount)) user.joincount = 2   
-                if (!('premium' in user)) user.premium = false
-                if (!isNumber(user.premiumDate)) user.premiumDate = -1
-                if (!('name' in user)) user.name = m.name
-                if (!('muto' in user)) user.muto = false
+                if (!isNumber(user.joincount)) user.joincount = 0   
+
+                //negozio ****da creare****
+                
             } else {
                 global.db.data.users[m.sender] = {
                     messaggi: 0,
@@ -129,7 +141,13 @@ if (
                     premium: false,
                     premiumDate: -1,
                     name: m.name,
-                    muto: false
+                    muto: false,
+                    level: 0,
+                    rank: '*Random wz*',
+                    salute: 100,
+                    vita: 0
+
+
                 }
             }
             

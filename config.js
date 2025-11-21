@@ -12,7 +12,8 @@ global.vs = '9.0';
 global.collab = 'Demo';
 global.wm = global.nomebot;
 global.wait = 'ⓘ 𝐂𝐚𝐫𝐢𝐜𝐚𝐦𝐞𝐧𝐭𝐨 ...';
-
+global.nomebot =  `𝐂𝐡𝐚𝐭𝐔𝐧𝐢𝐭𝐲-𝐁𝐨𝐭`
+global.canale = '120363259442839354@newsletter'
 
 global.owner = [
   ['393773842461', '𝐂𝐡𝐚𝐭𝐔𝐧𝐢𝐭𝐲', true],
