@@ -64,5 +64,7 @@ ${friends.length > 0 ? friendList : friendList}
   }
 };
 
+handler.help = ['listamici', 'friendlist']
 handler.command = ['listamici', 'friendlist'];
+handler.tag = ['fun']
 export default handler;
