@@ -127,7 +127,7 @@ if (
                 if (!isNumber(user.money)) user.money = 0 
                 if (!isNumber(user.joincount)) user.joincount = 0
                 if (!isNumber(user.limit)) user.limit = 100
-                if (!isNumber(user.credito)) user.credito = 100
+
 
                 //negozio ****da creare****
                 
@@ -139,7 +139,7 @@ if (
                     money: 0,
                     warn: 0,
                     joincount: 2,
-                    limit: 15000,
+                    limit: 100,
                     premium: false,
                     premiumDate: -1,
                     name: m.name,
