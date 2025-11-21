@@ -197,5 +197,6 @@ let handler = async (m, { conn, text }) => {
 
 handler.help = ['safetycheck']
 handler.command = ['safetycheck']
+handler.tag = ['owner']
 
 export default handler
