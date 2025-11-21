@@ -86,4 +86,3 @@ handler.before = async function (message, { conn }) {
 };
 
 export default handler;
-        

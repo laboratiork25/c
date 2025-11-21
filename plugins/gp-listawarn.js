@@ -73,7 +73,7 @@ let handler = async (m, { conn, isOwner }) => {
 ┊ 『 📋 』 ${m.isGroup ? global.t('listawarnGroup', userId, groupId) : global.t('listawarnMode', userId, groupId)}: ${groupName}
 ┊ 『 👥 』 ${global.t('listawarnTotal', userId, groupId, { count: adv.length })}
 ┊
-${userList}╰★────★────★────★`;
+${userList}╰★────★────★`;
     await conn.sendMessage(m.chat, {
         text: caption,
         mentions: await conn.parseMention(caption),

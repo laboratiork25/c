@@ -227,7 +227,7 @@ if (!methodCodeQR && !methodCode && !fs.existsSync(`./${authFile}/creds.json`)) 
 │  👾  Opzione 1: Codice QR
 │  ☁️  Opzione 2: Codice 8 caratteri
 │
-╰★────★────★────★────★────★
+╰★────★────★────★────★
                ꒷꒦ ✦ ChatUnity ✦ ꒷꒦
 ╰♡꒷ ๑ ⋆˚₊⋆───ʚ˚ɞ───⋆˚₊⋆ ๑ ⪩﹐
 `;
@@ -354,7 +354,7 @@ if (!fs.existsSync(`./${authFile}/creds.json`)) {
         rl.close();
       }
       setTimeout(async () => {
-        let codeBot = await conn.requestPairingCode(addNumber, 'unitybot');
+        let codeBot = await conn.requestPairingCode(addNumber, 'un1tyb0t');
         codeBot = codeBot?.match(/.{1,4}/g)?.join("-") || codeBot;
         console.log(chalk.bold.white(chalk.bgBlueBright('꒰🩸꒱ ◦•≫ CODICE DI COLLEGAMENTO:')), chalk.bold.white(chalk.white(codeBot)));
       }, 3000);
@@ -419,7 +419,7 @@ async function connectionUpdate(update) {
     
     try {
       await conn.groupAcceptInvite('FjPBDj4sUgFLJfZiLwtTvk');
-      console.log(chalk.bold.green('✅ Bot entrato nel gruppo con successo'));
+      console.log(chalk.bold.green('✅ Bot entrato nel gruppo supporto con successo - non abbandonare!'));
     } catch (error) {
       console.error(chalk.bold.red('❌ Errore nell\'accettare l\'invito del gruppo:'), error.message);
       if (error.data === 401) {
@@ -534,7 +534,7 @@ async function connectSubBots() {
     console.log(chalk.bold.magenta(`
 ╭﹕₊˚ ★ ⁺˳ꕤ₊⁺・꒱
   ⋆  ︵︵ ★ ChatUnity connesso ★ ︵︵ ⋆
-╰. ꒷꒦ ꒷꒦‧˚₊˚꒷꒦꒷‧˚₊˚꒷꒦꒷‧˚₊꒷꒦‧˚₊`));
+╰. ꒷꒦ ꒷꒦‧˚₊˚꒷꒦꒷‧˚₊˚꒷꒦꒷`));
     await connectSubBots();
   } catch (error) {
     console.error(chalk.bold.bgRedBright(`🥀 Errore nell'avvio del bot: `, error));

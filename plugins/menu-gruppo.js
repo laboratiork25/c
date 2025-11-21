@@ -73,7 +73,7 @@ function generateMenuText(prefix, userId, groupId) {
 📢 *.ads* @`),
         createSection(global.t('pokemonSection', userId, groupId), `
 🥚 *.apripokemon*
-🛒 *.buypokemon*
+🛒 *.buypokemon* 
 🏆 *.classificapokemon*
 🎁 *.pacchetti*
 ⚔️ *.combatti*
@@ -98,7 +98,6 @@ function generateMenuText(prefix, userId, groupId) {
 🏳️ *.bandiera*
 🎶 *.indovinacanzone*
 🤖 *.auto*
-⚽ *.fut*
 🎯 *.missioni*`),
         createSection(global.t('economyRankingSection', userId, groupId), `
 💰 *.portafoglio* (${global.t('balanceCommand', userId, groupId)})
@@ -121,10 +120,8 @@ function generateMenuText(prefix, userId, groupId) {
 🗣️ *.rizz* @${global.t('userCommand', userId, groupId)} (${global.t('charmCommand', userId, groupId)})
 ☠️ *.minaccia* @${global.t('userCommand', userId, groupId)}
 🔥 *.zizzania* @${global.t('userCommand', userId, groupId)} (${global.t('createFightCommand', userId, groupId)})
-🚫 *.obbligo* (${global.t('truthOrDareCommand', userId, groupId)})
 💋 *.ditalino* @
 💋 *.sega* @
-💋 *.scopa* @
 🖕 *.insulta* @
 👥 *.amicizia/listamici* @`),
         createSection(global.t('howMuchSection', userId, groupId), `
@@ -138,11 +135,7 @@ function generateMenuText(prefix, userId, groupId) {
 🐓 *.cornuto* @`),
         createSection(global.t('personalityTestSection', userId, groupId), `
 🍺 *.alcolizzato*
-🌿 *.drogato*
-🎭 *.personalita*
-🔮 *.zodiaco*
-😈 *.infame*
-🙏 *.topbestemmie*`)
+🌿 *.drogato*`)
     ];
     
     return `

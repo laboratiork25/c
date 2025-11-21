@@ -18,7 +18,7 @@ let handler = async (m, { conn, args, groupMetadata, participants, usedPrefix, c
     switch (command) {
         case "listanum":
             await conn.sendMessage(m.chat, {
-                text: global.t('listanumTitle', userId, groupId, { prefix: lol }) + '\n\n' + numeros.join('\n') + '\n\n╰★────★────★────★',
+                text: global.t('listanumTitle', userId, groupId, { prefix: lol }) + '\n\n' + numeros.join('\n') + '\n\n╰★────★────★',
                 mentions: ps,
                 contextInfo: {
                     forwardingScore: 999,
