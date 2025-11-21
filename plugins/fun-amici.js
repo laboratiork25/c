@@ -155,8 +155,9 @@ const handleRemoveFriend = (m, user, users, userId, groupId) => {
 
   m.reply(testo, null, { mentions: [mention] });
 };
-
+handler.help = ['amicizia @user', 'rimuoviamico @user', 'friend @user', 'revovefriend @user']
 handler.command = ['amicizia', 'rimuoviamico', 'friend', 'removefriend'];
 handler.tags = ['fun'];
 
 export default handler;
+
