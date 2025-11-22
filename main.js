@@ -268,7 +268,6 @@ const filterStrings = [
 console.info = () => { };
 console.debug = () => { };
 ['log', 'warn', 'error'].forEach(methodName => redefineConsoleMethod(methodName, filterStrings));
-
 if (!global.groupCache || typeof global.groupCache.get !== 'function') {
   global.groupCache = new NodeCache({ stdTTL: 5 * 60, useClones: false });
 }
@@ -309,12 +308,8 @@ const connectionOptions = {
   markOnlineOnConnect: false,
   generateHighQualityLinkPreview: true,
   syncFullHistory: false,
-  downloadHistory: false,
   shouldSyncHistory: false,
-  defaultQueryTimeoutMs: 60000,
-  connectTimeoutMs: 60000,
-  keepAliveIntervalMs: 10000,
-  printQRInTerminal: true,
+  printQRInTerminal: opzione === '1' || methodCodeQR ? true : false,
   cachedGroupMetadata: async (jid) => {
     if (!global.groupCache || typeof global.groupCache.get !== 'function') {
       return null;
