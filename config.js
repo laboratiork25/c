@@ -18,7 +18,7 @@ global.canale = '120363259442839354@newsletter'
 global.owner = [
   ['393773842461', '𝐂𝐡𝐚𝐭𝐔𝐧𝐢𝐭𝐲', true],
   ['35795191323', 'Axtral', true],
-  ['xxxxxxxxxx'],
+  ['66621409462', 'matte', true]
   ['xxxxxxxxxx'],
   ['xxxxxxxxxx'],
   ['xxxxxxxxxx'],
