@@ -1,164 +1,90 @@
-const PAGE_SIZE = 10
-const MAX_INFO_REQUESTS = 2
+import moment from "moment-timezone"
 
-if (!global._groupRequests) global._groupRequests = {}
+let handler = async (m, { conn, command, args }) => {
 
-let handler = async (m, { conn, args, command }) => {
-
-  const sender = m.sender
-
-  if (!global._groupRequests[sender]) {
-    global._groupRequests[sender] = { allowed: MAX_INFO_REQUESTS }
-  }
-
-  const groups = Object.entries(conn.chats)
-    .filter(([id, data]) => id.endsWith('@g.us') && data.isChats)
-    .map(([id, data]) => ({ id, subject: data.subject || 'Senza nome' }))
-
-  if (command === 'listgroup') {
-
-    const pageRequest = args[0]
-    const pageNum = parseInt(args[1])
-
-    if (!pageRequest) {
-
-      const txt = `📊 Il bot è in ${groups.length} gruppi\nPremi il bottone per vederli.`
-
-      const buttons = [
-        {
-          index: 1,
-          quickReplyButton: {
-            displayText: "📜 Mostra gruppi",
-            id: "LISTGROUP_PAGE_0"
-          }
-        }
-      ]
-
-      return conn.sendMessage(m.chat, { text: txt, templateButtons: buttons })
-    }
-
-    if (pageRequest === 'page') {
-      const page = pageNum || 0
-      const pages = Math.ceil(groups.length / PAGE_SIZE)
-
-      if (page >= pages) return m.reply('❌ Pagina inesistente.')
-
-      const start = page * PAGE_SIZE
-      const current = groups.slice(start, start + PAGE_SIZE)
-
-      const buttons = current.map((g, i) => ({
-        index: i + 1,
-        quickReplyButton: {
-          displayText: g.subject.slice(0, 20),
-          id: `LISTGROUP_INFO_${g.id}`
-        }
+  if (command === "listgroup") {
+    let groups = Object.entries(conn.chats)
+      .filter(([jid, chat]) => jid.endsWith("@g.us"))
+      .map(([jid, chat]) => ({
+        id: jid,
+        subject: chat.subject || "Gruppo senza nome",
+        participants: chat?.participants?.length || 0
       }))
 
-      if (page > 0) {
-        buttons.push({
-          index: 98,
-          quickReplyButton: {
-            displayText: "⬅️ Indietro",
-            id: `LISTGROUP_PAGE_${page - 1}`
-          }
-        })
-      }
-
-      if (page < pages - 1) {
-        buttons.push({
-          index: 99,
-          quickReplyButton: {
-            displayText: "➡️ Avanti",
-            id: `LISTGROUP_PAGE_${page + 1}`
-          }
-        })
-      }
-
-      return conn.sendMessage(m.chat, {
-        text: `📃 Pagina ${page + 1} / ${pages}\nSeleziona un gruppo:`,
-        templateButtons: buttons
-      })
+    if (groups.length === 0) {
+      return m.reply("❌ Il bot non è in nessun gruppo.")
     }
 
-    if (pageRequest === 'info') {
-      return m.reply('Usa i bottoni, non scrivere manualmente.')
+    global.groupCache = {}
+    groups.forEach((g, i) => {
+      global.groupCache[i + 1] = g.id
+    })
+
+    let text = `📊 *Gruppi in cui è presente il bot:* ${groups.length}\n\n`
+    text += "*Scrivi*: `.groupinfo numero`\nEsempio → `.groupinfo 1`\n\n"
+
+    let max = 10
+    let list = groups.slice(0, max)
+
+    list.forEach((g, i) => {
+      text += `${i + 1}. *${g.subject}* — ${g.participants} membri\n`
+    })
+
+    if (groups.length > max) {
+      text += `\n🔽 Mostro solo i primi ${max}.`
     }
+
+    return m.reply(text)
   }
 
-  if (m?.message?.buttonsResponseMessage?.selectedButtonId ||
-      m?.message?.templateButtonReplyMessage?.selectedId) {
+  if (command === "groupinfo") {
+    if (!args[0]) return m.reply("❌ Inserisci il numero del gruppo.\nEsempio: `.groupinfo 1`")
 
-    const buttonId =
-      m.message.buttonsResponseMessage?.selectedButtonId ||
-      m.message.templateButtonReplyMessage?.selectedId
+    let n = parseInt(args[0])
+    if (!n || !global.groupCache || !global.groupCache[n])
+      return m.reply("❌ Numero non valido. Riesegui `.listgroup`.")
 
-    if (buttonId.startsWith('LISTGROUP_PAGE_')) {
-      const n = parseInt(buttonId.replace('LISTGROUP_PAGE_', ''))
-      return handler(m, { conn, args: ['page', n], command: 'listgroup' })
-    }
+    let gid = global.groupCache[n]
+    let info = await conn.groupMetadata(gid).catch(_ => null)
 
-    if (buttonId.startsWith('LISTGROUP_INFO_')) {
+    if (!info) return m.reply("❌ Impossibile ottenere le informazioni del gruppo.")
 
-      const groupId = buttonId.replace('LISTGROUP_INFO_', '')
+    let admin = info.participants.filter(p => p.admin)
+      .map(a => `• @${a.id.split("@")[0]}`)
+      .join("\n")
+    if (!admin) admin = "Nessun admin trovato"
 
-      if (global._groupRequests[sender].allowed <= 0) {
-        return m.reply('⛔ Hai già richiesto info su 2 gruppi. Rilancia .listgroup.')
-      }
+    let creation = moment(info.creation * 1000)
+      .tz("Europe/Rome")
+      .format("DD/MM/YYYY HH:mm")
 
-      global._groupRequests[sender].allowed--
+    let invite = info?.inviteCode ? `https://chat.whatsapp.com/${info.inviteCode}` : "Nessun link"
 
-      let metadata
-      try {
-        metadata = await conn.groupMetadata(groupId)
-      } catch {
-        return m.reply('❌ Impossibile ottenere info di questo gruppo.')
-      }
+    let text = `📄 *INFO GRUPPO*\n\n`
+    text += `🏷️ *Nome:* ${info.subject}\n`
+    text += `🆔 *ID:* ${gid}\n`
+    text += `👥 *Membri:* ${info.participants.length}\n`
+    text += `🔰 *Admin:*\n${admin}\n\n`
+    text += `🔗 *Link:* ${invite}\n`
+    text += `📆 *Creato il:* ${creation}\n`
+    text += `🛡️ *Restrizioni:* ${info.restrict ? "❌ Chi non è admin NON può modificare info" : "✔️ Tutti possono modificare"}\n`
+    text += `📣 *Annunci:* ${info.announce ? "🔒 Solo admin possono scrivere" : "💬 Tutti possono scrivere"}\n`
 
-      let pp = ''
-      try {
-        pp = await conn.profilePictureUrl(groupId)
-      } catch {}
-
-      const admins = metadata.participants
-        .filter(p => p.admin)
-        .map(a => `• @${a.id.split('@')[0]}`)
-        .join('\n') || 'Nessun admin'
-
-      const creation = new Date(metadata.creation * 1000).toLocaleString()
-
-      let invite = ''
-      try {
-        invite = await conn.groupInviteCode(groupId)
-        invite = `https://chat.whatsapp.com/${invite}`
-      } catch {
-        invite = 'Non disponibile'
-      }
-
-      const caption =
-`📌 INFO GRUPPO
-
-• Nome: ${metadata.subject}
-• Membri: ${metadata.size}
-• Creato il: ${creation}
-
-👑 Admin:
-${admins}
-
-🔗 Link:
-${invite}
-`
-
-      return conn.sendMessage(
-        m.chat,
-        {
-          image: pp ? { url: pp } : undefined,
-          caption,
-          mentions: metadata.participants.map(x => x.id)
-        }
-      )
+    try {
+      let pp = await conn.profilePictureUrl(gid, "image")
+      return await conn.sendMessage(m.chat, {
+        image: { url: pp },
+        caption: text,
+        mentions: info.participants.map(p => p.id)
+      })
+    } catch {
+      return m.reply(text)
     }
   }
 }
 
-handler.command = /^listgroup$/i
+handler.help = ["listgroup", "groupinfo"]
+handler.tags = ["group"]
+handler.command = ["listgroup", "groupinfo"]
+
 export default handler
