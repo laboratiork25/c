@@ -22,6 +22,17 @@ global.creds = 'creds.json';
 global.authFile = 'sessioni';
 global.authFileJB = 'chatunity-sub';
 
+function ensureDir(dirPath) {
+  if (!existsSync(dirPath)) {
+    mkdirSync(dirPath, { recursive: true });
+  }
+}
+
+ensureDir(global.authFile);
+ensureDir(global.authFileJB);
+ensureDir(join(process.cwd(), 'tmp'));
+ensureDir(join(process.cwd(), 'temp'));
+
 const sessionFolder = path.join(process.cwd(), global.authFile || 'sessioni');
 
 function clearSessionFolderSelective(dir = sessionFolder) {
@@ -374,7 +385,7 @@ if (!opts['test']) {
     if (global.db.data) await global.db.write();
     if (opts['autocleartmp'] && (global.support || {}).find) {
       const tmp = [tmpdir(), 'tmp', "chatunity-sub"];
-      tmp.forEach	filename => spawn('find', [filename, '-amin', '2', '-type', 'f', '-delete']));
+      tmp.forEach((filename) => spawn('find', [filename, '-amin', '2', '-type', 'f', '-delete']));
     }
   }, 30 * 1000);
 }
@@ -480,17 +491,7 @@ global.conn.ev.on('group-participants.update', async (event) => {
 
 async function connectSubBots() {
   const subBotDirectory = './chatunity-sub';
-  if (!existsSync(subBotDirectory)) {
-    console.log(chalk.bold.magentaBright('non ci sono Sub-Bot collegati. Creazione directory...'));
-    try {
-      mkdirSync(subBotDirectory, { recursive: true });
-      console.log(chalk.bold.green('✅ Directory chatunity-sub creata con successo.'));
-    } catch (err) {
-      console.log(chalk.bold.red('❌ Errore nella creazione della directory chatunity-sub:', err.message));
-      return;
-    }
-    return;
-  }
+  ensureDir(subBotDirectory);
   try {
     const subBotFolders = readdirSync(subBotDirectory).filter(file =>
       statSync(join(subBotDirectory, file)).isDirectory()
@@ -682,14 +683,7 @@ async function _quickTest() {
 }
 
 function clearDirectory(dirPath) {
-  if (!existsSync(dirPath)) {
-    try {
-      mkdirSync(dirPath, { recursive: true });
-    } catch (e) {
-      console.error(chalk.red(`Errore nella creazione della directory ${dirPath}:`, e));
-    }
-    return;
-  }
+  ensureDir(dirPath);
   const filenames = readdirSync(dirPath);
   filenames.forEach(file => {
     const filePath = join(dirPath, file);
