@@ -1,18 +1,123 @@
 import { xpRange } from '../lib/levelling.js'
 import { canLevelUp } from '../lib/levelling.js'
 import fs from 'fs'
-import path from 'path';
+import path from 'path'
+import { createCanvas, loadImage, registerFont } from 'canvas'
+
+const DEFAULT_AVATAR_URL = 'https://i.ibb.co/BKHtdBNp/default-avatar-profile-icon-1280x1280.jpg'
+
+let fontsLoaded = false
+async function setupFonts() {
+  if (fontsLoaded) return
+  try {
+    registerFont('media/fonts/BebasNeue-Regular.ttf', { family: 'Bebas Neue' })
+    registerFont('media/fonts/Montserrat-Regular.ttf', { family: 'Montserrat' })
+  } catch {}
+  fontsLoaded = true
+}
+
+async function createCircularProfilePic(url, size = 100) {
+  try {
+    const img = await loadImage(url)
+    const canvas = createCanvas(size, size)
+    const ctx = canvas.getContext('2d')
+    ctx.beginPath()
+    ctx.arc(size / 2, size / 2, size / 2, 0, Math.PI * 2)
+    ctx.closePath()
+    ctx.clip()
+    ctx.drawImage(img, 0, 0, size, size)
+    return canvas
+  } catch {
+    return null
+  }
+}
+
+async function createLevelImage(username, level, currentExp, neededExp, progressPercent, pfpUrl, groupUrl, userId, groupId, canLevelUpFlag) {
+  await setupFonts()
+  const width = 800
+  const height = 400
+  const canvas = createCanvas(width, height)
+  const ctx = canvas.getContext('2d')
+  ctx.clearRect(0, 0, width, height)
+
+  try {
+    const bg = await loadImage(groupUrl)
+    const scale = Math.max(width / bg.width, height / bg.height)
+    ctx.drawImage(
+      bg,
+      (width - bg.width * scale) / 2,
+      (height - bg.height * scale) / 2,
+      bg.width * scale,
+      bg.height * scale
+    )
+  } catch {
+    ctx.fillStyle = '#333'
+    ctx.fillRect(0, 0, width, height)
+  }
+
+  const margin = 50
+  const cardW = width - 2 * margin
+  const cardH = height - 2 * margin
+  ctx.fillStyle = 'rgba(0,0,0,0.75)'
+  ctx.beginPath()
+  ctx.roundRect(margin, margin, cardW, cardH, 20)
+  ctx.fill()
+
+  const centerY = margin + cardH / 2
+  const pfpCanvas = await createCircularProfilePic(pfpUrl, 100)
+  const contentX = margin + 20
+  if (pfpCanvas) ctx.drawImage(pfpCanvas, contentX, centerY - 50)
+
+  ctx.font = 'bold 28px Montserrat'
+  ctx.fillStyle = '#fff'
+  ctx.textAlign = 'left'
+  ctx.fillText(username, contentX + 140, centerY - 20)
+
+  const levelText = `🏆 Livello ${level}`
+  ctx.font = '24px Montserrat'
+  ctx.fillText(levelText, contentX + 140, centerY + 20)
+
+  const barX = contentX + 140
+  const barY = centerY + 50
+  const barWidth = cardW - 140 - 30
+  const barHeight = 20
+
+  if (currentExp > 0) {
+    ctx.fillStyle = '#555'
+    ctx.beginPath()
+    ctx.roundRect(barX, barY, barWidth, barHeight, 10)
+    ctx.fill()
+    const percent = Math.min(progressPercent / 100, 1)
+    ctx.fillStyle = canLevelUpFlag ? '#00ff00' : '#fff'
+    ctx.beginPath()
+    ctx.roundRect(barX, barY, barWidth * percent, barHeight, 10)
+    ctx.fill()
+    ctx.font = '16px Montserrat'
+    ctx.fillStyle = '#000000'
+    ctx.textAlign = 'center'
+    const progressText = `${currentExp}/${neededExp} XP`
+    ctx.fillText(progressText, barX + barWidth / 2, barY + barHeight - 4)
+  }
+
+  ctx.font = '18px Montserrat'
+  ctx.fillStyle = '#fff'
+  ctx.textAlign = 'center'
+  const footerText = canLevelUpFlag ? '🎉 Pronto per il level up!' : 'Continua a guadagnare XP!'
+  ctx.fillText(footerText, margin + cardW / 2, margin + cardH - 20)
+
+  return canvas.toBuffer('image/png')
+}
 
 let handler = async (m, { conn, mentionedJid, args }) => {
     // Controlla se è un comando levelup
     if (args[0] && args[0].toLowerCase() === 'up') {
-        return await handleLevelUp(m, { conn });
+        return await handleLevelUp(m, { conn })
     }
 
     // Ottieni l'utente target
     let targetJid = mentionedJid && mentionedJid[0] ? mentionedJid[0] : m.sender
     let user = global.db.data.users[targetJid]
-    
+
     // Inizializza l'utente se non esiste
     if (!user) {
         user = {
@@ -23,79 +128,80 @@ let handler = async (m, { conn, mentionedJid, args }) => {
         }
         global.db.data.users[targetJid] = user
     }
-    
-    
-    // Percorsi delle immagini locali
-  const basePath = './media/level/';
-  const levelImageBuffer = fs.readFileSync(path.join(basePath, 'level.jpg'));
-
 
     // Calcola EXP e progresso CORRETTO
     let currentLevel = user.level || 1
     let currentExp = user.exp || 0
-    
+
     // Ottieni i range per il livello attuale
     let { min, xp, max } = xpRange(currentLevel, global.multiplier)
-    
+
     // Calcola gli EXP per il livello successivo
     let nextLevelRange = xpRange(currentLevel + 1, global.multiplier)
     let neededExp = nextLevelRange.min - currentExp
-    
+
     // Calcola la percentuale di completamento del livello corrente
     let expInCurrentLevel = currentExp - min
     let progressRatio = expInCurrentLevel / xp
-    let progress = Math.floor(progressRatio * 10)
-    
-    // Barra di progresso
-    let progressBar = '【'
-    for (let i = 0; i < 10; i++) {
-        progressBar += i < progress ? '■' : '□'
-    }
-    progressBar += '】'
+    let progressPercent = Math.round(progressRatio * 100)
 
-    // Ottieni il nome
+    // Verifica se può fare level up
+    let canLevelUpFlag = canLevelUp(currentLevel, currentExp, global.multiplier)
+
+    // Ottieni il nome e le immagini profilo
     let userName = user.name || conn.getName(targetJid)
-    let nomeDelBot = global.nomebot
+    const [pfpUrl, groupUrl] = await Promise.all([
+        conn.profilePictureUrl(targetJid).catch(() => DEFAULT_AVATAR_URL),
+        conn.profilePictureUrl(m.chat).catch(() => DEFAULT_AVATAR_URL),
+    ])
 
-    // Prepara il messaggio
-    let text = `👤 *Utente:* ${user.name}\n`
-    text += `🏆 *Livello attuale:* ${currentLevel}\n`
-    text += `🎯 *Rank:* ${user.role}\n`
-    text += `✨ *EXP Totali:* ${currentExp}\n`
-    text += `📊 *EXP nel livello:* ${expInCurrentLevel}/${xp}\n`
-    text += `📈 *Progresso:* ${progressBar} ${Math.round(progressRatio * 100)}%\n\n`
-    
-    // Messaggio speciale se ha raggiunto il massimo EXP per questo livello
-    if (expInCurrentLevel >= xp) {
-        text += `🎉 *Pronto per salire al livello ${currentLevel + 1}! Usa il comando [.levelup] per avanzare.`
+    // Crea l'immagine del livello
+    const levelImage = await createLevelImage(
+        userName,
+        currentLevel,
+        expInCurrentLevel,
+        xp,
+        progressPercent,
+        pfpUrl,
+        groupUrl,
+        targetJid,
+        m.chat,
+        canLevelUpFlag
+    )
+
+    // Prepara il messaggio con l'immagine
+    let caption = `👤 *Utente:* ${userName}\n`
+    caption += `🏆 *Livello attuale:* ${currentLevel}\n`
+    caption += `🎯 *Rank:* ${user.role}\n`
+    caption += `📊 *XP:* ${expInCurrentLevel}/${xp}\n`
+    caption += `📈 *Progresso:* ${progressPercent}%\n\n`
+
+    if (canLevelUpFlag) {
+        caption += `🎉 *Sei pronto a salire livello ${currentLevel + 1}!*\nUsa il comando \`level up\``
     } else {
-        text += `⚡ *EXP mancanti per livello ${currentLevel + 1}:* ${neededExp} EXP`
+        caption += `⚡ Ti mancano ${neededExp} XP per salire di livello`
     }
 
-    // Immagine profilo
-    let pp = levelImageBuffer
-    // let apii = await conn.getFile(pp)  // Non necessario, pp è già un Buffer
-        
-    await conn.sendMessage(m.chat, { 
-        text: text,
-        contextInfo: {
-            isForwarded: true,
-            forwardedNewsletterMessageInfo: {
-              newsletterJid: global.canale,
-              serverMessageId: 100,
-              newsletterName: global.nomebot,
+    const nomeDelBot = conn.user?.name || global.db?.data?.nomedelbot || 'ChatUnity'
+
+    await conn.sendMessage(
+        m.chat,
+        {
+            image: levelImage,
+            caption,
+            mentions: [targetJid],
+            contextInfo: {
+                forwardingScore: 999,
+                isForwarded: true,
+                forwardedNewsletterMessageInfo: {
+                    newsletterJid: '120363259442839354@newsletter',
+                    serverMessageId: '',
+                    newsletterName: nomeDelBot,
+                },
             },
-            externalAdReply: {
-             title: `Controlla il tuo stato`,
-             body:  `Livello e progresso`,
-             thumbnail: pp,  // Usa direttamente il Buffer
-                sourceUrl: "", 
-                mediaType: 1,
-                renderLargerThumbnail: false
-            },
-            mentionedJid: [targetJid]  // Usa il JID, non l'oggetto user
         },
-    }, { quoted: m })
+        { quoted: m }
+    )
 }
         
         
@@ -112,7 +218,7 @@ async function handleLevelUp(m, { conn }) {
     try {
         let name = conn.getName(m.sender)
         let user = global.db.data.users[m.sender]
-        
+
         // Se l'utente non è registrato
         if (!user) {
             user = {
@@ -123,55 +229,52 @@ async function handleLevelUp(m, { conn }) {
             global.db.data.users[m.sender] = user
         }
 
-        // Calcola EXP e progresso
-        let { min, xp, max } = xpRange(user.level, global.multiplier)
-        let currentExp = user.exp - min
-        let neededExp = max - user.exp
-        let progress = Math.floor((currentExp / xp) * 10)
-        
-        // Barra di progresso
-        let progressBar = '【'
-        for (let i = 0; i < 10; i++) {
-            progressBar += i < progress ? '■' : '□'
-        }
-        progressBar += '】'
-        
         // Se NON può salire di livello
         if (!canLevelUp(user.level, user.exp, global.multiplier)) {
             let { min, xp, max } = xpRange(user.level, global.multiplier)
-            let txt = `*📉NON ABBASTANZA XP!📉*\n\n`
-            txt += `👤 *Utente:* ${name}\n`
-            txt += `🏆 *Livello attuale:* ${user.level}\n`
-            txt += `🧩 *XP mancanti:* ${max - user.exp}\n\n`
-            txt += `✨ *EXP Attuali:* ${currentExp}/${xp}\n`
-            txt += `📈 *Progresso:* ${progressBar} ${Math.round((currentExp / xp) * 100)}%\n\n`
-            txt += `⚡ *EXP mancanti per livello ${user.level + 1}:* ${neededExp} EXP`
+            let currentExp = user.exp - min
+            let neededExp = max - user.exp
+            let progressPercent = Math.round((currentExp / xp) * 100)
 
-            txt += `\n\n💡 *Suggerimento:* scrivi più spesso per guadagnare XP!`
+            const [pfpUrl, groupUrl] = await Promise.all([
+                conn.profilePictureUrl(m.sender).catch(() => DEFAULT_AVATAR_URL),
+                conn.profilePictureUrl(m.chat).catch(() => DEFAULT_AVATAR_URL),
+            ])
 
-            // Thumbnail per XP insufficiente
-            const imgNotEnoughXP = './src/img/level/nolevelup.png'
-            let thumbBuffer = null
-            try {
-                thumbBuffer = fs.readFileSync(imgNotEnoughXP)
-            } catch {}
+            const levelImage = await createLevelImage(
+                name,
+                user.level,
+                currentExp,
+                xp,
+                progressPercent,
+                pfpUrl,
+                groupUrl,
+                m.sender,
+                m.chat,
+                false
+            )
+
+            let caption = `📉 *NON ABBASTANZA XP!* 📉\n\n`
+            caption += `👤 *Utente:* ${name}\n`
+            caption += `🏆 *Livello attuale:* ${user.level}\n`
+            caption += `🧩 *XP mancanti:* ${neededExp}\n\n`
+            caption += `✨ *EXP Attuali:* ${currentExp}/${xp}\n`
+            caption += `📈 *Progresso:* ${progressPercent}%\n\n`
+            caption += `⚡ *EXP mancanti per livello ${user.level + 1}:* ${neededExp} EXP`
+            caption += `\n\n💡 *Suggerimento:* scrivi più spesso per guadagnare XP!`
+
+            const nomeDelBot = conn.user?.name || global.db?.data?.nomedelbot || 'ChatUnity'
 
             await conn.sendMessage(m.chat, {
-                text: txt,
+                image: levelImage,
+                caption,
                 contextInfo: {
-                    isforwarded: true,
+                    isForwarded: true,
                     forwardedNewsletterMessageInfo: {
-                        newsletterJid: "120363401234816773@newsletter",
-                        serverMessageId: 100,
-                        newsletterName: 'canale dei meme 🎌',
+                        newsletterJid: '120363259442839354@newsletter',
+                        serverMessageId: '',
+                        newsletterName: nomeDelBot,
                     },
-                    externalAdReply: {
-                        title: `levelup`,
-                        body: `aumenti di livello`,
-                        thumbnail: thumbBuffer,
-                        mediaType: 1,
-                        sourceUrl: ''
-                    }
                 }
             }, { quoted: m })
             return
@@ -184,7 +287,7 @@ async function handleLevelUp(m, { conn }) {
             skippedLevels.push(user.level + 1)
             user.level++
         }
-        
+
         if (before !== user.level) {
             // Premi per tutti i livelli saltati
             let premiTxt = ''
@@ -227,44 +330,56 @@ async function handleLevelUp(m, { conn }) {
                 }
             }
 
-            let txt = `🎉 *LEVEL UP!* 🎉\n\n`
-            txt += `👤 *Utente:* ${name}\n`
-            txt += `⚡ *Progresso:* ${before} ➔ ${user.level}\n`
-            txt += `🏅 *Nuovo Rank:* ${user.role}\n\n`
-            
+            const [pfpUrl, groupUrl] = await Promise.all([
+                conn.profilePictureUrl(m.sender).catch(() => DEFAULT_AVATAR_URL),
+                conn.profilePictureUrl(m.chat).catch(() => DEFAULT_AVATAR_URL),
+            ])
+
+            // Calcola il progresso per il nuovo livello
+            let { min, xp } = xpRange(user.level, global.multiplier)
+            let currentExp = user.exp - min
+            let progressPercent = Math.round((currentExp / xp) * 100)
+
+            const levelImage = await createLevelImage(
+                name,
+                user.level,
+                currentExp,
+                xp,
+                progressPercent,
+                pfpUrl,
+                groupUrl,
+                m.sender,
+                m.chat,
+                false
+            )
+
+            let caption = `🎉 *LEVEL UP!* 🎉\n\n`
+            caption += `👤 *Utente:* ${name}\n`
+            caption += `⚡ *Progresso:* ${before} ➔ ${user.level}\n`
+            caption += `🏅 *Nuovo Rank:* ${user.role}\n\n`
+
             // Aggiungi i premi al messaggio solo se esistono
-            if (premiTxt) txt += premiTxt
-            txt += `\n📅 ${new Date().toLocaleString('it-IT')}`
-            
-            // Thumbnail per LEVEL UP
-            const imgLevelUp = './src/img/level/levelup.jpg'
-            let levelUpThumb = null
-            try {
-                levelUpThumb = fs.readFileSync(imgLevelUp)
-            } catch {}
+            if (premiTxt) caption += premiTxt
+            caption += `\n📅 ${new Date().toLocaleString('it-IT')}`
+
+            const nomeDelBot = conn.user?.name || global.db?.data?.nomedelbot || 'ChatUnity'
 
             await conn.sendMessage(m.chat, {
-                text: txt,
+                image: levelImage,
+                caption,
                 contextInfo: {
-                    isforwarded: true,
+                    isForwarded: true,
                     forwardedNewsletterMessageInfo: {
-                        newsletterJid: "120363401234816773@newsletter",
-                        serverMessageId: 100,
-                        newsletterName: 'canale dei meme 🎌',
+                        newsletterJid: '120363259442839354@newsletter',
+                        serverMessageId: '',
+                        newsletterName: nomeDelBot,
                     },
-                    externalAdReply: {
-                        title: `levelup`,
-                        body: `aumenti di livello`,
-                        thumbnail: levelUpThumb,
-                        mediaType: 1,
-                        sourceUrl: ''
-                    }
                 }
             }, { quoted: m })
         }
     } catch (error) {
         console.error('Errore:', error)
-        await conn.sendMessage(m.chat, { 
+        await conn.sendMessage(m.chat, {
             text: '❌ Errore durante l\'aggiornamento del livello'
         })
     }
