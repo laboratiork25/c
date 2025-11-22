@@ -26,7 +26,7 @@ export async function handler(chatUpdate) {
     if (global.db.data == null) await global.loadDatabase()
     const isOwner = (() => {
         try {
-            const isROwner = [conn.decodeJid(global.conn.user.id), ...global.owner.map(([number]) => number)] // cosi si fa ㊙️
+            const isROwner = [conn.decodeJid(global.conn.user.id), ...(Array.isArray(global.owner) ? global.owner.map(([number]) => number) : [])] // cosi si fa ㊙️
                 .filter(Boolean)
                 .map(v => v.replace(/[^0-9]/g, '') + '@s.whatsapp.net')
                 .includes(m.sender)
@@ -235,11 +235,11 @@ if (
         if (typeof m.text !== 'string') m.text = ''
 
         // Verifica permessi utente
-        const isROwner = [conn.decodeJid(global.conn.user.id), ...global.owner.map(([number]) => number)]
+        const isROwner = [conn.decodeJid(global.conn.user.id), ...(Array.isArray(global.owner) ? global.owner.map(([number]) => number) : [])]
             .map(v => v.replace(/[^0-9]/g, '') + '@s.whatsapp.net')
             .includes(m.sender)
         const isOwner = isROwner || m.fromMe
-        const isMods = isOwner || global.mods.map(v => v.replace(/[^0-9]/g, '') + '@s.whatsapp.net').includes(m.sender)
+        const isMods = isOwner || (Array.isArray(global.mods) ? global.mods.map(v => v.replace(/[^0-9]/g, '') + '@s.whatsapp.net').includes(m.sender) : false)
         const isPrems = isROwner || isOwner || isMods || global.db.data.users[m.sender]?.premiumTime > 0
 
         if (opts['queque'] && m.text && !(isMods || isPrems)) {
