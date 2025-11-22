@@ -1,5 +1,3 @@
-import fs from 'fs'
-
 const PAGE_SIZE = 10
 const MAX_INFO_REQUESTS = 2
 
@@ -18,104 +16,128 @@ let handler = async (m, { conn, args, command }) => {
     .map(([id, data]) => ({ id, subject: data.subject || 'Senza nome' }))
 
   if (command === 'listgroup') {
-    if (groups.length === 0) {
-      return conn.sendMessage(m.chat, { text: '❌ Il bot non è in nessun gruppo.' })
+
+    const pageRequest = args[0]
+    const pageNum = parseInt(args[1])
+
+    if (!pageRequest) {
+
+      const txt = `📊 Il bot è in ${groups.length} gruppi\nPremi il bottone per vederli.`
+
+      const buttons = [
+        {
+          index: 1,
+          quickReplyButton: {
+            displayText: "📜 Mostra gruppi",
+            id: "LISTGROUP_PAGE_0"
+          }
+        }
+      ]
+
+      return conn.sendMessage(m.chat, { text: txt, templateButtons: buttons })
     }
 
-    const total = groups.length
+    if (pageRequest === 'page') {
+      const page = pageNum || 0
+      const pages = Math.ceil(groups.length / PAGE_SIZE)
 
-    await conn.sendMessage(
-      m.chat,
-      {
-        text: `📊 Il bot è in ${total} gruppi\nPremi il bottone per vederli.`,
-        buttons: [
-          { buttonId: `.listgroup page 0`, buttonText: { displayText: "📜 Mostra gruppi" }, type: 1 }
-        ]
+      if (page >= pages) return m.reply('❌ Pagina inesistente.')
+
+      const start = page * PAGE_SIZE
+      const current = groups.slice(start, start + PAGE_SIZE)
+
+      const buttons = current.map((g, i) => ({
+        index: i + 1,
+        quickReplyButton: {
+          displayText: g.subject.slice(0, 20),
+          id: `LISTGROUP_INFO_${g.id}`
+        }
+      }))
+
+      if (page > 0) {
+        buttons.push({
+          index: 98,
+          quickReplyButton: {
+            displayText: "⬅️ Indietro",
+            id: `LISTGROUP_PAGE_${page - 1}`
+          }
+        })
       }
-    )
 
-    return
-  }
+      if (page < pages - 1) {
+        buttons.push({
+          index: 99,
+          quickReplyButton: {
+            displayText: "➡️ Avanti",
+            id: `LISTGROUP_PAGE_${page + 1}`
+          }
+        })
+      }
 
-  if (command === 'listgroup' && args[0] === 'page') {
-
-    const page = parseInt(args[1]) || 0
-    const pages = Math.ceil(groups.length / PAGE_SIZE)
-
-    if (page >= pages) return m.reply('❌ Pagina inesistente.')
-
-    const start = page * PAGE_SIZE
-    const current = groups.slice(start, start + PAGE_SIZE)
-
-    const buttons = current.map(g => ({
-      buttonId: `.listgroup info ${g.id}`,
-      buttonText: { displayText: g.subject.slice(0, 20) },
-      type: 1
-    }))
-
-    const nav = []
-    if (page > 0) nav.push({ buttonId: `.listgroup page ${page - 1}`, buttonText: { displayText: "⬅️ Indietro" }, type: 1 })
-    if (page < pages - 1) nav.push({ buttonId: `.listgroup page ${page + 1}`, buttonText: { displayText: "➡️ Avanti" }, type: 1 })
-
-    await conn.sendMessage(
-      m.chat,
-      {
+      return conn.sendMessage(m.chat, {
         text: `📃 Pagina ${page + 1} / ${pages}\nSeleziona un gruppo:`,
-        buttons: [...buttons, ...nav]
-      }
-    )
+        templateButtons: buttons
+      })
+    }
 
-    return
+    if (pageRequest === 'info') {
+      return m.reply('Usa i bottoni, non scrivere manualmente.')
+    }
   }
 
-  if (command === 'listgroup' && args[0] === 'info') {
+  if (m?.message?.buttonsResponseMessage?.selectedButtonId ||
+      m?.message?.templateButtonReplyMessage?.selectedId) {
 
-    const groupId = args[1]
+    const buttonId =
+      m.message.buttonsResponseMessage?.selectedButtonId ||
+      m.message.templateButtonReplyMessage?.selectedId
 
-    if (!groupId || !groupId.endsWith('@g.us')) {
-      return m.reply('❌ ID gruppo non valido.')
+    if (buttonId.startsWith('LISTGROUP_PAGE_')) {
+      const n = parseInt(buttonId.replace('LISTGROUP_PAGE_', ''))
+      return handler(m, { conn, args: ['page', n], command: 'listgroup' })
     }
 
-    if (global._groupRequests[sender].allowed <= 0) {
-      return m.reply('⛔ Hai già richiesto info su 2 gruppi. Rilancia .listgroup.')
-    }
+    if (buttonId.startsWith('LISTGROUP_INFO_')) {
 
-    global._groupRequests[sender].allowed--
+      const groupId = buttonId.replace('LISTGROUP_INFO_', '')
 
-    let metadata
-    try {
-      metadata = await conn.groupMetadata(groupId)
-    } catch {
-      return m.reply('❌ Impossibile ottenere info da questo gruppo.')
-    }
+      if (global._groupRequests[sender].allowed <= 0) {
+        return m.reply('⛔ Hai già richiesto info su 2 gruppi. Rilancia .listgroup.')
+      }
 
-    let pp = ''
-    try {
-      pp = await conn.profilePictureUrl(groupId, 'image')
-    } catch {
-      pp = null
-    }
+      global._groupRequests[sender].allowed--
 
-    const admins = metadata.participants
-      .filter(p => p.admin)
-      .map(a => `• @${a.id.split('@')[0]}`)
-      .join('\n') || 'Nessun admin rilevato'
+      let metadata
+      try {
+        metadata = await conn.groupMetadata(groupId)
+      } catch {
+        return m.reply('❌ Impossibile ottenere info di questo gruppo.')
+      }
 
-    const creation = new Date(metadata.creation * 1000).toLocaleString()
+      let pp = ''
+      try {
+        pp = await conn.profilePictureUrl(groupId)
+      } catch {}
 
-    let invite = ''
-    try {
-      invite = await conn.groupInviteCode(groupId)
-      invite = `https://chat.whatsapp.com/${invite}`
-    } catch {
-      invite = 'Non disponibile'
-    }
+      const admins = metadata.participants
+        .filter(p => p.admin)
+        .map(a => `• @${a.id.split('@')[0]}`)
+        .join('\n') || 'Nessun admin'
 
-    const caption =
+      const creation = new Date(metadata.creation * 1000).toLocaleString()
+
+      let invite = ''
+      try {
+        invite = await conn.groupInviteCode(groupId)
+        invite = `https://chat.whatsapp.com/${invite}`
+      } catch {
+        invite = 'Non disponibile'
+      }
+
+      const caption =
 `📌 INFO GRUPPO
 
 • Nome: ${metadata.subject}
-• ID: ${metadata.id}
 • Membri: ${metadata.size}
 • Creato il: ${creation}
 
@@ -126,16 +148,16 @@ ${admins}
 ${invite}
 `
 
-    await conn.sendMessage(
-      m.chat,
-      {
-        image: pp ? { url: pp } : undefined,
-        caption,
-        mentions: metadata.participants.map(x => x.id)
-      }
-    )
+      return conn.sendMessage(
+        m.chat,
+        {
+          image: pp ? { url: pp } : undefined,
+          caption,
+          mentions: metadata.participants.map(x => x.id)
+        }
+      )
+    }
   }
-
 }
 
 handler.command = /^listgroup$/i
