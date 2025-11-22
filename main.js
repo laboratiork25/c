@@ -269,8 +269,9 @@ console.info = () => { };
 console.debug = () => { };
 ['log', 'warn', 'error'].forEach(methodName => redefineConsoleMethod(methodName, filterStrings));
 if (!global.groupCache || typeof global.groupCache.get !== 'function') {
-const groupMetadataCache = new NodeCache();
-global.groupCache = groupMetadataCache;
+  const groupMetadataCache = new NodeCache();
+  global.groupCache = groupMetadataCache;
+}
 
 const logger = pino({
   level: 'silent',
