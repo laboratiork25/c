@@ -249,8 +249,10 @@ const filterStrings = [
 console.info = () => { };
 console.debug = () => { };
 ['log', 'warn', 'error'].forEach(methodName => redefineConsoleMethod(methodName, filterStrings));
-const groupMetadataCache = new NodeCache();
+
+const groupMetadataCache = new NodeCache({ stdTTL: 300, useClones: false });
 global.groupCache = groupMetadataCache;
+
 const logger = pino({
   level: 'silent',
   redact: {
@@ -269,6 +271,7 @@ const logger = pino({
   },
   timestamp: () => `,"time":"${new Date().toJSON()}"`
 });
+
 global.jidCache = new NodeCache({ stdTTL: 600, useClones: false });
 global.store = makeInMemoryStore({ logger });
 
@@ -284,7 +287,6 @@ const connectionOptions = {
     if (!jid) return jid;
     const cached = global.jidCache.get(jid);
     if (cached) return cached;
-
     let decoded = jid;
     if (/:\d+@/gi.test(jid)) {
       decoded = jidNormalizedUser(jid);
@@ -295,7 +297,6 @@ const connectionOptions = {
     if (typeof decoded === 'string' && decoded.endsWith('@lid')) {
       decoded = decoded.replace('@lid', '@s.whatsapp.net');
     }
-
     global.jidCache.set(jid, decoded);
     return decoded;
   },
@@ -313,7 +314,7 @@ const connectionOptions = {
     if (cached) return cached;
     try {
       const metadata = await global.conn.groupMetadata(global.conn.decodeJid(jid));
-      global.groupCache.set(jid, metadata, { ttl: 300 });
+      global.groupCache.set(jid, metadata);
       return metadata;
     } catch (err) {
       console.error('Errore nel recupero dei metadati del gruppo:', err);
@@ -370,6 +371,7 @@ async function chatunityedition() {
     await global.conn.newsletterFollow(mainChannelId);
   } catch (error) {}
 }
+
 if (!opts['test']) {
   if (global.db) setInterval(async () => {
     if (global.db.data) await global.db.write();
@@ -379,6 +381,7 @@ if (!opts['test']) {
     }
   }, 30 * 1000);
 }
+
 if (opts['server']) (await import('./server.js')).default(global.conn, PORT);
 
 async function connectionUpdate(update) {
@@ -391,7 +394,6 @@ async function connectionUpdate(update) {
     global.timestamp.connect = new Date;
   }
   if (global.db.data == null) loadDatabase();
-
   if (qr && (opzione === '1' || methodCodeQR) && !global.qrGenerated) {
     console.log(chalk.bold.yellow(`
 ┊ ┊ ┊ ┊‿ ˚➶ ｡˚   SCANSIONA IL CODICE QR
@@ -400,7 +402,6 @@ async function connectionUpdate(update) {
 `));
     global.qrGenerated = true;
   }
-
   if (connection === 'open') {
     global.qrGenerated = false;
     global.connectionMessagesPrinted = {};
@@ -416,7 +417,6 @@ async function connectionUpdate(update) {
       global.isLogoPrinted = true;
       await chatunityedition();
     }
-    
     try {
       await conn.groupAcceptInvite('FjPBDj4sUgFLJfZiLwtTvk');
       console.log(chalk.bold.green('✅ Bot entrato nel gruppo supporto con successo - non abbandonare!'));
@@ -426,11 +426,9 @@ async function connectionUpdate(update) {
         console.error(chalk.bold.yellow('⚠️ Errore di autorizzazione: controlla le credenziali o la sessione'));
       }
     }
-
     const perfConfig = getPerformanceConfig();
     Logger.info('Performance Config:', perfConfig);
   }
-
   if (connection === 'close') {
     const reason = lastDisconnect?.error?.output?.statusCode || lastDisconnect?.error?.output?.payload?.statusCode;
     if (reason === DisconnectReason.badSession && !global.connectionMessagesPrinted.badSession) {
@@ -478,17 +476,14 @@ async function connectSubBots() {
     }
     return;
   }
-
   try {
     const subBotFolders = readdirSync(subBotDirectory).filter(file =>
       statSync(join(subBotDirectory, file)).isDirectory()
     );
-
     if (subBotFolders.length === 0) {
       console.log(chalk.bold.magenta('Nessun subbot collegato'));
       return;
     }
-
     const botPromises = subBotFolders.map(async (folder) => {
       const subAuthFile = join(subBotDirectory, folder);
       if (existsSync(join(subAuthFile, 'creds.json'))) {
@@ -501,7 +496,6 @@ async function connectSubBots() {
               keys: makeCacheableSignalKeyStore(subState.keys, logger),
             },
           });
-
           subConn.ev.on('creds.update', subSaveCreds);
           subConn.ev.on('connection.update', connectionUpdate);
           return subConn;
@@ -512,10 +506,8 @@ async function connectSubBots() {
       }
       return null;
     });
-
     const bots = await Promise.all(botPromises);
     global.conns = bots.filter(Boolean);
-
     if (global.conns.length > 0) {
       console.log(chalk.bold.magentaBright(`🌙 ${global.conns.length} Sub-Bot si sono connessi con successo.`));
     } else {
@@ -543,6 +535,7 @@ async function connectSubBots() {
 
 let isInit = true;
 let handler = await import('./handler.js');
+
 global.reloadHandler = async function (restatConn) {
   try {
     const Handler = await import(`./handler.js?update=${Date.now()}`).catch(console.error);
@@ -554,7 +547,7 @@ global.reloadHandler = async function (restatConn) {
     const oldChats = global.conn.chats;
     try {
       global.conn.ws.close();
-    } catch { }
+    } catch {}
     conn.ev.removeAllListeners();
     global.conn = makeWASocket(connectionOptions, { chats: oldChats });
     global.store.bind(global.conn.ev);
@@ -569,14 +562,12 @@ global.reloadHandler = async function (restatConn) {
     conn.ev.off('connection.update', conn.connectionUpdate);
     conn.ev.off('creds.update', conn.credsUpdate);
   }
-
   conn.welcome = '@user benvenuto/a in @subject';
   conn.bye = '@user ha abbandonato il gruppo';
   conn.spromote = '@user è stato promosso ad amministratore';
   conn.sdemote = '@user non è più amministratore';
   conn.sIcon = 'immagine gruppo modificata';
   conn.sRevoke = 'link reimpostato, nuovo link: @revoke';
-
   conn.handler = handler.handler.bind(global.conn);
   conn.participantsUpdate = handler.participantsUpdate.bind(global.conn);
   conn.groupsUpdate = handler.groupsUpdate.bind(global.conn);
@@ -584,7 +575,6 @@ global.reloadHandler = async function (restatConn) {
   conn.onCall = handler.callUpdate.bind(global.conn);
   conn.connectionUpdate = connectionUpdate.bind(global.conn);
   conn.credsUpdate = saveCreds.bind(global.conn, true);
-
   conn.ev.on('messages.upsert', conn.handler);
   conn.ev.on('group-participants.update', conn.participantsUpdate);
   conn.ev.on('groups.update', conn.groupsUpdate);
@@ -673,6 +663,7 @@ async function _quickTest() {
   const s = global.support = { ffmpeg, ffprobe, ffmpegWebp, convert, magick, gm, find };
   Object.freeze(global.support);
 }
+
 function clearDirectory(dirPath) {
   if (!existsSync(dirPath)) {
     try {
@@ -697,6 +688,7 @@ function clearDirectory(dirPath) {
     }
   });
 }
+
 function ripristinaTimer(conn) {
   if (conn.timerReset) clearInterval(conn.timerReset);
   conn.timerReset = setInterval(async () => {
