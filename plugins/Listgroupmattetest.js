@@ -3,25 +3,25 @@ import moment from "moment-timezone"
 let handler = async (m, { conn, command, args }) => {
 
   if (command === "listgroup") {
+
     let groups = Object.entries(conn.chats)
-      .filter(([jid, chat]) => jid.endsWith("@g.us"))
+      .filter(([jid]) => jid.endsWith("@g.us"))
       .map(([jid, chat]) => ({
         id: jid,
         subject: chat.subject || "Gruppo senza nome",
         participants: chat?.participants?.length || 0
       }))
 
-    if (groups.length === 0) {
+    if (groups.length === 0)
       return m.reply("❌ Il bot non è in nessun gruppo.")
-    }
 
     global.groupCache = {}
     groups.forEach((g, i) => {
       global.groupCache[i + 1] = g.id
     })
 
-    let text = `📊 *Gruppi in cui è presente il bot:* ${groups.length}\n\n`
-    text += "*Scrivi*: `.groupinfo numero`\nEsempio → `.groupinfo 1`\n\n"
+    let text = `📊 *Il bot è in ${groups.length} gruppi*\n\n`
+    text += `Usa: \`.groupinfo numero\`\nEsempio → \`.groupinfo 1\`\n\n`
 
     let max = 10
     let list = groups.slice(0, max)
@@ -30,35 +30,42 @@ let handler = async (m, { conn, command, args }) => {
       text += `${i + 1}. *${g.subject}* — ${g.participants} membri\n`
     })
 
-    if (groups.length > max) {
+    if (groups.length > max)
       text += `\n🔽 Mostro solo i primi ${max}.`
-    }
 
     return m.reply(text)
   }
 
   if (command === "groupinfo") {
-    if (!args[0]) return m.reply("❌ Inserisci il numero del gruppo.\nEsempio: `.groupinfo 1`")
+
+    if (!args[0])
+      return m.reply("❌ Inserisci un numero.\nEsempio: `.groupinfo 1`")
 
     let n = parseInt(args[0])
     if (!n || !global.groupCache || !global.groupCache[n])
-      return m.reply("❌ Numero non valido. Riesegui `.listgroup`.")
+      return m.reply("❌ Numero non valido, esegui prima `.listgroup`.")
 
     let gid = global.groupCache[n]
-    let info = await conn.groupMetadata(gid).catch(_ => null)
 
-    if (!info) return m.reply("❌ Impossibile ottenere le informazioni del gruppo.")
+    let info
+    try {
+      info = await conn.groupMetadata(gid)
+    } catch {
+      return m.reply("❌ Errore nel recupero dei metadati del gruppo.")
+    }
 
-    let admin = info.participants.filter(p => p.admin)
+    let admin = info.participants
+      .filter(p => p.admin)
       .map(a => `• @${a.id.split("@")[0]}`)
-      .join("\n")
-    if (!admin) admin = "Nessun admin trovato"
+      .join("\n") || "Nessun admin trovato"
 
     let creation = moment(info.creation * 1000)
       .tz("Europe/Rome")
       .format("DD/MM/YYYY HH:mm")
 
-    let invite = info?.inviteCode ? `https://chat.whatsapp.com/${info.inviteCode}` : "Nessun link"
+    let invite = info.inviteCode
+      ? `https://chat.whatsapp.com/${info.inviteCode}`
+      : "Nessun link"
 
     let text = `📄 *INFO GRUPPO*\n\n`
     text += `🏷️ *Nome:* ${info.subject}\n`
@@ -67,7 +74,7 @@ let handler = async (m, { conn, command, args }) => {
     text += `🔰 *Admin:*\n${admin}\n\n`
     text += `🔗 *Link:* ${invite}\n`
     text += `📆 *Creato il:* ${creation}\n`
-    text += `🛡️ *Restrizioni:* ${info.restrict ? "❌ Chi non è admin NON può modificare info" : "✔️ Tutti possono modificare"}\n`
+    text += `🛡️ *Restrizioni:* ${info.restrict ? "❌ Solo admin" : "✔️ Tutti"}\n`
     text += `📣 *Annunci:* ${info.announce ? "🔒 Solo admin possono scrivere" : "💬 Tutti possono scrivere"}\n`
 
     try {
