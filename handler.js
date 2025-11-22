@@ -17,6 +17,7 @@ const delay = ms => isNumber(ms) && new Promise(resolve => setTimeout(function (
 global.ignoredUsersGlobal = global.ignoredUsersGlobal || new Set()
 global.ignoredUsersGroup = global.ignoredUsersGroup || {}
 global.groupSpam = global.groupSpam || {}
+global.userSpam = global.userSpam || {} // Anti-spam per singolo utente
 
 export async function handler(chatUpdate) {
   if (!global.db.data.stats) global.db.data.stats = {}
@@ -53,17 +54,17 @@ export async function handler(chatUpdate) {
     })
   }
 
+  // Anti-spam per singolo utente
   if (
-    m.isGroup &&
     !isOwner &&
     typeof m.text === 'string' &&
     hasValidPrefix(m.text, this.prefix || global.prefix)
   ) {
     const now = Date.now()
-    const chatId = m.chat
+    const userId = m.sender
 
-    if (!global.groupSpam[chatId]) {
-      global.groupSpam[chatId] = {
+    if (!global.userSpam[userId]) {
+      global.userSpam[userId] = {
         count: 0,
         firstCommandTimestamp: now,
         isSuspended: false,
@@ -71,27 +72,40 @@ export async function handler(chatUpdate) {
       }
     }
 
-    const groupData = global.groupSpam[chatId]
-    if (groupData.isSuspended) {
-      if (now < groupData.suspendedUntil) return
-      groupData.isSuspended = false
-      groupData.count = 0
-      groupData.firstCommandTimestamp = now
-      groupData.suspendedUntil = null
+    const userData = global.userSpam[userId]
+    
+    // Se l'utente è sospeso, blocca i suoi comandi
+    if (userData.isSuspended) {
+      if (now < userData.suspendedUntil) {
+        // Calcola secondi rimanenti
+        const remainingSeconds = Math.ceil((userData.suspendedUntil - now) / 1000)
+        await this.sendMessage(m.chat, {
+          text: `『 ⏳ 』 @${m.sender.split('@')[0]}\n\nSei ancora in timeout!\nAttendi *${remainingSeconds} secondi* prima di usare altri comandi.`,
+          mentions: [m.sender]
+        })
+        return
+      }
+      // Reset dopo la scadenza del timeout
+      userData.isSuspended = false
+      userData.count = 0
+      userData.firstCommandTimestamp = now
+      userData.suspendedUntil = null
     }
 
-    if (now - groupData.firstCommandTimestamp > 60000) {
-      groupData.count = 1
-      groupData.firstCommandTimestamp = now
+    // Reset del contatore dopo 60 secondi
+    if (now - userData.firstCommandTimestamp > 60000) {
+      userData.count = 1
+      userData.firstCommandTimestamp = now
     } else {
-      groupData.count++
+      userData.count++
     }
 
-    if (groupData.count > 2) {
-      groupData.isSuspended = true
-      groupData.suspendedUntil = now + 45000
-      await this.sendMessage(chatId, {
-        text: `『 ⚠ 』 Anti-spam comandi\n\nTroppi comandi in poco tempo!\nAttendi *45 secondi* prima di usare altri comandi.\n\n> sviluppato da sam aka vare`,
+    // Sospendi l'utente se supera 3 comandi in 60 secondi
+    if (userData.count > 3) {
+      userData.isSuspended = true
+      userData.suspendedUntil = now + 45000
+      await this.sendMessage(m.chat, {
+        text: `『 ⚠️ 』 @${m.sender.split('@')[0]} *Anti-spam comandi*\n\nHai usato troppi comandi in poco tempo!\n⏰ Timeout: *45 secondi*\n\n> ChatUnity Bot`,
         mentions: [m.sender]
       })
       return

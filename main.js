@@ -269,7 +269,9 @@ console.info = () => { };
 console.debug = () => { };
 ['log', 'warn', 'error'].forEach(methodName => redefineConsoleMethod(methodName, filterStrings));
 
-global.groupCache = new NodeCache({ stdTTL: 5 * 60, useClones: false });
+if (!global.groupCache || typeof global.groupCache.get !== 'function') {
+  global.groupCache = new NodeCache({ stdTTL: 5 * 60, useClones: false });
+}
 
 const logger = pino({
   level: 'silent',
@@ -309,8 +311,16 @@ const connectionOptions = {
   syncFullHistory: false,
   downloadHistory: false,
   shouldSyncHistory: false,
-  printQRInTerminal: opzione === '1' || methodCodeQR ? true : false,
-  cachedGroupMetadata: async (jid) => global.groupCache.get(jid),
+  defaultQueryTimeoutMs: 60000,
+  connectTimeoutMs: 60000,
+  keepAliveIntervalMs: 10000,
+  printQRInTerminal: true,
+  cachedGroupMetadata: async (jid) => {
+    if (!global.groupCache || typeof global.groupCache.get !== 'function') {
+      return null;
+    }
+    return global.groupCache.get(jid);
+  },
   getMessage: async (key) => {
     try {
       const jid = global.conn.decodeJid(key.remoteJid);
@@ -455,7 +465,9 @@ process.on('uncaughtException', console.error);
 global.conn.ev.on('groups.update', async ([event]) => {
   try {
     const metadata = await global.conn.groupMetadata(event.id);
-    global.groupCache.set(event.id, metadata);
+    if (global.groupCache && typeof global.groupCache.set === 'function') {
+      global.groupCache.set(event.id, metadata);
+    }
   } catch (e) {
     console.error('Errore groups.update metadata:', e);
   }
@@ -464,7 +476,9 @@ global.conn.ev.on('groups.update', async ([event]) => {
 global.conn.ev.on('group-participants.update', async (event) => {
   try {
     const metadata = await global.conn.groupMetadata(event.id);
-    global.groupCache.set(event.id, metadata);
+    if (global.groupCache && typeof global.groupCache.set === 'function') {
+      global.groupCache.set(event.id, metadata);
+    }
   } catch (e) {
     console.error('Errore group-participants.update metadata:', e);
   }
