@@ -80,7 +80,7 @@ function searchShopItem(query) {
 
     return results
 }
-const thumb = fs.readFileSync(path.resolve('./src/img/shop/shop.png'))
+const thumb = fs.readFileSync(path.resolve('./media/shop/shop.png'))
 // Helper: costruisce un quoted message di tipo OrderMessage, opzionalmente con thumbnail bytes
 function createOrderMessage(quantity = 0, type = 'Acquisto', thumbBuffer = null) {
     const order = {
@@ -395,8 +395,8 @@ let handler = async (m, { conn, args, usedPrefix, command }) => {
     const user = global.db.data.users[m.sender] || {}
     const aliasMap = createAliasMap()
     // Percorso assoluto alla cartella immagini shop
-    // Da plugins/rpg/ devo uscire 2 volte per arrivare alla root, poi entro in src/img/shop
-    const baseShopImgPath = path.resolve(__dirname, '../../src/img/shop');
+    // Da plugins/rpg/ devo uscire 2 volte per arrivare alla root, poi entro in media/shop/
+    const baseShopImgPath = path.resolve(__dirname, '../media/shop/');
 
     // 1. SOLO .shop mostra la lista completa, senza ricerca
     if ((command === 'shop' || command === 'negozio') && args.length === 0) {

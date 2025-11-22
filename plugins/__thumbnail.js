@@ -1,4 +1,6 @@
 
+import fs from 'fs'
+
 const thumbnails = [
    'https://i.ibb.co/8LydjBGm/phishy-selfie-popup.jpg',
    'https://i.ibb.co/27fcY5KW/phishy-shiva.jpg',
@@ -71,7 +73,7 @@ global.rcanal = {
             mediaType: 1,
             renderLargerThumbnail: true
         }
-    }, quoted: m
+    }
 };
 
 global.adReply = {

@@ -6,7 +6,7 @@ function cambia(num) {
 }
 
 // Percorsi delle immagini
-const thumbnailsPath = './src/img/ruba/'
+const thumbnailsPath = './media/ruba/'
 const thumbnails = {
   success: fs.readFileSync(path.join(thumbnailsPath, 'success.png')),
   caught: fs.readFileSync(path.join(thumbnailsPath, 'caught.png')),
@@ -18,7 +18,7 @@ const thumbnails = {
 
 let cooldowns = {}
 let attemptCounts = {}; // Tracks the number of attempts during cooldown
-const EASTER_EGG_CHANCE = 0.6;
+const GEMMA_CHANCE = 0.6;
 
 const MESSAGGI_GEMME = {
   successo: [
@@ -63,7 +63,7 @@ let handler = async (m, { conn, text, command, usedPrefix }) => {
     }
 
     let tempoRimanente = secondiAHMS(Math.ceil((cooldowns[senderId] + tempoAttesa * 1000 - Date.now()) / 1000))
-    return conn.reply(m.chat, `⚠️ 𝘿𝙚𝙫𝙞 𝙖𝙨𝙥𝙚𝙩𝙩𝙖𝙧𝙚 ${tempoRimanente} 𝙥𝙧𝙞𝙢𝙖 𝙙𝙞 𝙧𝙪𝙗𝙖𝙧𝙚 𝙖𝙣𝙘𝙤𝙧𝙖.`, m, tutorial)
+    return conn.reply(m.chat, `⚠️ 𝘿𝙚𝙫𝙞 𝙖𝙨𝙥𝙚𝙩𝙩𝙖𝙧𝙚 ${tempoRimanente} 𝙥𝙧𝙞𝙢𝙖 𝙙𝙞 𝙧𝙪𝙗𝙖𝙧𝙚 𝙖𝙣𝙘𝙤𝙧𝙖.`, m, rcanal)
   }
 
   // Reset attempt count after cooldown expires
@@ -76,7 +76,11 @@ let handler = async (m, { conn, text, command, usedPrefix }) => {
   let repliedUser = m.quoted && m.quoted.sender
   let targetUserId = mentionedUser || repliedUser
 
-  if (!targetUserId) return conn.reply(m.chat, '❗ 𝘿𝙚𝙫𝙞 𝙢𝙚𝙣𝙯𝙞𝙤𝙣𝙖𝙧𝙚 𝙪𝙣 𝙪𝙩𝙚𝙣𝙩𝙚 𝙤 𝙧𝙞𝙨𝙥𝙤𝙣𝙙𝙚𝙧𝙚 𝙖 𝙪𝙣 𝙢𝙚𝙨𝙨𝙖𝙜𝙜𝙞𝙤 𝙥𝙚𝙧 𝙧𝙪𝙗𝙖𝙧𝙚 Unity Coins (🪙).', m, tutorial)
+  if (!targetUserId) return conn.reply(m.chat, '❗ 𝘿𝙚𝙫𝙞 𝙢𝙚𝙣𝙯𝙞𝙤𝙣𝙖𝙧𝙚 𝙪𝙣 𝙪𝙩𝙚𝙣𝙩𝙚 𝙤 𝙧𝙞𝙨𝙥𝙤𝙣𝙙𝙚𝙧𝙚 𝙖 𝙪𝙣 𝙢𝙚𝙨𝙨𝙖𝙜𝙜𝙞𝙤 𝙥𝙚𝙧 𝙧𝙪𝙗𝙖𝙧𝙚 Unity Coins (🪙).', m)
+
+  if (targetUserId === senderId) {
+    return conn.reply(m.chat, '❌ Non puoi rubare a te stesso!', m, rcanal)
+  }
 
   // --- CASA: blocca se la vittima è dentro casa (compatibilità con tutte le tipologie) ---
   let targetUser = users[targetUserId]
@@ -84,18 +88,13 @@ let handler = async (m, { conn, text, command, usedPrefix }) => {
   if (targetUser && targetUser.casa && targetUser.casa.tipo && targetUser.casa.stato === 'dentro') {
     targetInCasa = true
   }
-  // Rimuovi/ignora i vecchi flag legacy!
-  // if (!targetInCasa && targetUser) {
-  //   if (targetUser.monolocale || targetUser.villa || targetUser.castello) {
-  //     targetInCasa = true
-  //   }
-  // }
+  
   let bypassCasa = false
   if (targetInCasa && (user.level || 0) >= 50) {
     bypassCasa = true
   }
   if (targetInCasa && !bypassCasa) {
-    return conn.reply(m.chat, `🚪 L'utente è protetto perché è dentro casa! Solo i ladri di livello 50+ possono rubare chi è in casa.`, m, rcanal)
+    return conn.reply(m.chat, `🚪 L'utente è protetto perché è dentro casa! Solo i ladri di livello 50+ possono rubare chi è in casa.`, m, successo)
   }
 
   // --- CONTROLLO SCUDO: calcola se scaduto usando la scadenza nel database meno l'ora attuale ---
@@ -160,8 +159,8 @@ let handler = async (m, { conn, text, command, usedPrefix }) => {
   const noisePenalty = hasItem('scarpeRumore') ? 0.20 : 0
   const victimBarrier = (users[targetUserId] && users[targetUserId].barriera) ? 0.5 : 0
 
-  // Easter egg chance può essere incrementata da oggetti particolari
-  const effectiveEasterEggChance = Math.min(0.95, EASTER_EGG_CHANCE + (hasItem('cercaUova') ? 0.15 : 0))
+  // Gemma chance può essere incrementata da oggetti particolari
+  const effectiveGemmaChance = Math.min(0.95, GEMMA_CHANCE + (hasItem('cercaGemme') ? 0.15 : 0))
 
   // Determina se attivare eventi bizzarri basati su possedimenti
   const bizzarroChance = 0.25 + (Object.values(vittimaAnimali).some(Boolean) ? 0.15 : 0) + (Object.values(ladroAnimali).some(Boolean) ? 0.10 : 0)
@@ -187,8 +186,8 @@ let handler = async (m, { conn, text, command, usedPrefix }) => {
   // Minor chance di subire danno se si hanno oggetti furtivi
   let healthDamage = Math.max(1, Math.floor((Math.random() * 19 + 2) * (1 - stealthBonus + noisePenalty)))
 
-  // Easter Egg Bonus (usa chance effettiva)
-  let gemmaTrovata = Math.random() < effectiveEasterEggChance
+  // Gemma Bonus (usa chance effettiva)
+  let gemmaTrovata = Math.random() < effectiveGemmaChance
   let gemmaMessage = ''
   if (gemmaTrovata) {
     user.gemme += 1
@@ -199,10 +198,10 @@ let handler = async (m, { conn, text, command, usedPrefix }) => {
     gemmaMessage = `\n\n😶 *${frase}*`
   }
 
-  // Determina range eventi: normale (0-4), casa (5-7), bizzarri (11-20)
+  // Determina range eventi: normale (0-4), casa (5-7), bizzarri (8-20)
   let maxRange = bypassCasa ? 8 : 5
   if (Math.random() < bizzarroChance) {
-    maxRange = 21 // include eventi bizzarri 11-20
+    maxRange = 21 // include eventi bizzarri 8-20
   }
   let randomOption = Math.floor(Math.random() * maxRange)
   let messageText = ''
@@ -259,54 +258,7 @@ let handler = async (m, { conn, text, command, usedPrefix }) => {
       caseTitle = "Furto Silenzioso!"
       caseBody = `Hai rubato ${furtino} Unity Coins (🪙)`
       break
-    // Bizzarro: incontro con una carovana di formiche giganti
-    case 8:
-      {
-        const ants = Math.floor(Math.random() * 50) + 10
-        const lost = Math.min(Math.floor(ants / 5), user.limit)
-        user.limit -= lost
-        users[targetUserId].limit += Math.floor(lost / 2)
-        user.health = Math.max(0, user.health - Math.floor(ants / 10))
-        messageText = `🐜 ${senderName} sei stato travolto da una carovana di formiche giganti mentre scappavi!\nHai perso *${cambia(lost)}* Unity Coins (🪙) e alcune sono finite per strada...\nHai subito ${Math.floor(ants/10)} danni.`
-        thumbnailCase = thumbnails.caught
-        caseTitle = "Invasione di Formiche!"
-        caseBody = `Hai perso ${lost} Unity Coins (🪙)`
-      }
-      break
-
-    // Bizzarro: trovi un nido di conigli da cui estrai qualche caramella
-    case 9:
-      {
-        const rabbits = Math.floor(Math.random() * 8) + 3
-        const gain = Math.min(Math.floor(rabbits * (hasItem('sacco') ? 12 : 6)), 500)
-        user.limit += gain
-        messageText = `🐰 ${senderName} hai trovato un nido di conigliettì che custodivano Unity Coins (🪙)!\nHai ottenuto *${cambia(gain)}* grazie al tuo fiuto.`
-        thumbnailCase = thumbnails.success
-        caseTitle = "Nido Fortunato!"
-        caseBody = `Hai trovato ${gain} Unity Coins (🪙)`
-      }
-      break
-
-    // Bizzarro: vittima offre un patto (scambio temporaneo di oggetti)
-    case 10:
-      {
-        const offer = Math.floor(Math.random() * 3)
-        if (offer === 0 && users[targetUserId]) {
-          // scambio: prendi un oggetto temporaneo
-          user.inventory = user.inventory || {}
-          user.inventory['caramellaMagica'] = (user.inventory['caramellaMagica'] || 0) + 1
-          messageText = `🧙‍♂️ ${senderName} La vittima, presa dal panico, ti offre una *caramella magica* in cambio del silenzio.\nHai guadagnato 1 caramella magica nel tuo inventario.`
-          thumbnailCase = thumbnails.partial
-          caseTitle = "Patto Strano"
-          caseBody = `Hai ricevuto 1 caramella magica`
-        } else {
-          messageText = `🤝 ${senderName} La vittima cerca di negoziare ma riesce solo a darti qualche consiglio inutile. Niente di fatto.`
-          thumbnailCase = thumbnails.partial
-          caseTitle = "Negoziato Fallito"
-          caseBody = `Nessuna ricompensa`
-        }
-      }
-      break
+    
     // --- Nuovi casi speciali per ladro livello 50+ che ruba in casa ---
     case 5:
       // Il ladro viene scoperto e scappa senza nulla
@@ -323,14 +275,62 @@ let handler = async (m, { conn, text, command, usedPrefix }) => {
       caseBody = `Furto fallito`
       break
     case 7:
-      // Il ladro trova una cassaforte piena di dolci (bonus extra)
+      // Il ladro trova una cassaforte piena di Unity Coins (bonus extra)
       let jackpot = Math.min(Math.floor(Math.random() * 300) + 100, targetUserLimit)
       user.limit += jackpot
       users[targetUserId].limit -= jackpot
       messageText = `💰 ${senderName} hai trovato la cassaforte segreta di @${targetUserId.split("@")[0]}!\nHai rubato un bottino di *${cambia(jackpot)} Unity Coins (🪙)*\n${gemmaMessage}`
       thumbnailCase = thumbnails.bigSteal
       caseTitle = "Colpo nella Cassaforte!"
-      caseBody = `Hai rubato ${jackpot} caramelle`
+      caseBody = `Hai rubato ${jackpot} Unity Coins (🪙)`
+      break
+
+    // Bizzarro: incontro con una carovana di formiche giganti
+    case 8:
+      {
+        const ants = Math.floor(Math.random() * 50) + 10
+        const lost = Math.min(Math.floor(ants / 5), user.limit)
+        user.limit -= lost
+        users[targetUserId].limit += Math.floor(lost / 2)
+        user.health = Math.max(0, user.health - Math.floor(ants / 10))
+        messageText = `🐜 ${senderName} sei stato travolto da una carovana di formiche giganti mentre scappavi!\nHai perso *${cambia(lost)}* Unity Coins (🪙) e alcune sono finite per strada...\nHai subito ${Math.floor(ants/10)} danni.`
+        thumbnailCase = thumbnails.caught
+        caseTitle = "Invasione di Formiche!"
+        caseBody = `Hai perso ${lost} Unity Coins (🪙)`
+      }
+      break
+
+    // Bizzarro: trovi un nido di conigli
+    case 9:
+      {
+        const rabbits = Math.floor(Math.random() * 8) + 3
+        const gain = Math.min(Math.floor(rabbits * (hasItem('sacco') ? 12 : 6)), 500)
+        user.limit += gain
+        messageText = `🐰 ${senderName} hai trovato un nido di coniglietti che custodivano Unity Coins (🪙)!\nHai ottenuto *${cambia(gain)}* grazie al tuo fiuto.`
+        thumbnailCase = thumbnails.success
+        caseTitle = "Nido Fortunato!"
+        caseBody = `Hai trovato ${gain} Unity Coins (🪙)`
+      }
+      break
+
+    // Bizzarro: vittima offre un patto
+    case 10:
+      {
+        const offer = Math.floor(Math.random() * 3)
+        if (offer === 0 && users[targetUserId]) {
+          user.inventory = user.inventory || {}
+          user.inventory['oggetto_misterioso'] = (user.inventory['oggetto_misterioso'] || 0) + 1
+          messageText = `🧙‍♂️ ${senderName} La vittima, presa dal panico, ti offre un *oggetto misterioso* in cambio del silenzio.\nHai guadagnato 1 oggetto misterioso nel tuo inventario.`
+          thumbnailCase = thumbnails.partial
+          caseTitle = "Patto Strano"
+          caseBody = `Hai ricevuto 1 oggetto misterioso`
+        } else {
+          messageText = `🤝 ${senderName} La vittima cerca di negoziare ma riesce solo a darti qualche consiglio inutile. Niente di fatto.`
+          thumbnailCase = thumbnails.partial
+          caseTitle = "Negoziato Fallito"
+          caseBody = `Nessuna ricompensa`
+        }
+      }
       break
 
     // === EVENTI BIZZARRI BASATI SU POSSEDIMENTI (11-20) ===
@@ -343,7 +343,6 @@ let handler = async (m, { conn, text, command, usedPrefix }) => {
         caseTitle = "Cane Guardiano!"
         caseBody = "Fuga precipitosa"
       } else {
-        // Fallback se non ha cane
         const randomSteal = Math.min(Math.floor(Math.random() * 30) + 10, targetUserLimit)
         user.limit += randomSteal
         users[targetUserId].limit -= randomSteal
@@ -355,7 +354,7 @@ let handler = async (m, { conn, text, command, usedPrefix }) => {
       break
 
     case 12:
-      // Gatto della vittima si fa accarezzare e chiede Unity Coins (🪙)
+      // Gatto della vittima si fa accarezzare e chiede Unity Coins
       if (vittimaAnimali.gatto) {
         const tribute = Math.min(Math.floor(Math.random() * 20) + 5, user.limit)
         user.limit -= tribute
@@ -374,7 +373,7 @@ let handler = async (m, { conn, text, command, usedPrefix }) => {
       break
 
     case 13:
-      // Drago della vittima sputa fuoco (se ce l'ha)
+      // Drago della vittima sputa fuoco
       if (vittimaAnimali.drago) {
         const burnDamage = Math.floor(Math.random() * 25) + 10
         user.health = Math.max(0, user.health - burnDamage)
@@ -383,7 +382,6 @@ let handler = async (m, { conn, text, command, usedPrefix }) => {
         caseTitle = "Drago Furioso!"
         caseBody = "Ustioni gravi"
       } else {
-        // Trova gemme colorate finte
         user.gemme = (user.gemme || 0) + 2
         messageText = `🔹 ${senderName} hai trovato delle gemme colorate finte ma comunque belle! (+2 gemme)`
         thumbnailCase = thumbnails.success
@@ -411,12 +409,11 @@ let handler = async (m, { conn, text, command, usedPrefix }) => {
       break
 
     case 15:
-      // Ladro usa la forcina per scassinare (se ce l'ha)
+      // Ladro usa la forcina per scassinare
       if (ladroForcina > 0) {
         const masterTheft = Math.min(Math.floor(Math.random() * 150) + 75, targetUserLimit)
         user.limit += masterTheft
         users[targetUserId].limit -= masterTheft
-        // Consuma forcina con probabilità 30%
         if (Math.random() < 0.3) {
           user.forcina--
           messageText = `📎 ${senderName} hai usato la forcina per scassinare tutto!\nHai rubato *${cambia(masterTheft)}* Unity Coins (🪙) ma la forcina si è rotta. (-1 forcina)`
@@ -438,12 +435,11 @@ let handler = async (m, { conn, text, command, usedPrefix }) => {
       break
 
     case 16:
-      // Serpente del ladro aiuta nel furto (se ce l'ha)
+      // Serpente del ladro aiuta nel furto
       if (ladroAnimali.serpente) {
         const snakeHelp = Math.min(Math.floor(Math.random() * 80) + 40, targetUserLimit)
         user.limit += snakeHelp
         users[targetUserId].limit -= snakeHelp
-        // Il serpente può mordere la vittima
         if (Math.random() < 0.4) {
           users[targetUserId].health = Math.max(0, users[targetUserId].health - 20)
           messageText = `🐍 ${senderName} il tuo serpente ti ha aiutato nel furto e ha anche morso @${targetUserId.split("@")[0]}!\nHai rubato *${cambia(snakeHelp)}* Unity Coins (🪙) e inflitto 20 danni.`
@@ -462,7 +458,7 @@ let handler = async (m, { conn, text, command, usedPrefix }) => {
       break
 
     case 17:
-      // Ragno della vittima intrappolà il ladro
+      // Ragno della vittima intrappola il ladro
       if (vittimaAnimali.ragno) {
         const webDamage = Math.floor(Math.random() * 15) + 8
         user.health = Math.max(0, user.health - webDamage)
@@ -471,7 +467,6 @@ let handler = async (m, { conn, text, command, usedPrefix }) => {
         caseTitle = "Ragnatela!"
         caseBody = "Intrappolato"
       } else {
-        // Trova ragnatele con Unity Coins (🪙)
         const webCandy = Math.floor(Math.random() * 25) + 10
         user.limit += webCandy
         messageText = `🕸️ ${senderName} hai trovato delle ragnatele piene di Unity Coins (🪙) abbandonate! (+${cambia(webCandy)} Unity Coins (🪙))`
@@ -499,7 +494,7 @@ let handler = async (m, { conn, text, command, usedPrefix }) => {
       break
 
     case 19:
-      // Coniglio del ladro distrae mentre rubi (se ce l'ha)
+      // Coniglio del ladro distrae mentre rubi
       if (ladroAnimali.coniglio) {
         const distraction = Math.min(Math.floor(Math.random() * 120) + 60, targetUserLimit)
         user.limit += distraction
@@ -521,14 +516,12 @@ let handler = async (m, { conn, text, command, usedPrefix }) => {
       if (vittimaAnimali.scorpione) {
         const stingDamage = Math.floor(Math.random() * 30) + 15
         user.health = Math.max(0, user.health - stingDamage)
-        // Veleno: continua a fare danno
         user.veleno = { turni: 3, danno: 5 }
         messageText = `🦂 ${senderName} lo scorpione di @${targetUserId.split("@")[0]} ti ha punto!\nSei avvelenato! (-${stingDamage} HP immediati, -5 HP per 3 turni)`
         thumbnailCase = thumbnails.caught
         caseTitle = "Puntura Velenosa!"
         caseBody = "Avvelenato"
       } else {
-        // Trova scorpioni di Unity Coins (🪙)
         const candyScorpions = Math.floor(Math.random() * 20) + 8
         user.limit += candyScorpions
         messageText = `🍭 ${senderName} hai trovato degli scorpioni di Unity Coins (🪙)! Che fortuna! (+${cambia(candyScorpions)} Unity Coins (🪙))`
@@ -545,9 +538,11 @@ let handler = async (m, { conn, text, command, usedPrefix }) => {
     contextInfo: { mentionedJid: [targetUserId] }
   }, { quoted: fkontak })
 }
+
+handler.help = ['ruba @user', 'rob @user', 'rapina']
 handler.tags = ['rpg']
-handler.help = ['crimen']
-handler.command = ['ruba', 'crimine', 'runa', 'rubq']
+handler.command = /^(ruba|rapina|rob|steal)$/i
+handler.register = true
 handler.group = true
 
 export default handler
@@ -561,8 +556,6 @@ function secondiAHMS(secondi) {
     .join(':')
 }
 
-
-
 function millisecondiAHMS(millisecondi) {
   const secondi = Math.floor(millisecondi / 1000)
   const minuti = Math.floor(secondi / 60)
@@ -570,7 +563,6 @@ function millisecondiAHMS(millisecondi) {
   
   const secondiRimanenti = secondi % 60
   const minutiRimanenti = minuti % 60
-  
   
   if (ore > 0) {
     return `${ore} ore, ${minutiRimanenti} minuti e ${secondiRimanenti} secondi`
