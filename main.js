@@ -384,7 +384,7 @@ if (!opts['test']) {
   if (global.db) setInterval(async () => {
     if (global.db.data) await global.db.write();
     if (opts['autocleartmp'] && (global.support || {}).find) {
-      const tmp = [tmpdir(), 'tmp', "chatunity-sub"];
+      const tmp = [tmpdir(), 'tmp', 'chatunity-sub'];
       tmp.forEach((filename) => spawn('find', [filename, '-amin', '2', '-type', 'f', '-delete']));
     }
   }, 30 * 1000);
@@ -588,7 +588,7 @@ global.reloadHandler = async function (restatConn) {
   conn.participantsUpdate = handler.participantsUpdate.bind(global.conn);
   conn.groupsUpdate = handler.groupsUpdate.bind(global.conn);
   conn.onDelete = handler.deleteUpdate.bind(global.conn);
-  conn.onCall = handler.callUpdate.bind	global.conn);
+  conn.onCall = handler.callUpdate.bind(global.conn);
   conn.connectionUpdate = connectionUpdate.bind(global.conn);
   conn.credsUpdate = saveCreds.bind(global.conn, true);
   conn.ev.on('messages.upsert', conn.handler);
