@@ -273,20 +273,6 @@ global.groupCache = new NodeCache({ stdTTL: 5 * 60, useClones: false });
 
 const logger = pino({
   level: 'silent',
-  redact: {
-    paths: [
-      'creds.*',
-      'auth.*',
-      'account.*',
-      'media.*.directPath',
-      'media.*.url',
-      'node.content[*].enc',
-      'password',
-      'token',
-      '*.secret'
-    ],
-    censor: '***'
-  },
   timestamp: () => `,"time":"${new Date().toJSON()}"`
 });
 
@@ -323,10 +309,7 @@ const connectionOptions = {
   syncFullHistory: false,
   downloadHistory: false,
   shouldSyncHistory: false,
-  defaultQueryTimeoutMs: 60000,
-  connectTimeoutMs: 60000,
-  keepAliveIntervalMs: 10000,
-  printQRInTerminal: true,
+  printQRInTerminal: opzione === '1' || methodCodeQR ? true : false,
   cachedGroupMetadata: async (jid) => global.groupCache.get(jid),
   getMessage: async (key) => {
     try {
@@ -340,8 +323,6 @@ const connectionOptions = {
   },
   msgRetryCounterCache,
   msgRetryCounterMap,
-  retryRequestDelayMs: 500,
-  maxMsgRetryCount: 5,
   shouldIgnoreJid: jid => false,
 };
 
