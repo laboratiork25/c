@@ -18,6 +18,10 @@ import { Low, JSONFile } from 'lowdb';
 import readline from 'readline';
 import NodeCache from 'node-cache';
 
+global.creds = 'creds.json';
+global.authFile = 'sessioni';
+global.authFileJB = 'chatunity-sub';
+
 const sessionFolder = path.join(process.cwd(), global.authFile || 'sessioni');
 
 function clearSessionFolderSelective(dir = sessionFolder) {
@@ -111,11 +115,14 @@ const DisconnectReason = {
 const { useMultiFileAuthState, fetchLatestBaileysVersion, makeCacheableSignalKeyStore, Browsers, jidNormalizedUser, getPerformanceConfig, setPerformanceConfig, getCacheStats, clearCache, Logger, makeInMemoryStore } = await import('@realvare/based');
 const { chain } = lodash;
 const PORT = process.env.PORT || process.env.SERVER_PORT || 3000;
+
 protoType();
 serialize();
+
 global.isLogoPrinted = false;
 global.qrGenerated = false;
 global.connectionMessagesPrinted = {};
+
 let methodCodeQR = process.argv.includes("qr");
 let methodCode = process.argv.includes("code");
 let MethodMobile = process.argv.includes("mobile");
@@ -149,8 +156,10 @@ global.timestamp = { start: new Date };
 const __dirname = global.__dirname(import.meta.url);
 global.opts = new Object(yargs(process.argv.slice(2)).exitProcess(false).parse());
 global.prefix = new RegExp('^[' + (opts['prefix'] || '*/!#$%+£¢€¥^°=¶∆×÷π√✓©®&.\\-.@').replace(/[|\\{}()[\]^$+*.\-\^]/g, '\\$&') + ']');
+
 global.db = new Low(/https?:\/\//.test(opts['db'] || '') ? new cloudDBAdapter(opts['db']) : new JSONFile('database.json'));
 global.DATABASE = global.db;
+
 global.loadDatabase = async function loadDatabase() {
   if (global.db.READ) {
     return new Promise((resolve) => setInterval(async function () {
@@ -175,6 +184,7 @@ global.loadDatabase = async function loadDatabase() {
   };
   global.db.chain = chain(global.db.data);
 };
+
 loadDatabase();
 
 if (global.conns instanceof Array) {
@@ -182,10 +192,6 @@ if (global.conns instanceof Array) {
 } else {
   global.conns = [];
 }
-
-global.creds = 'creds.json';
-global.authFile = 'sessioni';
-global.authFileJB = 'chatunity-sub';
 
 setPerformanceConfig({
   performance: {
@@ -202,6 +208,7 @@ const { state, saveCreds } = await useMultiFileAuthState(global.authFile);
 const msgRetryCounterMap = (MessageRetryMap) => { };
 const msgRetryCounterCache = new NodeCache();
 const { version } = await fetchLatestBaileysVersion();
+
 let rl = readline.createInterface({
   input: process.stdin,
   output: process.stdout,
@@ -246,12 +253,12 @@ const filterStrings = [
   "RXJyb3I6IEJhZCBNQUM=",
   "RGVjcnlwdGVkIG1lc3NhZ2U="
 ];
+
 console.info = () => { };
 console.debug = () => { };
 ['log', 'warn', 'error'].forEach(methodName => redefineConsoleMethod(methodName, filterStrings));
 
-const groupMetadataCache = new NodeCache({ stdTTL: 300, useClones: false });
-global.groupCache = groupMetadataCache;
+global.groupCache = new NodeCache({ stdTTL: 5 * 60, useClones: false });
 
 const logger = pino({
   level: 'silent',
@@ -309,18 +316,7 @@ const connectionOptions = {
   connectTimeoutMs: 60000,
   keepAliveIntervalMs: 10000,
   printQRInTerminal: true,
-  cachedGroupMetadata: async (jid) => {
-    const cached = global.groupCache.get(jid);
-    if (cached) return cached;
-    try {
-      const metadata = await global.conn.groupMetadata(global.conn.decodeJid(jid));
-      global.groupCache.set(jid, metadata);
-      return metadata;
-    } catch (err) {
-      console.error('Errore nel recupero dei metadati del gruppo:', err);
-      return {};
-    }
-  },
+  cachedGroupMetadata: async (jid) => global.groupCache.get(jid),
   getMessage: async (key) => {
     try {
       const jid = global.conn.decodeJid(key.remoteJid);
@@ -362,6 +358,7 @@ if (!fs.existsSync(`./${authFile}/creds.json`)) {
     }
   }
 }
+
 conn.isInit = false;
 conn.well = false;
 
@@ -377,7 +374,7 @@ if (!opts['test']) {
     if (global.db.data) await global.db.write();
     if (opts['autocleartmp'] && (global.support || {}).find) {
       const tmp = [tmpdir(), 'tmp', "chatunity-sub"];
-      tmp.forEach(filename => spawn('find', [filename, '-amin', '2', '-type', 'f', '-delete']));
+      tmp.forEach	filename => spawn('find', [filename, '-amin', '2', '-type', 'f', '-delete']));
     }
   }, 30 * 1000);
 }
@@ -462,6 +459,24 @@ async function connectionUpdate(update) {
 }
 
 process.on('uncaughtException', console.error);
+
+global.conn.ev.on('groups.update', async ([event]) => {
+  try {
+    const metadata = await global.conn.groupMetadata(event.id);
+    global.groupCache.set(event.id, metadata);
+  } catch (e) {
+    console.error('Errore groups.update metadata:', e);
+  }
+});
+
+global.conn.ev.on('group-participants.update', async (event) => {
+  try {
+    const metadata = await global.conn.groupMetadata(event.id);
+    global.groupCache.set(event.id, metadata);
+  } catch (e) {
+    console.error('Errore group-participants.update metadata:', e);
+  }
+});
 
 async function connectSubBots() {
   const subBotDirectory = './chatunity-sub';
@@ -572,7 +587,7 @@ global.reloadHandler = async function (restatConn) {
   conn.participantsUpdate = handler.participantsUpdate.bind(global.conn);
   conn.groupsUpdate = handler.groupsUpdate.bind(global.conn);
   conn.onDelete = handler.deleteUpdate.bind(global.conn);
-  conn.onCall = handler.callUpdate.bind(global.conn);
+  conn.onCall = handler.callUpdate.bind	global.conn);
   conn.connectionUpdate = connectionUpdate.bind(global.conn);
   conn.credsUpdate = saveCreds.bind(global.conn, true);
   conn.ev.on('messages.upsert', conn.handler);
@@ -634,8 +649,10 @@ global.reload = async (_ev, filename) => {
 };
 
 Object.freeze(global.reload);
+
 const pluginWatcher = watch(pluginFolder, global.reload);
 pluginWatcher.setMaxListeners(20);
+
 await global.reloadHandler();
 
 async function _quickTest() {
@@ -699,6 +716,7 @@ function ripristinaTimer(conn) {
 }
 
 _quickTest().then(() => conn.logger.info(chalk.bold.bgBlueBright(``)));
+
 let filePath = fileURLToPath(import.meta.url);
 const mainWatcher = watch(filePath, async () => {
   console.log(chalk.bold.bgBlueBright("Main Aggiornato"));
