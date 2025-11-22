@@ -19,7 +19,7 @@ global.owner = [
   ['393773842461', '𝐂𝐡𝐚𝐭𝐔𝐧𝐢𝐭𝐲', true],
   ['35795191323', 'Axtral', true],
   ['66621409462', 'matte', true],
-  ['xxxxxxxxxx'],
+  ['393534409026', 'Easter', true],
   ['xxxxxxxxxx'],
   ['xxxxxxxxxx'],
   ['xxxxxxxxxx']

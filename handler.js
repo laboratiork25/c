@@ -335,8 +335,8 @@ export async function handler(chatUpdate) {
 
         let hl = _prefix
         let adminMode = global.db.data.chats[m.chat]?.soloadmin
-        let mystica = `${plugin.botAdmin || plugin.admin || plugin.group || plugin || noPrefix || hl || m.text.slice(0, 1) == hl || plugin.command}`
-        if (adminMode && !isOwner2 && !isROwner && m.isGroup && !isAdmin && mystica) return
+        // Se adminMode è attivo, blocca gli utenti che non sono owner o admin
+        if (adminMode && !isOwner2 && !isROwner && m.isGroup && !isAdmin) return
 
         if (plugin.rowner && plugin.owner && !(isROwner || isOwner2)) {
           fail('owner', m, this)
