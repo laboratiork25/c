@@ -8,42 +8,38 @@ let handler = async (m, { conn, usedPrefix, command }) => {
     try {
         let buffer = await m.quoted.download();
 
-        let res = await fetch(
-            "https://api-inference.huggingface.co/models/Falconsai/nsfw_image_detection",
-            {
-                method: "POST",
-                headers: { "Content-Type": "application/octet-stream" },
-                body: buffer
-            }
-        );
+        let res = await fetch("https://classify.p.rapidapi.com/nsfw", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/octet-stream"
+            },
+            body: buffer
+        });
 
         let json = await res.json();
 
-        if (!json || !json[0]) {
+        if (!json || !json.nsfw) {
             return m.reply("❌ Errore nell'analisi dell'immagine.");
         }
 
-        let result = json[0];
-        let labels = result.map(v => `${v.label}: ${(v.score * 100).toFixed(1)}%`).join("\n");
-        let top = result.reduce((a, b) => (a.score > b.score ? a : b));
+        let riscoso = json.nsfw;
+        let percentuale = (riscoso * 100).toFixed(1);
 
-        let final =
-`🔞 NSFW Detector
-📊 Risultati:
-${labels}
+        let testo =
+`🔞 NSFW DETECTOR
+Probabilità contenuto NSFW: ${percentuale}%
 
-⚖️ Valutazione:
-${top.label === "NSFW" ? "🔥 Contenuto porno" : "🟢 Non NSFW"}`;
+${percentuale > 70 ? "🔥 Contenuto probabilmente porno" : "🟢 Non sembra NSFW"}`;
 
-        conn.reply(m.chat, final, m);
+        conn.reply(m.chat, testo, m);
 
     } catch (e) {
-        return m.reply("❌ Errore nell'analisi dell'immagine.");
+        m.reply("❌ Errore nell'analisi dell'immagine.");
     }
 };
 
-handler.help = ['porncheck'];
+handler.help = ['nsfwcheck', 'porncheck'];
 handler.tags = ['tools'];
-handler.command = /^porncheck|nsfwcheck|checkporno$/i;
+handler.command = /^nsfwcheck|porncheck$/i;
 
 export default handler;
