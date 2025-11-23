@@ -463,7 +463,7 @@ let handler = async (m, { conn, args, usedPrefix, command }) => {
             })
 
 
-            const headerText = `saldo di ${user.name}🔎\n╰${formatNumber(user.limit || 0)} Unity Coin🪙`
+            const headerText = `saldo di ${user.name} 🔎\n╰${formatNumber(user.limit || 0)} Unity Coin🪙`
             const footerText = `ChatUnity • shop\nUsa ${usedPrefix}compra <oggetto>`
 
             await conn.sendCarousel(m.chat, headerText, footerText, messages, m)
