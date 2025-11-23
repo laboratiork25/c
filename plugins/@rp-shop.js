@@ -185,9 +185,9 @@ const discountSystem = {
 // Lista completa del negozio con prezzi
 const shopItems = {
     '🧪 POZIONI': [
-        { name: 'Pozione Minore (25 HP)', price: 20, item: 'pozioneminore', aliases: ['pozione minore', 'cura minore'] },
-        { name: 'Pozione Maggiore (50 HP)', price: 40, item: 'pozionemaggiore', aliases: ['pozione maggiore', 'cura maggiore'] },
-        { name: 'Pozione Definitiva (100 HP)', price: 80, item: 'pozionedefinitiva', aliases: ['pozione definitiva', 'cura definitiva'] }
+        { name: 'Minore (25 HP)', price: 20, item: 'pozioneminore', aliases: ['pozione minore', 'cura minore', 'piccola'] },
+        { name: 'Maggiore (50 HP)', price: 40, item: 'pozionemaggiore', aliases: ['pozione maggiore', 'cura maggiore', 'media'] },
+        { name: 'Grande (100 HP)', price: 80, item: 'pozionedefinitiva', aliases: ['pozione definitiva', 'cura definitiva', 'grande'] }
     ],
     '🚗 VEICOLI': [
         { name: 'Macchina 🚗', price: 300, item: 'macchina', aliases: ['auto'] },
@@ -331,8 +331,8 @@ function getActiveDiscounts() {
 // Genera il testo del negozio con sconti
 function generateShopText(usedPrefix, balance = 0) {
     const activeDiscounts = getActiveDiscounts();
-    let text = `💰 *Saldo attuale:* ${formatNumber(balance)} 🪙\n\n\n\n`
-    text += `⊱ ────ஓ๑♡๑ஓ ──── ⊰\n\n`
+    let text = `╭┈ ─ ─ ✦ ─ ─ ┈╮\n   ୧ 🏪 ୭ *NEGOZIO*\n╰┈ ─ ─ ✦ ─ ─ ┈╯\n\n`
+    text += `꒷꒦ ✦ Saldo: ${formatNumber(balance)} 🪙 ✦ ꒷꒦\n\n`
     
     // Conta quanti sconti sono attivi
     const activeDiscountCount = Object.keys(activeDiscounts).filter(key => 
@@ -340,38 +340,41 @@ function generateShopText(usedPrefix, balance = 0) {
     ).length;
     
     if (activeDiscountCount > 0) {
-        text += `🔥 *${activeDiscountCount} OFFERTE SPECIALI!* 🔥\n`
-        text += `           ༺~ [❁] ~༻\n\n`
-        
+        text += `╭﹕₊˚ ★ ⁺˳ꕤ₊⁺・꒱\n  ━━✫ 🔥 *${activeDiscountCount} OFFERTE SPECIALI!* 🔥\n╰﹕₊˚ ★ ⁺˳ꕤ₊⁺・꒱\n\n`
     }
     
     for (const [category, items] of Object.entries(shopItems)) {
-        text += `*${category}*\n`
+        const catName = category.includes(' ') ? category.substring(category.indexOf(' ')+1) : category;
+        const catEmoji = category.includes(' ') ? category.split(' ')[0] : '📦';
+        text += `╭┈ ─ ─ ✦ ─ ─ ┈╮\n   ୧ ${catEmoji} ୭ *${catName}*\n╰┈ ─ ─ ✦ ─ ─ ┈╯\n\n`
         items.forEach(item => {
             const priceInfo = discountSystem.getDiscountedPrice(item.item, item.price, activeDiscounts);
             
-            text += `├ ${item.name}\n`
+            text += `╭﹕₊˚ ★ ⁺˳ꕤ₊⁺・꒱\n`
+            text += `  ━━✫ 📦 *${item.name}*\n`
             
             if (priceInfo.hasDiscount) {
                 const timeRemaining = discountSystem.formatTimeRemaining(priceInfo.expiresAt);
-                text += `├ 🏷️ *SCONTO ${priceInfo.discount}%!*\n`
-                text += `├ ~~${formatNumber(priceInfo.originalPrice)}~~ ➜ ${formatNumber(priceInfo.price)} 🪙\n`
+                text += `  ━━✫ 🏷️ *SCONTO ${priceInfo.discount}%!*\n`
+                text += `  ━━✫ 💰 ~~${formatNumber(priceInfo.originalPrice)}~~ ➜ ${formatNumber(priceInfo.price)} 🪙\n`
                 if (timeRemaining) {
-                    text += `├ ⏰ Scade tra: ${timeRemaining}\n`
+                    text += `  ━━✫ ⏰ Scade tra: ${timeRemaining}\n`
                 }
             } else {
-                text += `└ Prezzo: ${formatNumber(priceInfo.price)} 🪙\n`
+                text += `  ━━✫ 💰 Prezzo: ${formatNumber(priceInfo.price)} 🪙\n`
             }
             
-            text += ` \`${usedPrefix}compra ${item.item}\`\n\n`
+            text += `  ━━✫ 🛒 \`${usedPrefix}compra ${item.item}\`\n`
+            text += `╰﹕₊˚ ★ ⁺˳ꕤ₊⁺・꒱\n\n`
         })
     }
    
-    text += ` ⃢ ⃢ ⃢ ⃢ ⃢ ⃢ ⃢ ⃢ ⃢ ⃢ ⃢ ⃢ ⃢ ⃢ ⃢ ⃢ ⃢ ⃢ ⃢ ⃢ ⃢ ⃢ ⃢ ⃢ ⃢ ⃢ ⃢ ⃢ ⃢ ⃢ ⃢ ⃢ ⃢ ⃢ ⃢ ⃢ ⃢ ⃢ ⃢ ⃢ ⃢ ⃢ ⃢ ⃢ ⃢\n`
-    text += `💡 *Come acquistare:*\n${usedPrefix}compra <oggetto> [quantità]\n`
-    text += `💎 *Come vendere:*\n${usedPrefix}vendi <oggetto> [quantità]\n`
-    text += `🔍 *Cerca oggetti:*\n${usedPrefix}shop <nome oggetto>\n`
-    text += `🔄 *Gli sconti si rinnovano ogni 15 minuti!*`
+    text += `╭★────★────★────★╮\n`
+    text += `│ ୭ ˚. ᵎᵎ 💡 *Come acquistare:*\n│ ${usedPrefix}compra <oggetto> [quantità]\n`
+    text += `│ ୭ ˚. ᵎᵎ 💎 *Come vendere:*\n│ ${usedPrefix}vendi <oggetto> [quantità]\n`
+    text += `│ ୭ ˚. ᵎᵎ 🔍 *Cerca oggetti:*\n│ ${usedPrefix}shop <nome oggetto>\n`
+    text += `│ ୭ ˚. ᵎᵎ 🔄 *Gli sconti si rinnovano ogni 15 minuti!*\n`
+    text += `╰★────★────★╯`
     
     return text
 }
@@ -395,8 +398,8 @@ let handler = async (m, { conn, args, usedPrefix, command }) => {
     const user = global.db.data.users[m.sender] || {}
     const aliasMap = createAliasMap()
     // Percorso assoluto alla cartella immagini shop
-    // Da plugins/rpg/ devo uscire 2 volte per arrivare alla root, poi entro in media/shop/
-    const baseShopImgPath = path.resolve(__dirname, '../media/shop/');
+    // Da plugins/rpg/ devo uscire 2 volte per arrivare alla root, poi entro in src/img/shop
+    const baseShopImgPath = path.resolve(__dirname, '../media/shop');
 
     // 1. SOLO .shop mostra la lista completa, senza ricerca
     if ((command === 'shop' || command === 'negozio') && args.length === 0) {
@@ -420,29 +423,48 @@ let handler = async (m, { conn, args, usedPrefix, command }) => {
             initializeInteractiveFunctions(conn)
 
             // Build messages array per sendCarousel (formato corretto)
-            const messages = Object.entries(shopItems).map(([category, items], index) => {
-                // Build body listing items and prices (consider discounts)
-                let body = ''
-                items.forEach(item => {
-                    const p = discountSystem.getDiscountedPrice(item.item, item.price, activeDiscounts)
-                    if (p.hasDiscount) {
-                        body += `• ${item.name}\n  ~~${formatNumber(p.originalPrice)}~~ ➜ ${formatNumber(p.price)} 🪙\n`
-                    } else {
-                        body += `• ${item.name}\n  ${formatNumber(p.price)} 🪙\n`
-                    }
-                })
-
-                // Formato sendCarousel: [cardData, subtitle, image, buttons, ...]
-                return [
-                    { title: category, body: body.trim() },
-                    `Sezione ${index + 1} di ${Object.keys(shopItems).length} • Shop`,
-                    thumb,  // ← Passa il Buffer dell'immagine
-                    [], null, null, null
-                ]
+            const messages = []
+            const categories = Object.entries(shopItems)
+            let totalSections = 0
+            
+            // First pass to count total sections for the subtitle
+            categories.forEach(([_, items]) => {
+                totalSections += Math.ceil(items.length / 5)
             })
 
-            const headerText = `💰 Saldo: ${formatNumber(user.limit || 0)} 🪙`
-            const footerText = `Phishy Shop • Usa ${usedPrefix}compra <oggetto>`
+            let currentSection = 1
+
+            categories.forEach(([category, items]) => {
+                const chunkSize = 3
+                for (let i = 0; i < items.length; i += chunkSize) {
+                    const chunk = items.slice(i, i + chunkSize)
+                    let body = ''
+                    
+                    chunk.forEach(item => {
+                        const p = discountSystem.getDiscountedPrice(item.item, item.price, activeDiscounts)
+                        if (p.hasDiscount) {
+                            body += `*╭★─ ${item.name}*\n│ sconto           ➜       -${p.discount}%\n│ prezzo pieno ➜ 🪙 ~~${formatNumber(p.originalPrice)}~~\n│ prezzo            ➜ 🪙 ${formatNumber(p.price)}\n╰★────★────★────★\n\n`
+                         //   🏷️ -${p.discount}% | 💰 ~~${formatNumber(p.originalPrice)}~~ ➜ ${formatNumber(p.price)} 🪙\n\n
+                        } else {
+                            body += `*╭★─ ${item.name}*\n│ prezzo            ➜ 🪙 ${formatNumber(p.price)}\n╰★────★────★────★\n\n`
+                        }
+                    })
+
+                    const sectionTitle = i === 0 ? `꒷꒦★ 『 ${category} 』 ★꒷꒦\n┈ ─ ─ ─ ─ ─  ✦  ─ ─ ─ ─ ─ ┈` : `『${category} ${Math.floor(i / chunkSize) + 1}\n ─ ─ ─ ─ ✦ ─ ─ ─ ─ ┈`
+                    
+                    messages.push([
+                        { title: sectionTitle, body: body.trim() },
+                        `Pagina ${currentSection}/${totalSections} • Shop`,
+                        thumb,
+                        [], null, null, null
+                    ])
+                    currentSection++
+                }
+            })
+
+
+            const headerText = `saldo di ${user.name}🔎\n╰${formatNumber(user.limit || 0)} Unity Coin🪙`
+            const footerText = `ChatUnity • shop\nUsa ${usedPrefix}compra <oggetto>`
 
             await conn.sendCarousel(m.chat, headerText, footerText, messages, m)
             
@@ -463,31 +485,25 @@ let handler = async (m, { conn, args, usedPrefix, command }) => {
         if (!results.length) {
             return conn.reply(m.chat, `🔍 𝘕𝘦𝘴𝘴𝘶𝘯 𝘳𝘪𝘴𝘶𝘭𝘵𝘢𝘵𝘰 𝘱𝘦𝘳 "${searchQuery}"`, m, rcanal)
         }
-        let resultText = `*ʜᴏ ᴛʀᴏᴠᴀᴛᴏ "${searchQuery}"*
-
-`
+        
+        // Inizializza sharp per la compressione
+        sharp = await getSharp()
+        let resultText = `╭┈ ─ ─ ✦ ─ ─ ┈╮\n   ୧ 🔍 ୭ *RISULTATI RICERCA*\n╰┈ ─ ─ ✦ ─ ─ ┈╯\n\n꒷꒦ ✦ "${searchQuery}" ✦ ꒷꒦\n\n`
         const buttons = []
 
         results.forEach((item, i) => {
-            resultText += `*${i+1}. ${item.name}*
-`
-            resultText += `├ 𝐂𝐚𝐭𝐞𝐠𝐨𝐫𝐢𝐚: ${item.category}
-`
+            resultText += `✦ *${item.name}*\n`
+            resultText += `  📂 ${item.category}\n`
             if (item.priceInfo.hasDiscount) {
                 const timeRemaining = discountSystem.formatTimeRemaining(item.priceInfo.expiresAt)
-                resultText += `├ 🏷️ *𝐒𝐂𝐎𝐍𝐓𝐎 ${item.priceInfo.discount}%!*
-`
-                resultText += `├ ~~${formatNumber(item.priceInfo.originalPrice)}~~ ➜ ${formatNumber(item.priceInfo.price)} 🪙
-`
+                resultText += `  🏷️ -${item.priceInfo.discount}% | 💰 ~~${formatNumber(item.priceInfo.originalPrice)}~~ ➜ ${formatNumber(item.priceInfo.price)} 🪙\n`
                 if (timeRemaining) {
-                    resultText += `├ ⏰ 𝐒𝐜𝐚𝐝𝐞 𝐭𝐫𝐚: ${timeRemaining}
-`
+                    resultText += `  ⏰ Scade tra: ${timeRemaining}\n`
                 }
             } else {
-                resultText += `├ 𝐏𝐫𝐞𝐳𝐳𝐨: ${formatNumber(item.priceInfo.price)} 🪙
-`
+                resultText += `  💰 ${formatNumber(item.priceInfo.price)} 🪙\n`
             }
-            resultText += `└ \`${usedPrefix}compra ${item.item}\`\n\n`
+            resultText += `\n`
 
             buttons.push({
                 buttonId: `${usedPrefix}compra ${item.item}`,
@@ -572,7 +588,7 @@ let handler = async (m, { conn, args, usedPrefix, command }) => {
     // --- GESTIONE PAGAMENTO CON CARTA ---
     if (command === 'paga-carta' || command === 'paga-misto') {
         if (args.length < 2) {
-            return conn.reply(m.chat, `⚠️ Uso: ${usedPrefix}${command} <oggetto> <quantità>`, m, rcanal)
+            return conn.reply(m.chat, `╭﹕₊˚ ★ ⁺˳ꕤ₊⁺・꒱\n  ━━✫ ⚠️ Uso corretto:\n  ━━✫ ${usedPrefix}${command} <oggetto> <quantità>\n╰﹕₊˚ ★ ⁺˳ꕤ₊⁺・꒱`, m, rcanal)
         }
         
         const itemKey = args[0]
@@ -581,7 +597,7 @@ let handler = async (m, { conn, args, usedPrefix, command }) => {
         // Trova l'oggetto
         const itemEntry = Object.entries(aliasMap).find(([key, _]) => key === itemKey)
         if (!itemEntry) {
-            return conn.reply(m.chat, `⚠️ Oggetto non valido!`, m, rcanal)
+            return conn.reply(m.chat, `╭﹕₊˚ ★ ⁺˳ꕤ₊⁺・꒱\n  ━━✫ ⚠️ Oggetto non valido!\n╰﹕₊˚ ★ ⁺˳ꕤ₊⁺・꒱`, m, rcanal)
         }
         
         const [, itemData] = itemEntry
@@ -589,7 +605,7 @@ let handler = async (m, { conn, args, usedPrefix, command }) => {
         const priceInfo = discountSystem.getDiscountedPrice(itemKey, itemData.price, activeDiscounts)
         const totalPrice = priceInfo.price * quantity
         
-        const creditBalance = user.bank || 0
+        const creditBalance = user.credito || 0
         const walletBalance = user.limit || 0
         
         if (command === 'paga-carta') {
@@ -597,19 +613,19 @@ let handler = async (m, { conn, args, usedPrefix, command }) => {
             const missing = totalPrice - walletBalance
             
             if (creditBalance < missing) {
-                return conn.reply(m.chat, `❌ Non hai abbastanza credito sulla carta! Ti servono ${formatNumber(missing)} 🪙 ma hai solo ${formatNumber(creditBalance)} 🪙`, m, rcanal)
+                return conn.reply(m.chat, `╭﹕₊˚ ★ ⁺˳ꕤ₊⁺・꒱\n  ━━✫ ❌ Credito insufficiente!\n  ━━✫ Ti servono: ${formatNumber(missing)} 🪙\n  ━━✫ Hai solo: ${formatNumber(creditBalance)} 🪙\n╰﹕₊˚ ★ ⁺˳ꕤ₊⁺・꒱`, m, rcanal)
             }
             
             // Procedi con il pagamento
             user.limit = 0 // Usa tutto il portafoglio
-            user.bank -= missing // Sottrai la differenza dalla carta
+            user.credito -= missing // Sottrai la differenza dalla carta
             
         } else if (command === 'paga-misto') {
             // Usa tutto portafoglio + carta
             const totalBalance = walletBalance + creditBalance
             
             if (totalBalance < totalPrice) {
-                return conn.reply(m.chat, `❌ Non hai abbastanza fondi totali! Ti servono ${formatNumber(totalPrice)} 🪙 ma hai solo ${formatNumber(totalBalance)} 🪙`, m, rcanal)
+                return conn.reply(m.chat, `╭﹕₊˚ ★ ⁺˳ꕤ₊⁺・꒱\n  ━━✫ ❌ Fondi insufficienti!\n  ━━✫ Ti servono: ${formatNumber(totalPrice)} 🪙\n  ━━✫ Hai solo: ${formatNumber(totalBalance)} 🪙\n╰﹕₊˚ ★ ⁺˳ꕤ₊⁺・꒱`, m, rcanal)
             }
             
             // Calcola quanto usare da portafoglio e carta
@@ -617,7 +633,7 @@ let handler = async (m, { conn, args, usedPrefix, command }) => {
             let fromCard = totalPrice - fromWallet
             
             user.limit -= fromWallet
-            user.bank -= fromCard
+            user.credito -= fromCard
         }
         
         // Gestione speciale per case e scudi (come nel codice originale)
@@ -626,8 +642,8 @@ let handler = async (m, { conn, args, usedPrefix, command }) => {
             if (user.casa.tipo) {
                 // Rimborsa l'utente
                 user.limit += (command === 'paga-carta' ? 0 : Math.min(walletBalance, totalPrice))
-                user.bank += (command === 'paga-carta' ? totalPrice - walletBalance : totalPrice - Math.min(walletBalance, totalPrice))
-                return conn.reply(m.chat, `❌ Possiedi già una casa (${user.casa.tipo})! Non puoi comprarne un'altra.`, m, rcanal);
+                user.credito += (command === 'paga-carta' ? totalPrice - walletBalance : totalPrice - Math.min(walletBalance, totalPrice))
+                return conn.reply(m.chat, `╭﹕₊˚ ★ ⁺˳ꕤ₊⁺・꒱\n  ━━✫ ❌ Hai già una casa (${user.casa.tipo})!\n  ━━✫ Non puoi comprarne un'altra.\n╰﹕₊˚ ★ ⁺˳ꕤ₊⁺・꒱`, m, rcanal);
             }
             const casaObj = CASE.find(c => c.key === itemKey);
             user.casa = {
@@ -642,8 +658,8 @@ let handler = async (m, { conn, args, usedPrefix, command }) => {
             if (quantity > 1) {
                 // Rimborsa l'utente
                 user.limit += (command === 'paga-carta' ? 0 : Math.min(walletBalance, totalPrice))
-                user.bank += (command === 'paga-carta' ? totalPrice - walletBalance : totalPrice - Math.min(walletBalance, totalPrice))
-                return conn.reply(m.chat, `❌ Puoi acquistare solo uno scudo alla volta!`, m, rcanal)
+                user.credito += (command === 'paga-carta' ? totalPrice - walletBalance : totalPrice - Math.min(walletBalance, totalPrice))
+                return conn.reply(m.chat, `╭﹕₊˚ ★ ⁺˳ꕤ₊⁺・꒱\n  ━━✫ ❌ Puoi acquistare solo\n  ━━✫ uno scudo alla volta!\n╰﹕₊˚ ★ ⁺˳ꕤ₊⁺・꒱`, m, rcanal)
             }
             
             let durataMs = durataScudo[itemKey] || durataScudo['scudo'];
@@ -658,29 +674,32 @@ let handler = async (m, { conn, args, usedPrefix, command }) => {
         }
         
         // Messaggio di successo
-        let successMessage = `✅ *PAGAMENTO CON CARTA COMPLETATO!*\n\n` +
-                            `┣ *Prodotto:* ${itemData.name} ˣ${quantity}\n` +
-                            `┣ *Totale pagato:* ${formatNumber(totalPrice)} 🪙\n`
+        let successMessage = `╭┈ ─ ─ ✦ ─ ─ ┈╮\n   ୧ 💳 ୭ *PAGAMENTO CARTA*\n╰┈ ─ ─ ✦ ─ ─ ┈╯\n\n` +
+                            `꒷꒦ ✦ Acquisto Completato ✦ ꒷꒦\n\n` +
+                            `╭﹕₊˚ ★ ⁺˳ꕤ₊⁺・꒱\n` +
+                            `  ━━✫ 📦 *Prodotto:* ${itemData.name} ˣ${quantity}\n` +
+                            `  ━━✫ 💰 *Totale:* ${formatNumber(totalPrice)} 🪙\n`
         
         if (command === 'paga-carta') {
-            successMessage += `┣ *🪙 Dal portafoglio:* ${formatNumber(walletBalance)} 🪙\n` +
-                             `┣ *💳 Dalla carta:* ${formatNumber(totalPrice - walletBalance)} 🪙\n`
+            successMessage += `  ━━✫ 👛 *Portafoglio:* ${formatNumber(walletBalance)} 🪙\n` +
+                             `  ━━✫ 💳 *Carta:* ${formatNumber(totalPrice - walletBalance)} 🪙\n`
         } else {
             const fromWallet = Math.min(walletBalance, totalPrice)
             const fromCard = totalPrice - fromWallet
-            successMessage += `┣ *💰 Dal portafoglio:* ${formatNumber(fromWallet)} 🪙\n` +
-                             `┣ *💳 Dalla carta:* ${formatNumber(fromCard)} 🪙\n`
+            successMessage += `  ━━✫ 👛 *Portafoglio:* ${formatNumber(fromWallet)} 🪙\n` +
+                             `  ━━✫ 💳 *Carta:* ${formatNumber(fromCard)} 🪙\n`
         }
         
-        successMessage += `┣ *💰 Portafoglio rimanente:* ${formatNumber(user.limit)} 🪙\n` +
-                         `┗ *💳 Credito rimanente:* ${formatNumber(user.bank)} 🪙`
+        successMessage += `  ━━✫ 👛 *Restante:* ${formatNumber(user.limit)} 🪙\n` +
+                         `  ━━✫ 💳 *Credito:* ${formatNumber(user.credito)} 🪙\n` +
+                         `╰﹕₊˚ ★ ⁺˳ꕤ₊⁺・꒱`
         
         return conn.reply(m.chat, successMessage, m, phishy)
     }
     
     // Mostra errore solo per compra/vendi, NON per shop/negozio
     if (!input && (command === 'compra' || command === 'buy' || command === 'acquista' || command === 'vendi' || command === 'sell')) {
-        return conn.reply(m.chat, `⚠️ 𝘚𝘱𝘦𝘤𝘪𝘧𝘪𝘤𝘢 𝘶𝘯 𝘰𝘨𝘨𝘦𝘵𝘰! 𝘜𝘴𝘢 ${usedPrefix}𝘴𝘩𝘰𝘱 𝘱𝘦𝘳 𝘭𝘢 𝘭𝘪𝘴𝘵𝘢`, m, rcanal)
+        return conn.reply(m.chat, `╭﹕₊˚ ★ ⁺˳ꕤ₊⁺・꒱\n  ━━✫ ⚠️ Specifica un oggetto!\n  ━━✫ Usa ${usedPrefix}shop per la lista\n╰﹕₊˚ ★ ⁺˳ꕤ₊⁺・꒱`, m, rcanal)
     }
 
     const parts = input.split(/\s+/)
@@ -700,7 +719,7 @@ let handler = async (m, { conn, args, usedPrefix, command }) => {
     
     // Solo per compra/vendi, NON per shop/negozio
     if (!itemEntry && (command === 'compra' || command === 'buy' || command === 'acquista' || command === 'vendi' || command === 'sell')) {
-        return conn.reply(m.chat, `⚠️ Oggetto non valido! Usa ${usedPrefix}shop per la lista`, m, rcanal)
+        return conn.reply(m.chat, `╭﹕₊˚ ★ ⁺˳ꕤ₊⁺・꒱\n  ━━✫ ⚠️ Oggetto non valido!\n  ━━✫ Usa ${usedPrefix}shop per la lista\n╰﹕₊˚ ★ ⁺˳ꕤ₊⁺・꒱`, m, rcanal)
     }
     if (!itemEntry) return // evita errore anche per altri comandi
 
@@ -712,7 +731,7 @@ let handler = async (m, { conn, args, usedPrefix, command }) => {
         if (['monolocale', 'villa', 'castello'].includes(itemKey)) {
             if (!user.casa) user.casa = { stato: 'fuori', tipo: null, nextRent: null, lastPaid: null };
             if (user.casa.tipo) {
-                await conn.reply(m.chat, `❌ Possiedi già una casa (${user.casa.tipo})! Non puoi comprarne un'altra.`, m, rcanal);
+                await conn.reply(m.chat, `╭﹕₊˚ ★ ⁺˳ꕤ₊⁺・꒱\n  ━━✫ ❌ Hai già una casa (${user.casa.tipo})!\n  ━━✫ Non puoi comprarne un'altra.\n╰﹕₊˚ ★ ⁺˳ꕤ₊⁺・꒱`, m, rcanal);
                 return;
             }
         }
@@ -725,7 +744,7 @@ let handler = async (m, { conn, args, usedPrefix, command }) => {
         // Gestione speciale per lo scudo
         if (itemKey === 'scudo' || itemKey === 'scudo3h' || itemKey === 'scudo6h' || itemKey === 'scudo12h') {
             if (quantity > 1) {
-                await conn.reply(m.chat, `❌ Puoi acquistare solo uno scudo alla volta!`, m, rcanal)
+                await conn.reply(m.chat, `╭﹕₊˚ ★ ⁺˳ꕤ₊⁺・꒱\n  ━━✫ ❌ Puoi acquistare solo\n  ━━✫ uno scudo alla volta!\n╰﹕₊˚ ★ ⁺˳ꕤ₊⁺・꒱`, m, rcanal)
                 return
             }
             // Calcola la durata del nuovo scudo
@@ -737,15 +756,15 @@ let handler = async (m, { conn, args, usedPrefix, command }) => {
             // - OPPURE il nuovo scudo dura di più di quello attuale
             if (attualeDurataMs > 0 && nuovaDurataMs <= attualeDurataMs) {
                 const remaining = getShieldTimeRemaining(user);
-                let shieldMsg = `❌ Hai già uno scudo attivo di durata uguale o superiore!\n`;
+                let shieldMsg = `╭﹕₊˚ ★ ⁺˳ꕤ₊⁺・꒱\n  ━━✫ ❌ Scudo già attivo!\n`;
                 if (remaining && typeof remaining.minutes !== 'undefined' && typeof remaining.seconds !== 'undefined') {
                     if (typeof remaining.hours !== 'undefined' && remaining.hours > 0) {
-                        shieldMsg += `⏱️ Tempo rimanente: ${remaining.hours}h ${remaining.minutes}m ${remaining.seconds}s\n\n`;
+                        shieldMsg += `  ━━✫ ⏱️ Tempo: ${remaining.hours}h ${remaining.minutes}m ${remaining.seconds}s\n`;
                     } else {
-                        shieldMsg += `⏱️ Tempo rimanente: ${remaining.minutes}m ${remaining.seconds}s\n\n`;
+                        shieldMsg += `  ━━✫ ⏱️ Tempo: ${remaining.minutes}m ${remaining.seconds}s\n`;
                     }
                 }
-                shieldMsg += `Puoi acquistare solo uno scudo di durata maggiore rispetto a quello attuale.`;
+                shieldMsg += `  ━━✫ Puoi acquistare solo uno scudo\n  ━━✫ di durata maggiore.\n╰﹕₊˚ ★ ⁺˳ꕤ₊⁺・꒱`;
                 await conn.reply(m.chat, shieldMsg, m, rcanal);
                 return;
             }
@@ -757,16 +776,16 @@ let handler = async (m, { conn, args, usedPrefix, command }) => {
                 const thumb = fs.existsSync(thumbPath) ? fs.readFileSync(thumbPath) : null
                 
                 // Controlla se l'utente ha fondi sulla carta di credito
-                const creditBalance = user.bank || 0
+                const creditBalance = user.credito || 0
                 const totalBalance = user.limit + creditBalance
                 const canPayWithCard = creditBalance >= missing
                 const canPayTotal = totalBalance >= totalPrice
                 
-                let errorMessage =  `*🙅🏻 Rilevata mancanza di Unity Coins\n\n`
-                    errorMessage += `┣ *Prodotto:* ${itemData.name} \n`
-                    errorMessage += `┣ *Costo totale:* ${formatNumber(totalPrice)} 🪙\n`
-                    errorMessage += `┣ *Unity Coins nel portafoglio:* ${formatNumber(user.limit)} 👝\n`
-                    errorMessage += `┣ *e ti mancano:* ${formatNumber(missing)} ❌\n\n`
+                let errorMessage =  `╭﹕₊˚ ★ ⁺˳ꕤ₊⁺・꒱\n  ━━✫ 🙅🏻 Unity Coin insufficienti!\n`
+                    errorMessage += `  ━━✫ 📦 *Prodotto:* ${itemData.name} \n`
+                    errorMessage += `  ━━✫ 💰 *Costo:* ${formatNumber(totalPrice)} 🪙\n`
+                    errorMessage += `  ━━✫ 👛 *Hai:* ${formatNumber(user.limit)} 🪙\n`
+                    errorMessage += `  ━━✫ ❌ *Mancano:* ${formatNumber(missing)} 🪙\n╰﹕₊˚ ★ ⁺˳ꕤ₊⁺・꒱\n\n`
 
                 let buttons = []
                 
@@ -774,11 +793,11 @@ let handler = async (m, { conn, args, usedPrefix, command }) => {
                     // L'utente può pagare con la combinazione di portafoglio + carta
                     if (canPayWithCard) {
                         
-                        errorMessage =  `*non hai abbastanza Unity Coins, ma puoi completare cio che ti manca con la carta*\n\n`
-                      errorMessage += `┣ *Prodotto:* ${itemData.name} \n\n`
-                      errorMessage += `┣ *Costo:* ${formatNumber(totalPrice)} 🪙\n`
-                      errorMessage += `┣ *Unity Coins nel portafoglio:* ${formatNumber(user.limit)} 👝\n`
-                      errorMessage += `┣ *Carta:* ${formatNumber(creditBalance)} 💳\n`
+                        errorMessage =  `╭﹕₊˚ ★ ⁺˳ꕤ₊⁺・꒱\n  ━━✫ 💳 Usa la carta!\n`
+                      errorMessage += `  ━━✫ 📦 *Prodotto:* ${itemData.name} \n`
+                      errorMessage += `  ━━✫ 💰 *Costo:* ${formatNumber(totalPrice)} 🪙\n`
+                      errorMessage += `  ━━✫ 👛 *Portafoglio:* ${formatNumber(user.limit)} 🪙\n`
+                      errorMessage += `  ━━✫ 💳 *Carta:* ${formatNumber(creditBalance)} 🪙\n╰﹕₊˚ ★ ⁺˳ꕤ₊⁺・꒱\n`
                         buttons.push({
                             buttonId: `${usedPrefix}paga-carta ${itemKey} ${quantity}`,
                             buttonText: { displayText: `💳 paga -${formatNumber(missing)} 🪙` },
@@ -795,18 +814,18 @@ let handler = async (m, { conn, args, usedPrefix, command }) => {
                 }
                 
                 if (user.limit === 0) {
-                      errorMessage =  `*non hai Unity Coins nel portafoglio, puoi usare solo la carta*\n\n`
-                      errorMessage += `┣ *Prodotto:* ${itemData.name} \n`
-                      errorMessage += `┣ *Ti Costa:* ${formatNumber(totalPrice)} 🪙\n`
-                      errorMessage += `┣ *Unity Coins nel portafoglio:* ${formatNumber(user.limit)} 👝\n`
-                      errorMessage += `┣ *Carta:* ${formatNumber(creditBalance)} 💳\n`
+                      errorMessage =  `╭﹕₊˚ ★ ⁺˳ꕤ₊⁺・꒱\n  ━━✫ 👛 Portafoglio vuoto!\n`
+                      errorMessage += `  ━━✫ 📦 *Prodotto:* ${itemData.name} \n`
+                      errorMessage += `  ━━✫ 💰 *Costo:* ${formatNumber(totalPrice)} 🪙\n`
+                      errorMessage += `  ━━✫ 👛 *Portafoglio:* ${formatNumber(user.limit)} 🪙\n`
+                      errorMessage += `  ━━✫ 💳 *Carta:* ${formatNumber(creditBalance)} 🪙\n╰﹕₊˚ ★ ⁺˳ꕤ₊⁺・꒱\n`
                 }
                 
                 else {
                     // L'utente non ha abbastanza neanche con la carta
-                    errorMessage += `❌ *Non hai abbastanza Unity Coins neanche con la carta!*\n`
-                      errorMessage += `┣ *Carta di credito:* ${formatNumber(creditBalance)} 💳\n`
-                    errorMessage += `*💸 Ti servono ancora:* ${formatNumber(totalPrice - totalBalance)} 🪙\n\n`
+                    errorMessage += `╭﹕₊˚ ★ ⁺˳ꕤ₊⁺・꒱\n  ━━✫ ❌ Fondi insufficienti!\n`
+                      errorMessage += `  ━━✫ 💳 *Carta:* ${formatNumber(creditBalance)} 🪙\n`
+                    errorMessage += `  ━━✫ 💸 *Mancano:* ${formatNumber(totalPrice - totalBalance)} 🪙\n╰﹕₊˚ ★ ⁺˳ꕤ₊⁺・꒱\n\n`
                 }
             
                 // Se abbiamo bottoni validi, invia il messaggio con bottoni.
@@ -844,7 +863,7 @@ let handler = async (m, { conn, args, usedPrefix, command }) => {
                 }
             } catch (e) {
                 console.error(e)
-                conn.reply(m.chat, '❌ Errore durante la conferma dell\'acquisto', m)
+                conn.reply(m.chat, '╭﹕₊˚ ★ ⁺˳ꕤ₊⁺・꒱\n  ━━✫ ❌ Errore acquisto!\n  ━━✫ Riprova più tardi.\n╰﹕₊˚ ★ ⁺˳ꕤ₊⁺・꒱', m)
             }
             return
         }
@@ -878,6 +897,9 @@ let handler = async (m, { conn, args, usedPrefix, command }) => {
 
         // ...resto della logica di successo...
         try {
+            // Inizializza sharp per la compressione
+            const sharpLib = await getSharp()
+            
             // Scegli il nome dell'immagine per l'oggetto acquistato (nome fittizio, sempre minuscolo)
             const itemImgName = `${itemKey.toLowerCase()}.png`;
             const itemImgPath = path.resolve(baseShopImgPath, itemImgName); // usa sempre shop
@@ -892,9 +914,9 @@ let handler = async (m, { conn, args, usedPrefix, command }) => {
             // Ridimensiona/comprime la thumb se troppo grande (>100 KB)
             let thumb = itemThumb;
             let fallbackUsed = false;
-            if (thumb && Buffer.isBuffer(thumb) && thumb.length > 100 * 1024) {
+            if (sharpLib && thumb && Buffer.isBuffer(thumb) && thumb.length > 100 * 1024) {
                 try {
-                    const resized = await sharp(thumb)
+                    const resized = await sharpLib(thumb)
                         .resize(200, 200, { fit: 'inside' })
                         .png({ quality: 70, compressionLevel: 9 })
                         .toBuffer();
@@ -929,25 +951,20 @@ let handler = async (m, { conn, args, usedPrefix, command }) => {
                 console.warn('[SHOP-DEBUG] Nessuna thumb valida trovata, invio solo testo.');
             }
 
-            let successMessage = `✅ *ACQUISTO COMPLETATO!*\n\n` +
-                                `┣ *Oggetto/i:* ${itemData.name} ˣ${quantity}\n`
+            let successMessage = `╭┈ ─ ─ ✦ ─ ─ ┈╮\n   ୧ 🛍️ ୭ *ACQUISTO COMPLETATO*\n╰┈ ─ ─ ✦ ─ ─ ┈╯\n\n` +
+                                `✦ 📦 *${itemData.name}* ˣ${quantity}\n`
 
             if (priceInfo.hasDiscount) {
                 const timeRemaining = discountSystem.formatTimeRemaining(priceInfo.expiresAt)
                 const totalSaved = (priceInfo.originalPrice - priceInfo.price) * quantity
-                successMessage += `┣ 🏷️ *𝘚𝘊𝘖𝘕𝘛𝘖 ${priceInfo.discount}%!*\n`
-                successMessage += `┣ *Prezzo originale:* ${formatNumber(priceInfo.originalPrice)} 🪙\n`
-                successMessage += `┣ *Prezzo scontato:* ${formatNumber(priceInfo.price)} 🪙\n`
-                successMessage += `┣ *💰 Hai risparmiato:* ${formatNumber(totalSaved)} 🪙\n`
-                if (timeRemaining) {
-                    successMessage += `┣ ⏰ *Offerta valida ancora per:* ${timeRemaining}\n`
-                }
+                successMessage += `✦ 🏷️ -${priceInfo.discount}% | 💰 ~~${formatNumber(priceInfo.originalPrice)}~~ ➜ ${formatNumber(priceInfo.price)} 🪙\n`
+                successMessage += `✦ 🤑 Risparmiato: ${formatNumber(totalSaved)} 🪙\n`
             } else {
-                successMessage += `┣ *Costo unitario:* ${formatNumber(priceInfo.price)} 🪙\n`
+                successMessage += `✦ 💰 ${formatNumber(priceInfo.price)} 🪙\n`
             }
 
-            successMessage += `┣ *Totale speso:* ${formatNumber(totalPrice)} 🪙\n` +
-                             `┗ *Saldo rimanente:* ${formatNumber(user.limit)} 🪙`
+            successMessage += `✦ 💸 Totale: ${formatNumber(totalPrice)} 🪙\n` +
+                             `✦ 👛 Saldo: ${formatNumber(user.limit)} 🪙\n`
 
             // Aggiungi informazioni speciali per lo scudo
             if (itemKey === 'scudo' || itemKey === 'scudo3h' || itemKey === 'scudo6h' || itemKey === 'scudo12h') {
@@ -966,9 +983,8 @@ let handler = async (m, { conn, args, usedPrefix, command }) => {
                 if (itemKey === 'scudo3h') durataOre = 3;
                 else if (itemKey === 'scudo6h') durataOre = 6;
                 else if (itemKey === 'scudo12h') durataOre = 12;
-                successMessage += `\n\n🛡️ *SCUDO ATTIVATO!*\n` +
-                                 `├ *Durata:* ${durataOre} ore\n` +
-                                 `└ *Scade il:* ${expiryString}`;
+                successMessage += `\n\n✦ 🛡️ SCUDO ATTIVATO\n` +
+                                 `✦ ⏳ Durata: ${durataOre}h | 📅 Scadenza: ${expiryString}`;
             }
 
             if (thumb) {
@@ -979,11 +995,11 @@ let handler = async (m, { conn, args, usedPrefix, command }) => {
                         forwardedNewsletterMessageInfo: {
                             newsletterJid: "120363391446013555@newsletter",
                             serverMessageId: 100,
-                            newsletterName: 'canale dei meme 🎌',
+                            newsletterName: 'chat unity',
                         },
                         externalAdReply: {
-                            title: '𝘼𝘾𝙐𝙄𝙎𝙏𝙊 𝘾𝙊𝙈𝙋𝙇𝙀𝙏𝘼𝙏𝙊',
-                            body: priceInfo.hasDiscount ? '🔥 Hai approfittato di uno sconto!' : '𝘊𝘰𝘮𝘱𝘭𝘪𝘮𝘦𝘯𝘵𝘪 𝘱𝘦𝘳 𝘪𝘭 𝘵𝘶𝘰 𝘢𝘤𝘲𝘶𝘪𝘴𝘵𝘰!',
+                            title: 'Acquisto Completato',
+                            body: priceInfo.hasDiscount ? '🔥 Hai approfittato di uno sconto!' : 'Complimenti per il tuo acquisto!',
                             thumbnail: thumb,
                             mediaType: 1,
                             sourceUrl: ''
@@ -1004,34 +1020,37 @@ let handler = async (m, { conn, args, usedPrefix, command }) => {
         
         // Non permettere la vendita dello scudo
         if (itemKey === 'scudo') {
-            return conn.reply(m.chat, `❌ Non puoi vendere lo scudo! È un oggetto non vendibile.`, m, rcanal)
+            return conn.reply(m.chat, `╭﹕₊˚ ★ ⁺˳ꕤ₊⁺・꒱\n  ━━✫ ❌ Non puoi vendere lo scudo!\n  ━━✫ È un oggetto non vendibile.\n╰﹕₊˚ ★ ⁺˳ꕤ₊⁺・꒱`, m, rcanal)
         }
         
         // Controlla se l'utente ha l'oggetto da vendere
         if (!user[itemKey] || user[itemKey] < quantity) {
-            return conn.reply(m.chat, `❌ Non hai abbastanza ${itemData.name} da vendere! Hai: ${user[itemKey] || 0}`, m, rcanal)
+            return conn.reply(m.chat, `╭﹕₊˚ ★ ⁺˳ꕤ₊⁺・꒱\n  ━━✫ ❌ Quantità insufficiente!\n  ━━✫ Non hai abbastanza ${itemData.name}\n  ━━✫ Ne possiedi: ${user[itemKey] || 0}\n╰﹕₊˚ ★ ⁺˳ꕤ₊⁺・꒱`, m, rcanal)
         }
         
         // Calcola il prezzo di vendita fisso (60% del prezzo originale, non del prezzo scontato)
         const sellPrice = Math.floor(itemData.price * 0.6)
         const totalSellValue = sellPrice * quantity
         
-        // Controlla se la vendita farebbe superare il limite di 100.000 Unity Coins
+        // Controlla se la vendita farebbe superare il limite di 100.000 unity coin
         const newBalance = (user.limit || 0) + totalSellValue
         if (newBalance > 100000) {
             const maxSellable = Math.floor((100000 - (user.limit || 0)) / sellPrice)
             
             if (maxSellable <= 0) {
-                return conn.reply(m.chat, `❌ Non puoi vendere! Hai già raggiunto il limite massimo di 100.000🪙 Unity Coins.\nSaldo attuale: ${formatNumber(user.limit || 0)} 🪙`, m, stefano)
+                return conn.reply(m.chat, `╭﹕₊˚ ★ ⁺˳ꕤ₊⁺・꒱\n  ━━✫ ❌ Limite raggiunto!\n  ━━✫ Hai già raggiunto il limite\n  ━━✫ massimo di 100.000 🪙\n  ━━✫ Saldo: ${formatNumber(user.limit || 0)} 🪙\n╰﹕₊˚ ★ ⁺˳ꕤ₊⁺・꒱`, m, stefano)
             }
             
             return conn.reply(m.chat, 
-                `❌ Non puoi vendere ${quantity} ${itemData.name} perché supereresti il limite di 100.000🪙 Unity Coins!\n\n` +
-                `┣ *Saldo attuale:* ${formatNumber(user.limit || 0)} 🪙\n` +
-                `┣ *Valore vendita:* ${formatNumber(totalSellValue)} 🪙\n` +
-                `┣ *Nuovo saldo:* ${formatNumber(newBalance)} 🪙\n` +
-                `┣ *Limite massimo:* 100.000 🪙\n` +
-                `┗ *Puoi vendere massimo:* ${maxSellable} ${itemData.name}`, 
+                `╭﹕₊˚ ★ ⁺˳ꕤ₊⁺・꒱\n` +
+                `  ━━✫ ❌ Limite superato!\n` +
+                `  ━━✫ Non puoi vendere ${quantity} ${itemData.name}\n` +
+                `  ━━✫ 👛 *Saldo:* ${formatNumber(user.limit || 0)} 🪙\n` +
+                `  ━━✫ 💰 *Valore:* ${formatNumber(totalSellValue)} 🪙\n` +
+                `  ━━✫ 📈 *Nuovo:* ${formatNumber(newBalance)} 🪙\n` +
+                `  ━━✫ ⛔ *Limite:* 100.000 🪙\n` +
+                `  ━━✫ 📉 *Max vendibili:* ${maxSellable} ${itemData.name}\n` +
+                `╰﹕₊˚ ★ ⁺˳ꕤ₊⁺・꒱`, 
                 m, rcanal)
         }
         
@@ -1045,6 +1064,8 @@ let handler = async (m, { conn, args, usedPrefix, command }) => {
         }
         
         try {
+            // Inizializza sharp per la compressione
+            const sharpLib = await getSharp()
             // Scegli il nome dell'immagine per l'oggetto venduto (nome fittizio, sempre minuscolo)
             const itemImgName = `${itemKey.toLowerCase()}.png`;
             const itemImgPath = path.resolve(baseShopImgPath, itemImgName); // usa sempre shop
@@ -1088,12 +1109,11 @@ let handler = async (m, { conn, args, usedPrefix, command }) => {
             // Usa la thumb specifica dell'oggetto venduto
             const thumb = itemThumb;
 
-            const successMessage = `💰 *VENDITA COMPLETATA!*\n\n` +
-                                 `┣ *Oggetto/i venduto/i:* ${itemData.name} ˣ${quantity}\n` +
-                                 `┣ *Prezzo unitario:* ${formatNumber(sellPrice)} 🪙\n` +
-                                 `┣ *Totale ricevuto:* ${formatNumber(totalSellValue)} 🪙\n` +
-                                 `┣ *Saldo precedente:* ${formatNumber((user.limit || 0) - totalSellValue)} 🪙\n` +
-                                 `┗ *Nuovo saldo:* ${formatNumber(user.limit)} 🪙`
+            const successMessage = `╭┈ ─ ─ ✦ ─ ─ ┈╮\n   ୧ 💰 ୭ *VENDITA COMPLETATA*\n╰┈ ─ ─ ✦ ─ ─ ┈╯\n\n` +
+                                 `✦ 📦 *${itemData.name}* ˣ${quantity}\n` +
+                                 `✦ 💰 ${formatNumber(sellPrice)} 🪙 cad.\n` +
+                                 `✦ 💸 Totale: ${formatNumber(totalSellValue)} 🪙\n` +
+                                 `✦ 👛 Nuovo saldo: ${formatNumber(user.limit)} 🪙\n`
          
             
             if (thumb) {
@@ -1108,7 +1128,7 @@ let handler = async (m, { conn, args, usedPrefix, command }) => {
                         },
                         externalAdReply: {
                             title: '𝙑𝙀𝙉𝘿𝙄𝙏𝘼 𝘾𝙊𝙈𝙋𝙇𝙀𝙏𝘼𝙏𝘼',
-                            body: '𝘏𝘢𝘪 𝘨𝘶𝘢𝘥𝘢𝘨𝘯𝘢𝘵𝘰 𝘥𝘦𝘪 𝘜𝘯𝘪𝘵𝘺 𝘊𝘰𝘪𝘯𝘴!',
+                            body: '𝘏𝘢𝘪 𝘨𝘶𝘢𝘥𝘢𝘨𝘯𝘢𝘵𝘰 𝘥𝘦𝘪 𝘥𝘰𝘭𝘤𝘪!',
                             thumbnail: thumb,
                             mediaType: 1,
                             sourceUrl: ''
@@ -1120,7 +1140,7 @@ let handler = async (m, { conn, args, usedPrefix, command }) => {
             }
         } catch (e) {
             console.error(e)
-            conn.reply(m.chat, '❌ Errore durante la conferma della vendita', m)
+            conn.reply(m.chat, '╭﹕₊˚ ★ ⁺˳ꕤ₊⁺・꒱\n  ━━✫ ❌ Errore vendita!\n  ━━✫ Riprova più tardi.\n╰﹕₊˚ ★ ⁺˳ꕤ₊⁺・꒱', m)
         }
         return
     }
