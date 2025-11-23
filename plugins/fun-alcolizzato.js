@@ -47,7 +47,7 @@ let handler = async (m, { conn, command, text }) => {
   );
 };
 
-handler.command = /^(alcolizzato|alcol|alcohol)$/i;
+handler.command = /^(alcolizzato|alcol|alcohol|Alkoholiker|酗酒者|алкоголик)$/i;
 handler.tags = ['fun'];
 handler.help = ['alcol [@tag | nome]', 'alcohol [@tag | name]'];
 
