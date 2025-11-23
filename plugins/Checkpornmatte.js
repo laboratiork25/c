@@ -1,55 +1,44 @@
 import fetch from "node-fetch";
-import { FormData } from "formdata-node";
-import { File } from "formdata-node/file";
 
 let handler = async (m, { conn, usedPrefix, command }) => {
     if (!m.quoted || !/image/.test(m.quoted.mimetype || "")) {
-        return m.reply(`📸 *Rispondi a una foto con:* ${usedPrefix + command}`);
+        return m.reply(`📸 Rispondi a una foto con: ${usedPrefix + command}`);
     }
-
-    const apiKey = "ada70e1b-f4e4-4d3a-9cda-8306487c2156";
 
     try {
         let buffer = await m.quoted.download();
 
-        const form = new FormData();
-        form.append("image", new File([buffer], "image.jpg", { type: "image/jpeg" }));
-
-        let res = await fetch("https://api.deepai.org/api/nsfw-detector", {
-            method: "POST",
-            headers: {
-                "api-key": apiKey
-            },
-            body: form
-        });
+        let res = await fetch(
+            "https://api-inference.huggingface.co/models/Falconsai/nsfw_image_detection",
+            {
+                method: "POST",
+                headers: { "Content-Type": "application/octet-stream" },
+                body: buffer
+            }
+        );
 
         let json = await res.json();
 
-        if (!json || json.status === "Error") {
-            return m.reply("❌ *Errore API DeepAI*. Key invalidata o limite giornaliero finito.");
+        if (!json || !json[0]) {
+            return m.reply("❌ Errore nell'analisi dell'immagine.");
         }
 
-        let score = json.output.nsfw_score;
-        let percent = (score * 100).toFixed(1);
+        let result = json[0];
+        let labels = result.map(v => `${v.label}: ${(v.score * 100).toFixed(1)}%`).join("\n");
+        let top = result.reduce((a, b) => (a.score > b.score ? a : b));
 
-        let result =
-`🔞 *NSFW CHECK — DeepAI*
-👤 Richiesto da: @${m.sender.split("@")[0]}
+        let final =
+`🔞 NSFW Detector
+📊 Risultati:
+${labels}
 
-📊 *Probabilità contenuto NSFW:*  
-➡️ *${percent}%*
+⚖️ Valutazione:
+${top.label === "NSFW" ? "🔥 Contenuto porno" : "🟢 Non NSFW"}`;
 
-⚖️ *Interpretazione:*  
-${score > 0.75 ? "🔥 Porno / Contenuto adulto" :
-score > 0.40 ? "⚠️ Contenuto sexy o borderline" :
-"🟢 Sicuro / Non NSFW"}
-`;
-
-        await conn.reply(m.chat, result, m, { mentions: [m.sender] });
+        conn.reply(m.chat, final, m);
 
     } catch (e) {
-        console.log(e);
-        m.reply("❌ *Errore nell'analisi dell'immagine.*");
+        return m.reply("❌ Errore nell'analisi dell'immagine.");
     }
 };
 
