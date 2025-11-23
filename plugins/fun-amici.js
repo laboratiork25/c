@@ -156,7 +156,40 @@ const handleRemoveFriend = (m, user, users, userId, groupId) => {
   m.reply(testo, null, { mentions: [mention] });
 };
 handler.help = ['amicizia @user', 'rimuoviamico @user', 'friend @user', 'revovefriend @user']
-handler.command = ['amicizia', 'rimuoviamico', 'friend', 'removefriend'];
+handler.command = [
+  // Italiano
+  'amicizia', 'aggiungiamico', 'rimuoviamico',
+  
+  // Inglese
+  'friend', 'addfriend', 'befriend', 
+  'removefriend', 'deletefriend', 'unfriend',
+  
+  // Spagnolo
+  'amigo', 'agregaramigo', 'añadiramigo',
+  'eliminadamigo', 'quitarmigo', 'borraramigo',
+  
+  // Portoghese
+  'amigo', 'adicionaramigo', 'adicionaramizade',
+  'removeramigo', 'apagaramigo', 'excluiramigo',
+  
+  // Tedesco (Deutsch)
+  'freund', 'freundhinzufügen', 'freundaddieren',
+  'freundentfernen', 'freundlöschen', 'freundentbinden',
+
+  // Cinese (Mandarino)
+  '朋友',              // amico
+  '添加朋友',          // aggiungere amico
+  '加为好友',          // aggiungere come amico
+  '删除朋友',          // rimuovere amico
+  '移除好友',          // rimuovere amico
+
+  // Russo
+  'друг',               // amico
+  'добавитьдруга',      // aggiungere amico
+  'добавитьвдрузья',    // aggiungere agli amici
+  'удалитьдруга',       // rimuovere amico
+  'убратьиздрузей'      // togliere dagli amici
+];
 handler.tags = ['fun'];
 
 export default handler;
