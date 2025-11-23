@@ -566,7 +566,8 @@ global.reloadHandler = async function (restatConn) {
     conn.ev.off('creds.update', conn.credsUpdate);
   }
  
-  conn.connectionUpdate = connectionUpdate.bind(global.conn); //???
+  conn.handler = handler.handler.bind(global.conn);
+  conn.connectionUpdate = connectionUpdate.bind(global.conn);
   conn.credsUpdate = saveCreds.bind(global.conn, true);
   conn.ev.on('messages.upsert', conn.handler);
   conn.ev.on('connection.update', conn.connectionUpdate);

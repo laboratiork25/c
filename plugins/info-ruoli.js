@@ -88,4 +88,4 @@ if (message.messageStubType === 30 && detectEnabled) {
 
 export default handler;
 
-Al posto dei tag di chi ha dato e tolto admin, puoi mettere che dice i nomi?
+// Al posto dei tag di chi ha dato e tolto admin, puoi mettere che dice i nomi?
