@@ -20,7 +20,7 @@ function isNumber(value) {
 
 let handler = async (m, { conn, args, usedPrefix, __dirname, isReply }) => {
     const sharp = await getSharp()
-    if (!sharp) return m.reply('⚠️ Questa funzione non è disponibile: modulo nativo "sharp" non trovato sul sistema.')
+    if (!sharp) return m.reply('⚠️ *Funzione non disponibile!*\n\n📌 Il modulo nativo "sharp" non è stato trovato sul sistema.\nContatta l\'amministratore del bot.')
     const nomeUtente = conn.getName ? conn.getName(m.sender) : m.sender;
     const fkontak = {
         key: {
@@ -41,7 +41,7 @@ let handler = async (m, { conn, args, usedPrefix, __dirname, isReply }) => {
 
 
     let user = global.db.data.users[m.sender]
-    if (user.health >= 100) return conn.reply(m.chat, `La tua salute è già al massimo ❤️`, fkontak, m)
+    if (user.health >= 100) return conn.reply(m.chat, `❤️ *Salute già al massimo!*\n\n✨ La tua salute è già piena! Non hai bisogno di curarti al momento.`, fkontak, m)
 
     let pozioneScelta = args[0]?.toLowerCase()
     let tipoPozione = {
@@ -58,8 +58,8 @@ let handler = async (m, { conn, args, usedPrefix, __dirname, isReply }) => {
             { buttonId: `${usedPrefix}cura definitiva`, buttonText: { displayText: '🧪 Definitiva (+100)' }, type: 1 },
         ];
         let buttonMessage = {
-            text: `Scegli che pozione vuoi usare per curarti:\n\n🥤 Minore (+20 salute)\n🍷 Maggiore (+50 salute)\n🧪 Definitiva (+100 salute)`,
-            footer: 'Phishy RPG',
+            text: `💊 *SCEGLI LA POZIONE PER CURARTI*\n\n┊ 🥤 *Minore* → Ripristina 20 HP\n┊ 🍷 *Maggiore* → Ripristina 50 HP\n┊ 🧪 *Definitiva* → Ripristina 100 HP\n╰─────────────────\n\n✨ Seleziona una pozione per recuperare la tua salute!`,
+            footer: '⚕️ ChatUnity RPG - Sistema di Cura',
             buttons: buttons,
             headerType: 1
         };
@@ -68,7 +68,7 @@ let handler = async (m, { conn, args, usedPrefix, __dirname, isReply }) => {
 
     let pozione = tipoPozione[pozioneScelta]
     if (user[pozione.key] < 1) {
-        return conn.reply(m.chat, `⚠️Non hai pozioni ${pozione.nome} disponibili!`, m)
+        return conn.reply(m.chat, `❌ *Pozione non disponibile!*\n\n📌 Non hai pozioni ${pozione.nome} nel tuo inventario.\n\n💡 *Suggerimento:* Puoi acquistare pozioni nel negozio con il comando *!shop*`, m)
     }
 
     user[pozione.key] -= 1
@@ -82,54 +82,22 @@ let handler = async (m, { conn, args, usedPrefix, __dirname, isReply }) => {
     } catch (e) {
         thumb = null
     }
-    if (!pozioneScelta || !tipoPozione[pozioneScelta]) {
-        let buttons = [
-            { buttonId: `${usedPrefix}cura minore`, buttonText: { displayText: '🥤 Minore (+20)' }, type: 1 },
-            { buttonId: `${usedPrefix}cura maggiore`, buttonText: { displayText: '🍷 Maggiore (+50)' }, type: 1 },
-            { buttonId: `${usedPrefix}cura definitiva`, buttonText: { displayText: '🧪 Definitiva (+100)' }, type: 1 },
-        ];
-        let buttonMessage = {
-            text: `Scegli che pozione vuoi usare per curarti:\n\n🥤 Minore (+20 salute)\n🍷 Maggiore (+50 salute)\n🧪 Definitiva (+100 salute)`,
-            footer: 'Phishy RPG',
-            buttons: buttons,
-            headerType: 1
-        };
-        return await conn.sendMessage(m.chat, buttonMessage, { quoted: m });
-    }
-    let userProfileBuffer = null
-    try {
-        userProfileBuffer = await (await import('node-fetch')).default(userProfilePic).then(res => res.buffer())
-    } catch (e) {
-        userProfileBuffer = null
-    }
-
-    // Messaggio quotato di posizione con thumbnail profilo utente
-    const quotedPosition = {
-        key: { participants: "0@s.whatsapp.net", fromMe: false, id: "Cura" },
-        message: {
-            locationMessage: {
-                name: `❤️ Cura di ${conn.getName ? conn.getName(m.sender) : m.sender}`,
-                jpegThumbnail: userProfileBuffer || null
-            }
-        },
-        participant: "0@s.whatsapp.net"
-    }
 
     // Messaggio posizione con thumbnail pozione e link canale
     await conn.sendMessage(m.chat, {
-        text: `Hai usato una pozione ${pozione.emoji} ${pozione.nome}!\n❤️ Salute: ${user.health}`,
+        text: `✅ *Pozione usata con successo!*\n\n${pozione.emoji} *Tipo:* Pozione ${pozione.nome}\n❤️ *Salute attuale:* ${user.health}/100\n✨ *Cura ricevuta:* +${pozione.cura} HP\n\n╰─────────────────\n💊 Ti senti molto meglio ora!`,
 
         contextInfo: {
             externalAdReply: {
-                title: 'hai usato una pozione ' +  pozione.nome,
-                body: '',
+                title: `🧪 Pozione ${pozione.nome} usata con successo!`,
+                body: `Salute ripristinata: ${user.health}/100 HP`,
                 mediaType: 1,
                 thumbnail: thumb || null,
-                sourceUrl: '', // <-- inserisci qui il link del tuo canale
+                sourceUrl: '',
                  forwardedNewsletterMessageInfo: {
              newsletterJid: "120363391446013555@newsletter",
                 serverMessageId: '',
-                newsletterName: 'chat unity',
+                newsletterName: 'ChatUnity RPG',
             }
             }
         }
