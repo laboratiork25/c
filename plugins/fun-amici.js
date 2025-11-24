@@ -155,41 +155,11 @@ const handleRemoveFriend = (m, user, users, userId, groupId) => {
 
   m.reply(testo, null, { mentions: [mention] });
 };
-handler.help = ['amicizia @user', 'rimuoviamico @user', 'friend @user', 'revovefriend @user']
-handler.command = [
-  // Italiano
-  'amicizia', 'aggiungiamico', 'rimuoviamico',
-  
-  // Inglese
-  'friend', 'addfriend', 'befriend', 
-  'removefriend', 'deletefriend', 'unfriend',
-  
-  // Spagnolo
-  'amigo', 'agregaramigo', 'añadiramigo',
-  'eliminadamigo', 'quitarmigo', 'borraramigo',
-  
-  // Portoghese
-  'amigo', 'adicionaramigo', 'adicionaramizade',
-  'removeramigo', 'apagaramigo', 'excluiramigo',
-  
-  // Tedesco (Deutsch)
-  'freund', 'freundhinzufügen', 'freundaddieren',
-  'freundentfernen', 'freundlöschen', 'freundentbinden',
 
-  // Cinese (Mandarino)
-  '朋友',              // amico
-  '添加朋友',          // aggiungere amico
-  '加为好友',          // aggiungere come amico
-  '删除朋友',          // rimuovere amico
-  '移除好友',          // rimuovere amico
+handler.command = ['amicizia', 'aggiungiamico', 'rimuoviamico', 'friend', 'addfriend', 'befriend', 'removefriend', 'deletefriend', 'unfriend', 'amigo', 'agregaramigo', 'añadiramigo', 'eliminadamigo', 'quitarmigo', 'borraramigo', 'amigo', 'adicionaramigo', 'adicionaramizade', 'removeramigo', 'apagaramigo', 'excluiramigo', 'freund', 'freundhinzufügen', 'freundaddieren', 'freundentfernen', 'freundlöschen', 'freundentbinden', '朋友', '添加朋友', '加为好友', '删除朋友', '移除好友', 'друг', 'добавитьдруга', 'добавитьвдрузья', 'удалитьдруга', 'убратьиздрузей', 'صديق', 'اضافةصديق', 'احذفصديق', 'ازالصداقة', 'दोस्त', 'मित्रजोड़ें', 'दोस्तहटाएं', 'दोस्तमिटाएं', 'ami', 'ajouterami', 'ajouterunami', 'supprimerami', 'retirerami', 'enleverami', 'teman', 'tambahteman', 'tambahkansahabat', 'hapusteman', 'hapuskanteman', 'buangteman', 'arkadaş', 'arkadaşıekle', 'arkadaşekle', 'arkadaşısil', 'arkadaşıkaldır', 'arkadaşçıkar'];
 
-  // Russo
-  'друг',               // amico
-  'добавитьдруга',      // aggiungere amico
-  'добавитьвдрузья',    // aggiungere agli amici
-  'удалитьдруга',       // rimuovere amico
-  'убратьиздрузей'      // togliere dagli amici
-];
+handler.help = ['amicizia @user', 'aggiungiamico @user', 'rimuoviamico @user', 'friend @user', 'addfriend @user', 'befriend @user', 'removefriend @user', 'deletefriend @user', 'unfriend @user', 'amigo @user', 'agregaramigo @user', 'añadiramigo @user', 'eliminadamigo @user', 'quitarmigo @user', 'borraramigo @user', 'amigo @user', 'adicionaramigo @user', 'adicionaramizade @user', 'removeramigo @user', 'apagaramigo @user', 'excluiramigo @user', 'freund @user', 'freundhinzufügen @user', 'freundaddieren @user', 'freundentfernen @user', 'freundlöschen @user', 'freundentbinden @user', '朋友 @user', '添加朋友 @user', '加为好友 @user', '删除朋友 @user', '移除好友 @user', 'друг @user', 'добавитьдруга @user', 'добавитьвдрузья @user', 'удалитьдруга @user', 'убратьиздрузей @user', 'صديق @user', 'اضافةصديق @user', 'احذفصديق @user', 'ازالصداقة @user', 'दोस्त @user', 'मित्रजोड़ें @user', 'दोस्तहटाएं @user', 'दोस्तमिटाएं @user', 'ami @user', 'ajouterami @user', 'ajouterunami @user', 'supprimerami @user', 'retirerami @user', 'enleverami @user', 'teman @user', 'tambahteman @user', 'tambahkansahabat @user', 'hapusteman @user', 'hapuskanteman @user', 'buangteman @user', 'arkadaş @user', 'arkadaşıekle @user', 'arkadaşekle @user', 'arkadaşısil @user', 'arkadaşıkaldır @user', 'arkadaşçıkar @user'];
+
 handler.tags = ['fun'];
 
 export default handler;
