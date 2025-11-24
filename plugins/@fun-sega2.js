@@ -71,8 +71,8 @@ const handler = async (m, { conn }) => {
     console.log('Clip size:', clipBuf.length);
 
     // Salva temporaneo per ffmpeg normalizzazione (durata / compatibilità)
-    const inPath = path.join(process.cwd(), 'tmp', `sega_in_${Date.now()}.mp4`);
-    const outPath = path.join(process.cwd(), 'tmp', `sega_out_${Date.now()}.mp4`);
+    const inPath = path.join(process.cwd(), 'temp', `sega_in_${Date.now()}.mp4`);
+    const outPath = path.join(process.cwd(), 'temp', `sega_out_${Date.now()}.mp4`);
     fs.writeFileSync(inPath, clipBuf);
 
     // Normalizza con ffmpeg per garantire compatibilità gifPlayback (riduce dimensioni / keyframes)
