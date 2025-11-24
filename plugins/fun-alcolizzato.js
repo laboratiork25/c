@@ -47,8 +47,10 @@ let handler = async (m, { conn, command, text }) => {
   );
 };
 
-handler.command = /^(alcolizzato|alcol|alcohol|Alkoholiker|酗酒者|алкоголик)$/i;
+handler.command = /^(alcolizzato|alcol|alcoholic|alcohol|borracho|alcohólico|bêbado|alcoólatra|Alkoholiker|Betrunkener|酒鬼|酗酒者|алкоголик|пьяница|مدمن_كحول|سكران|शराबी|मद्यप|alcoolique|ivrogne|pemabuk|alkoholik|sarhoş)$/i;
+handler.help = ['alcolizzato', 'alcol', 'alcoholic', 'alcohol', 'borracho', 'alcohólico', 'bêbado', 'alcoólatra', 'Alkoholiker', 'Betrunkener', '酒鬼', '酗酒者', 'алкоголик', 'пьяница', 'مدمن_कحول', 'سكران', 'शराबी', 'मद्यप', 'alcoolique', 'ivrogne', 'pemabuk', 'alkoholik', 'sarhoş'];
+
 handler.tags = ['fun'];
-handler.help = ['alcol [@tag | nome]', 'alcohol [@tag | name]'];
+
 
 export default handler;
