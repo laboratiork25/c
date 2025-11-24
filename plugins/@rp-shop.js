@@ -328,7 +328,7 @@ function getActiveDiscounts() {
 }
 
 // Genera il testo del negozio con sconti
-function generateShopText(usedPrefix, balance = 0) {
+export function generateShopText(usedPrefix, balance = 0) {
     const activeDiscounts = getActiveDiscounts();
     let text = `╭┈ ─ ─ ✦ ─ ─ ┈╮\n   ୧ 🏪 ୭ *NEGOZIO*\n╰┈ ─ ─ ✦ ─ ─ ┈╯\n\n`
     text += `꒷꒦ ✦ Saldo: ${formatNumber(balance)} 🪙 ✦ ꒷꒦\n\n`
@@ -400,6 +400,20 @@ let handler = async (m, { conn, args, usedPrefix, command }) => {
     // Da plugins/rpg/ devo uscire 2 volte per arrivare alla root, poi entro in src/img/shop
     const baseShopImgPath = path.resolve(__dirname, '../media/shop');
 
+    // 0. .shop-text mostra la lista in formato testo semplice
+    if (command === 'shop-text') {
+        try {
+            const activeDiscounts = getActiveDiscounts()
+            const shopText = generateShopText(usedPrefix, user.limit || 0)
+            await conn.reply(m.chat, shopText, m)
+            console.log('[SHOP] Lista testo inviata con successo')
+        } catch (e) {
+            console.error('[SHOP] Errore invio lista testo:', e)
+            await conn.sendMessage(m.chat, { text: 'Errore nel caricamento della lista shop.' }, { quoted: m })
+        }
+        return
+    }
+
     // 1. SOLO .shop mostra la lista completa, senza ricerca
     if ((command === 'shop' || command === 'negozio') && args.length === 0) {
         try {
@@ -463,20 +477,19 @@ let handler = async (m, { conn, args, usedPrefix, command }) => {
             const cards = messages.map(msg => ({
                 header: {
                     title: msg[0].title,
-                    hasMediaAttachment: thumb ? true : false,
-                    imageMessage: thumb ? { url: thumb } : undefined
+                    hasMediaAttachment: false
                 },
                 body: {
                     text: msg[0].body
                 },
-                nativeFlowMessage: {
-                    buttons: []
+                footer: {
+                    text: msg[1] // footer per ogni card
                 }
             }))
 
+            console.log(`[SHOP] Preparando carosello con ${messages.length} sezioni, thumb size: ${thumb ? thumb.length : 'null'}`)
+
             await conn.sendMessage(m.chat, {
-                text: `🏪 *NEGOZIO CHATUNITY*\n\n💰 Saldo: ${formatNumber(user.limit || 0)} 🪙`,
-                footer: `ChatUnity • shop\nUsa ${usedPrefix}compra <oggetto>`,
                 cards: cards
             }, { quoted: m })
             
@@ -517,9 +530,15 @@ let handler = async (m, { conn, args, usedPrefix, command }) => {
         } catch (e) {
             console.error('[SHOP] Errore nel mostrare il negozio:', e)
             // Fallback a testo semplice
-            const activeDiscounts = getActiveDiscounts()
-            const shopText = generateShopText(usedPrefix, user.limit || 0)
-            await conn.reply(m.chat, shopText, m)
+            try {
+                const activeDiscounts = getActiveDiscounts()
+                const shopText = generateShopText(usedPrefix, user.limit || 0)
+                await conn.reply(m.chat, shopText, m)
+                console.log('[SHOP] Fallback testo inviato con successo')
+            } catch (fallbackErr) {
+                console.error('[SHOP] Errore anche nel fallback:', fallbackErr)
+                await conn.sendMessage(m.chat, { text: 'Errore nel caricamento del negozio. Riprova più tardi.' }, { quoted: m })
+            }
         }
         return
     }
@@ -1194,7 +1213,7 @@ let handler = async (m, { conn, args, usedPrefix, command }) => {
 // Configurazione del comando
 handler.help = ['shop', 'compra', 'vendi']
 handler.tags = ['rpg', 'shop']
-handler.command = /^(shop|negozio|compra|buy|acquista|vendi|sell|paga-carta|paga-misto)$/i
+handler.command = /^(shop|negozio|compra|buy|acquista|vendi|sell|paga-carta|paga-misto|shop-text)$/i
 handler.register = true
 
 export default handler
