@@ -1,95 +1,131 @@
 import fetch from "node-fetch";
 
 let handler = async (m, { conn, args }) => {
-  if (!args[0]) return conn.reply(m.chat, "Inserisci un dominio o un IP.\nEsempio: .osintweb chatunity.it", m);
-
-  let target = args[0];
-  let text = `🔍 *OSINT Web Scan*\n📁 Target: ${target}\n\n`;
-
-  async function whoisLookup(t) {
-    try {
-      let r = await fetch(`https://api.hackertarget.com/whois/?q=${t}`);
-      return await r.text();
-    } catch {
-      return "Errore WHOIS";
-    }
+  if (!args[0]) {
+    return conn.reply(m.chat, "Sintassi non valida. Utilizzare: .osintweb <dominio o indirizzo IP>", m);
   }
 
-  async function dnsLookup(t) {
-    try {
-      let r = await fetch(`https://api.hackertarget.com/dnslookup/?q=${t}`);
-      return await r.text();
-    } catch {
-      return "Errore DNS";
-    }
-  }
+  const target = args[0];
 
-  async function reverseIP(t) {
+  async function safeFetch(url, type = "text") {
     try {
-      let r = await fetch(`https://api.hackertarget.com/reverseiplookup/?q=${t}`);
-      return await r.text();
-    } catch {
-      return "Errore Reverse IP";
-    }
-  }
-
-  async function geoIP(t) {
-    try {
-      let r = await fetch(`http://ip-api.com/json/${t}?fields=66846719`);
-      return await r.json();
+      const res = await fetch(url, { timeout: 15000 });
+      if (!res.ok) return null;
+      return type === "json" ? res.json() : res.text();
     } catch {
       return null;
     }
   }
 
-  async function headersCheck(t) {
-    try {
-      let r = await fetch(`https://${t}`, { method: "GET", redirect: "manual" });
-      let h = "";
-      r.headers.forEach((v, k) => h += `${k}: ${v}\n`);
-      return h;
-    } catch {
-      return "Impossibile ottenere headers";
+  const rdapDomain = async (d) =>
+    await safeFetch(`https://rdap.org/domain/${d}`, "json");
+
+  const rdapIP = async (ip) =>
+    await safeFetch(`https://rdap.org/ip/${ip}`, "json");
+
+  const dnsLookup = async (t) =>
+    await safeFetch(`https://api.hackertarget.com/dnslookup/?q=${t}`);
+
+  const reverseIP = async (t) =>
+    await safeFetch(`https://api.hackertarget.com/reverseiplookup/?q=${t}`);
+
+  const portScan = async (t) =>
+    await safeFetch(`https://api.hackertarget.com/nmap/?q=${t}`);
+
+  const httpHeaders = async (t) =>
+    await safeFetch(`https://api.hackertarget.com/httpheaders/?q=${t}`);
+
+  const extractEmails = async (t) =>
+    await safeFetch(`https://api.hackertarget.com/hostsearch/?q=${t}`);
+
+  const techDetect = async (t) =>
+    await safeFetch(`https://api.wappalyzer.com/lookup/v1/?url=${t}`, "json");
+
+  const screenshot = async (t) =>
+    `https://image.thum.io/get/fullpage/${t}`;
+
+  let output = "";
+  output += "RAPPORTO OSINT AVANZATO\n";
+  output += "----------------------------------------\n";
+  output += `Target analizzato: ${target}\n`;
+  output += "----------------------------------------\n\n";
+
+  const dom = await rdapDomain(target);
+  if (dom && !dom.errorCode) {
+    output += "INFORMAZIONI RDAP (DOMINIO)\n";
+    output += `Dominio: ${dom.ldhName}\n`;
+    output += `Registrar: ${dom.registrar}\n`;
+    output += `Data di registrazione: ${dom.events?.find(e => e.eventAction === "registration")?.eventDate}\n`;
+    output += `Data di scadenza: ${dom.events?.find(e => e.eventAction === "expiration")?.eventDate}\n`;
+    output += "Nameserver:\n";
+    if (dom.nameservers) {
+      dom.nameservers.forEach(ns => {
+        output += `- ${ns.ldhName}\n`;
+      });
     }
+    output += "\n";
   }
 
-  async function techDetect(t) {
-    try {
-      let r = await fetch(`https://api.wappalyzer.com/lookup/v1/?url=${t}`);
-      let js = await r.json();
-      if (!js[0]?.applications) return "Nessuna tecnologia rilevata";
-
-      return js[0].applications.map(a => `• ${a.name}`).join("\n");
-    } catch {
-      return "Errore tecnologie";
-    }
+  const ip = await rdapIP(target);
+  if (ip && !ip.errorCode) {
+    output += "INFORMAZIONI IP\n";
+    output += `Handle: ${ip.handle}\n`;
+    output += `Organizzazione: ${ip.name}\n`;
+    output += `Intervallo IP: ${ip.startAddress} - ${ip.endAddress}\n`;
+    output += `ASN: ${ip.asn}\n`;
+    output += `Paese: ${ip.country}\n`;
+    output += "\n";
   }
 
-  let whois = await whoisLookup(target);
-  let dns = await dnsLookup(target);
-  let rip = await reverseIP(target);
-  let geo = await geoIP(target);
-  let head = await headersCheck(target);
-  let tech = await techDetect(target);
-
-  text += `🌐 *WHOIS*\n${whois}\n\n`;
-  text += `📡 *DNS Records*\n${dns}\n\n`;
-
-  text += `🌍 *GeoIP*\n`;
-  if (geo && geo.status === "success") {
-    text += `IP: ${geo.query}\nPaese: ${geo.country}\nRegione: ${geo.regionName}\nCittà: ${geo.city}\nISP: ${geo.isp}\nASN: ${geo.as}\n\n`;
-  } else {
-    text += "Non disponibile\n\n";
+  const dns = await dnsLookup(target);
+  if (dns) {
+    output += "RECORD DNS\n";
+    output += dns + "\n\n";
   }
 
-  text += `🖥 *Tecnologie del sito*\n${tech}\n\n`;
-  text += `📌 *Reverse IP (altri siti sullo stesso server)*\n${rip}\n\n`;
-  text += `📁 *HTTP Headers*\n${head}\n\n`;
+  const rev = await reverseIP(target);
+  if (rev) {
+    output += "DOMINI SULLO STESSO SERVER\n";
+    output += rev + "\n\n";
+  }
 
-  await conn.reply(m.chat, text, m);
+  const ports = await portScan(target);
+  if (ports) {
+    output += "PORT SCAN\n";
+    output += ports + "\n\n";
+  }
+
+  const headers = await httpHeaders(target);
+  if (headers) {
+    output += "INTESTAZIONI HTTP\n";
+    output += headers + "\n\n";
+  }
+
+  const emails = await extractEmails(target);
+  if (emails) {
+    output += "POTENZIALI EMAIL/DOMINI CORRELATI\n";
+    output += emails + "\n\n";
+  }
+
+  const tech = await techDetect(target);
+  if (tech && tech[0]?.applications) {
+    output += "TECNOLOGIE INDIVIDUATE\n";
+    tech[0].applications.forEach(a => {
+      output += `- ${a.name}\n`;
+    });
+    output += "\n";
+  }
+
+  output += "SCREENSHOT DEL SITO (URL)\n";
+  output += await screenshot(target) + "\n\n";
+
+  output += "----------------------------------------\n";
+  output += "Analisi completata.\n";
+
+  await conn.reply(m.chat, output, m);
 };
 
-handler.command = ["osintweb"];
+handler.command = ["osintweb", "osintfull"];
 handler.help = ["osintweb <dominio/ip>"];
 handler.tags = ["osint"];
 
