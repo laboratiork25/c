@@ -536,9 +536,8 @@ let handler = async (m, { conn, command, usedPrefix, text }) => {
     }
 };
 
-handler.help = ['blackjack [bet]', 'hit/carta', 'stand/stai', 'double/raddoppia'];
-handler.tags = ['game'];
-handler.command = /^(blackjack|hit|carta|stand|stai|double|raddoppia)$/i;
+handler.command = /^(blackjack|hit|carta|stand|stai|double|raddoppia|tirar|pedir|plantarse|doblar|pedircarta|ficar|parar|dobrar|nehmen|karte|stehen|bleiben|verdoppeln|要牌|停牌|加倍|взять|карта|стоп|хватит|удвоить|اسحب|قف|تضاعف|कार्डलो|रुको|दोगुना|tirer|rester|doubler|ambil|berdiri|gandakan|kart_çek|bekle|ikiye_katla)$/i;
+handler.help = ['blackjack [bet]', 'hit/carta', 'stand/stai', 'double/raddoppia', 'hit/pedircarta', 'stand/plantarse', 'double/doblar', 'hit/pedircarta_pt', 'stand/ficar', 'double/dobrar', 'hit/karte', 'stand/stehen', 'double/verdoppeln', 'hit/要牌', 'stand/停牌', 'double/加倍', 'hit/взять', 'stand/стоп', 'double/удвоить', 'hit/اسحب', 'stand/قف', 'double/تضاعف', 'hit/कार्डलो', 'stand/रुको', 'double/दोगुना', 'hit/tirer', 'stand/rester', 'double/doubler', 'hit/ambil', 'stand/berdiri', 'double/gandakan', 'hit/kart_çek', 'stand/bekle', 'double/ikiye_katla'];
 handler.group = true;
 handler.register = true;
 
