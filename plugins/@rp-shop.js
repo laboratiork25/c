@@ -475,21 +475,15 @@ let handler = async (m, { conn, args, usedPrefix, command }) => {
 
             // Costruisci le cards per il carosello
             const cards = messages.map(msg => ({
-                header: {
-                    title: msg[0].title,
-                    hasMediaAttachment: false
-                },
-                body: {
-                    text: msg[0].body
-                },
-                footer: {
-                    text: msg[1] // footer per ogni card
-                }
+                title: msg[0].title,
+                body: msg[0].body,
+                footer: msg[1] // footer per ogni card
             }))
 
             console.log(`[SHOP] Preparando carosello con ${messages.length} sezioni, thumb size: ${thumb ? thumb.length : 'null'}`)
 
             await conn.sendMessage(m.chat, {
+                text: '꒷꒦ ✦ 🏪 NEGOZIO CHATUNITY ✦ ꒷꒦',
                 cards: cards
             }, { quoted: m })
             
