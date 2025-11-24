@@ -1,7 +1,6 @@
 import fs from 'fs'
 import path from 'path'
 import { fileURLToPath } from 'url';
-import { initializeInteractiveFunctions } from '../lib/interactive.js'
 
 let _sharp
 async function getSharp() {
@@ -419,10 +418,7 @@ let handler = async (m, { conn, args, usedPrefix, command }) => {
             // Prepare active discounts
             const activeDiscounts = getActiveDiscounts()
 
-            // Inizializza le funzioni interattive
-            initializeInteractiveFunctions(conn)
-
-            // Build messages array per sendCarousel (formato corretto)
+            // Build messages array per il carosello
             const messages = []
             const categories = Object.entries(shopItems)
             let totalSections = 0
