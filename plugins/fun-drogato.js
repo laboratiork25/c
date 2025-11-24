@@ -47,8 +47,27 @@ let handler = async (m, { conn, command, text }) => {
   );
 };
 
-handler.command = /^(drogato|drugtest)$/i;
+handler.command = /^(drogato|drugtest|drogadicto|pruebadrogas|drogado|testedrogas|drogenschnelltest|drogi_test|毒品测试|наркотест|drug_test_ar|مخدرات_اختبار|ड्रगटेस्ट|testdrogue|testnarkoba|uyuşturucutesti)$/i;
+
+handler.help = [
+  'drogato [@tag | nome]',
+  'drugtest [@tag | name]',
+  'drogadicto [@tag | nombre]',
+  'pruebadrogas [@tag | nombre]',
+  'drogado [@tag | nome]',
+  'testedrogas [@tag | nome]',
+  'drogenschnelltest [@tag | name]',
+  'drogi_test [@tag | name]',
+  '毒品测试 [@tag | 名字]',
+  'наркотест [@tag | имя]',
+  'drug_test_ar [@tag | اسم]',
+  'مخدرات_اختبار [@tag | اسم]',
+  'ड्रगटेस्ट [@tag | नाम]',
+  'testdrogue [@tag | nom]',
+  'testnarkoba [@tag | nama]',
+  'uyuşturucutesti [@tag | isim]'
+];
+
 handler.tags = ['fun'];
-handler.help = ['drogato [@tag | nome]', 'drugtest [@tag | name]'];
 
 export default handler;
