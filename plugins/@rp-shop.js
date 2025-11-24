@@ -473,17 +473,25 @@ let handler = async (m, { conn, args, usedPrefix, command }) => {
             })
 
 
-            // Costruisci le cards per il carosello
-            const cards = messages.map(msg => ({
-                title: msg[0].title,
+            // Costruisci le cards per il carosello con la struttura corretta
+            const cards = messages.map((msg, index) => ({
                 body: msg[0].body,
-                footer: msg[1] // footer per ogni card
+                footer: msg[1],
+                buttons: [
+                    {
+                        name: 'quick_reply',
+                        buttonParamsJson: JSON.stringify({
+                            display_text: `📄 ${msg[0].title.substring(0, 20)}`,
+                            id: `.shop-text`
+                        })
+                    }
+                ]
             }))
 
             console.log(`[SHOP] Preparando carosello con ${messages.length} sezioni, thumb size: ${thumb ? thumb.length : 'null'}`)
 
             await conn.sendMessage(m.chat, {
-                text: '꒷꒦ ✦ 🏪 NEGOZIO CHATUNITY ✦ ꒷꒦',
+                text: `꒷꒦ ✦ 🏪 NEGOZIO CHATUNITY ✦ ꒷꒦\n\n${messages[0][0].title}`,
                 cards: cards
             }, { quoted: m })
             
