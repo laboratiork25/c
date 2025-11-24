@@ -463,12 +463,45 @@ let handler = async (m, { conn, args, usedPrefix, command }) => {
             })
 
 
-            const headerText = `saldo di ${user.name}🔎\n╰${formatNumber(user.limit || 0)} Unity Coin🪙`
+            const headerText = `saldo di ${user.name} 🔎\n╰${formatNumber(user.limit || 0)} Unity Coin🪙`
             const footerText = `ChatUnity • shop\nUsa ${usedPrefix}compra <oggetto>`
 
             await conn.sendCarousel(m.chat, headerText, footerText, messages, m)
             
             console.log(`[SHOP] Carosello inviato con successo (${messages.length} sezioni)`)
+            
+            // Messaggio con bottone copia-incolla per utenti iPhone
+            try {
+                const imageUrl = 'https://www.lsa-conso.fr/mediatheque/8/1/7/000143718_5.jpg'
+                const response = await fetch(imageUrl)
+                const arrayBuffer = await response.arrayBuffer()
+                const imageBuffer = Buffer.from(arrayBuffer)
+
+                const bottoneCopia = {
+                    image: imageBuffer,
+                    title: `Non vedi la lista?`,
+                    body: ``,
+                    footer: '*Alternativa per iPhone*',
+                    buttons: [
+                        {
+                            name: 'cta_copy',
+                            buttonParamsJson: JSON.stringify({
+                                display_text: '𝐜𝐨𝐩𝐢𝐚 𝐜𝐨𝐦𝐚𝐧𝐝𝐨',
+                                copy_code: `${usedPrefix}shop-text`
+                            })
+                        }
+                    ]
+                }
+
+                await conn.sendMessage(m.chat, {
+                    title: '*📋 Non vedi nessuna lista?*',
+                    text: '💡 Usa questo comando alternativo',
+                    footer: 'ChatUnity Shop',
+                    cards: [bottoneCopia]
+                }, { quoted: m })
+            } catch (btnErr) {
+                console.error('[SHOP] Errore invio bottone copia:', btnErr)
+            }
         } catch (e) {
             console.error('[SHOP] Errore nel mostrare il negozio:', e)
             // Fallback a testo semplice
