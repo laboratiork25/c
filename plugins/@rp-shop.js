@@ -463,10 +463,26 @@ let handler = async (m, { conn, args, usedPrefix, command }) => {
             })
 
 
-            const headerText = `saldo di ${user.name} 🔎\n╰${formatNumber(user.limit || 0)} Unity Coin🪙`
-            const footerText = `ChatUnity • shop\nUsa ${usedPrefix}compra <oggetto>`
+            // Costruisci le cards per il carosello
+            const cards = messages.map(msg => ({
+                header: {
+                    title: msg[0].title,
+                    hasMediaAttachment: thumb ? true : false,
+                    imageMessage: thumb ? { url: thumb } : undefined
+                },
+                body: {
+                    text: msg[0].body
+                },
+                nativeFlowMessage: {
+                    buttons: []
+                }
+            }))
 
-            await conn.sendCarousel(m.chat, headerText, footerText, messages, m)
+            await conn.sendMessage(m.chat, {
+                text: `🏪 *NEGOZIO CHATUNITY*\n\n💰 Saldo: ${formatNumber(user.limit || 0)} 🪙`,
+                footer: `ChatUnity • shop\nUsa ${usedPrefix}compra <oggetto>`,
+                cards: cards
+            }, { quoted: m })
             
             console.log(`[SHOP] Carosello inviato con successo (${messages.length} sezioni)`)
             
