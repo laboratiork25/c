@@ -110,9 +110,9 @@ let handler = async (m, { conn, args, usedPrefix, command, DevMode }) => {
     }
 };
 
-handler.help = ['scommetti <amount>', 'bet <amount>', 'casino <amount>'];
+handler.command = /^(scommetti|casinò|casino|bet|apostar|apuesta|aposta|wetten|ставка|رهان|दांव|pari|mise|taruhan|bahis)$/i;
+handler.help = ['scommetti <amount>', 'casino <amount>', 'bet <amount>', 'apostar <amount>', 'apuesta <cantidad>', 'aposta <valor>', 'wetten <betrag>', 'ставка <сумма>', 'رهان <مبلغ>', 'दांव <राशि>', 'pari <montant>', 'mise <montant>', 'taruhan <jumlah>', 'bahis <miktar>'];
 handler.tags = ['game'];
-handler.command = /^(scommetti|casinò|casino|bet)$/i;
 handler.register = true;
 
 export default handler;
