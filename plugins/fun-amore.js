@@ -57,9 +57,7 @@ let handler = async (m, { conn, command, usedPrefix }) => {
   const background = 'https://i.ibb.co/4YBNyvP/images-76.jpg';
   const percent = Math.floor(Math.random() * 101);
 
-  const apiUrl = `https://api.siputzx.my.id/api/canvas/ship?avatar1=${encodeURIComponent(
-    avatar1
-  )}&avatar2=${encodeURIComponent(avatar2)}&background=${encodeURIComponent(background)}&persen=${percent}`;
+  const apiUrl = `https://api.siputzx.my.id/api/canvas/ship?avatar1=${encodeURIComponent(avatar1)}&avatar2=${encodeURIComponent(avatar2)}&background=${encodeURIComponent(background)}&persen=${percent}`;
 
   try {
     const response = await axios.get(apiUrl, { responseType: 'arraybuffer' });
@@ -99,8 +97,10 @@ let handler = async (m, { conn, command, usedPrefix }) => {
   }
 };
 
-handler.help = ['ship @utente1 [@utente2]', 'crush @utente'];
+handler.help = ['ship @utente1 [@utente2]', 'crush @utente', 'ship @user1 [@user2]', 'crush @user', 'ship @amigo1 [@amigo2]', 'crush @amigo', 'ship @amigo1 [@amigo2]', 'crush @amigo', 'ship @freund1 [@freund2]', 'crush @freund', 'ship @朋友1 [@朋友2]', 'crush @朋友', 'ship @друг1 [@друг2]', 'crush @друг', 'ship @صديق1 [@صديق2]', 'crush @صديق', 'ship @दोस्त1 [@दोस्त2]', 'crush @दोस्त', 'ship @ami1 [@ami2]', 'crush @ami', 'ship @teman1 [@teman2]', 'crush @teman', 'ship @arkadaş1 [@arkadaş2]', 'crush @arkadaş'];
+
 handler.tags = ['fun'];
-handler.command = /^(ship|crush)$/i;
+
+handler.command = /^(ship|crush|match|coppia|coppietta|shipea|emparejar|pareja|casal|casalzinho|paar|verkuppeln|配对|姻缘|шип|пара|توافق|حب|जोड़ी|मिलान|couple|amour|jodoh|pasangan|eşleştir|çift)$/i;
 
 export default handler;

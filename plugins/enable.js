@@ -67,9 +67,12 @@ let handler = async (m, { conn, command, args, isOwner, isROwner }) => {
     return;
   }
 
-  const isEnable = /attiva|enable|on|1|true/i.test(command.toLowerCase());
-  const isDisable = /disabilita|disattiva|disable|off|0|false/i.test(command.toLowerCase());
-  let setTo = isEnable && !isDisable;
+  const isEnable = /attiva|abilita|enable|on|start|true|1|activar|encender|iniciar|habilitar|ativar|ligar|einschalten|aktivieren|开始|启动|开启|включить|активировать|تشغيل|تفعيل|चालू|सक्रिय|activer|démarrer|allumer|mengaktifkan|menyalakan|başlat|etkinleştir|aç/i.test(command.toLowerCase());
+
+const isDisable = /disattiva|disabilita|disable|off|stop|false|0|desactivar|apagar|detener|deshabilitar|desligar|desativar|ausschalten|deaktivieren|关闭|停用|结束|выключить|деактивировать|إيقاف|تعطيل|बंद|निष्क्रिय|désactiver|arrêter|éteindre|menonaktifkan|mematikan|bitir|devre dışı bırak|kapat/i.test(command.toLowerCase());
+
+let setTo = isEnable && !isDisable;
+ let setTo = isEnable && !isDisable;
 
   if (selected.key === 'antivoip') {
     chatData.antivoip = setTo;
@@ -102,10 +105,14 @@ ${STATUS_FOOTER}
   await conn.reply(m.chat, statusMsg, m);
 };
 
-handler.help = ['attiva <feature>', 'disabilita <feature>', 'disattiva <feature>'];
+handler.help = ['attiva <feature>', 'disabilita <feature>', 'disattiva <feature>', 'enable <feature>', 'disable <feature>', 'on <feature>', 'off <feature>'];
+
 handler.tags = ['Impostazioni Bot', 'owner'];
-handler.command = /^(attiva|disabilita|disattiva|enable|disable)/i;
+
+handler.command = /^(attiva|abilita|disabilita|disattiva|enable|disable|on|off|start|stop|activar|encender|iniciar|desactivar|apagar|detener|ativar|ligar|desligar|desativar|einschalten|aktivieren|ausschalten|deaktivieren|开始|启动|开启|关闭|停用|结束|включить|активировать|выключить|деактивировать|تشغيل|تفعيل|إيقاف|تعطيل|चालू|सक्रिय|बंद|निष्क्रिय|activer|démarrer|allumer|désactiver|arrêter|éteindre|mengaktifkan|menyalakan|menonaktifkan|mematikan|başlat|etkinleştir|aç|bitir|devre\s*dışı\s*bırak)$/i;
+
 handler.group = true;
 handler.ownerOnly = false;
+
 
 export default handler;

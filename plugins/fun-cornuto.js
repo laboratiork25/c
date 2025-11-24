@@ -81,8 +81,9 @@ let handler = async (m, { conn, command, text, usedPrefix }) => {
   );
 };
 
-handler.help = ['cornuto @nome', 'cornuta @nome', 'corna @nome'];
+handler.help = ['cornuto @nome', 'cornuta @nome', 'corna @nome', 'cuckold @name', 'horns @name', 'cornudo @nombre', 'cornuda @nombre', 'cornios @nombre', 'corno @nome_pt', 'corna_pt @nome', 'gehörnter @name', 'hörner @name', '戴绿帽子 @名字', 'рогоносец @имя', 'قرن_دار @اسم', 'सींगवाला @नाम', 'cocu @nom', 'cornudo_id @nama', 'boynuzlu @isim'];
 handler.tags = ['fun'];
-handler.command = /^(cornuto|cornuta|corna)$/i;
+handler.command = /^(cornuto|cornuta|corna|cuckold|horns|cornudo|cornuda|cornios|corno|gehörnter|hörner|戴绿帽子|рогоносец|قرن_دار|सींगवाला|cocu|boynuzlu)$/i;
+
 
 export default handler;

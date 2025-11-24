@@ -56,5 +56,7 @@ let handler = async (m, { conn, usedPrefix, command, text }) => {
     conn.sendMessage(m.chat, { react: { text: '💋', key: bacio.key }});
 };
 handler.isGroup = true;
-handler.command = /bacio|bacia/i;
+handler.command = /^(bacio|bacia|kiss|beso|beijo|kuss|吻|поцелуй|قبلة|चुम्बन|baiser|ciuman|öpücük)$/i;
+handler.help = ['bacio', 'bacia', 'kiss', 'beso', 'beijo', 'kuss', '吻', 'поцелуй', 'قبلة', 'चुम्बन', 'baiser', 'ciuman', 'öpücük'];
+
 export default handler;

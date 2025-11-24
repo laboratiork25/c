@@ -147,8 +147,46 @@ handler.before = async (m, { conn }) => {
   }
 };
 
-handler.help = ['auto', 'car', 'skiplogo', 'skipcar'];
-handler.tags = ['game'];
-handler.command = /^(auto|car|skiplogo|skipcar)$/i;
+handler.help = [
+  'auto',
+  'car',
+  'skiplogo',
+  'skipcar',
+  'macchina',
+  'saltalogo',
+  'saltamacchina',
+  'coche',
+  'saltarlogo',
+  'saltarcoche',
+  'carro',
+  'pularlogo',
+  'pularcarro',
+  'auto_de',
+  'wagen',
+  'logoueberspringen',
+  'autoueberspringen',
+  '跳过标志',
+  '跳过汽车',
+  'машина',
+  'пропустить_логотип',
+  'пропустить_тачку',
+  'تخطي_الشعار',
+  'تخطي_السيارة',
+  'गाड़ी',
+  'कार',
+  'लोगो_स्किप',
+  'कार_स्किप',
+  'passerlogo',
+  'passervoiture',
+  'lewatlogo',
+  'lewatmobil',
+  'logoyu_geç',
+  'arabayı_geç'
+];
+
+handler.command = /^(auto|car|skiplogo|skipcar|macchina|saltalogo|saltamacchina|coche|saltarlogo|saltarcoche|carro|pularlogo|pularcarro|auto_de|wagen|logoueberspringen|autoueberspringen|跳过标志|跳过汽车|машина|пропустить_логотип|пропустить_тачку|تخطي_الشعار|تخطي_السيارة|गाड़ी|कार|लोगो_स्किप|कार_स्किप|passerlogo|passervoiture|lewatlogo|lewatmobil|logoyu_geç|arabayı_geç)$/i;
+
+handler.tags = ['fun'];
+
 
 export default handler;
