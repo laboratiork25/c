@@ -181,56 +181,56 @@ const discountSystem = {
     }
 };
 
-// Lista completa del negozio con prezzi
+// Lista completa del negozio con prezzi e thumb URL (aggiunti per carousel stile Pinterest)
 const shopItems = {
     '🧪 POZIONI': [
-        { name: 'Minore (25 HP)', price: 20, item: 'pozioneminore', aliases: ['pozione minore', 'cura minore', 'piccola'] },
-        { name: 'Maggiore (50 HP)', price: 40, item: 'pozionemaggiore', aliases: ['pozione maggiore', 'cura maggiore', 'media'] },
-        { name: 'Grande (100 HP)', price: 80, item: 'pozionedefinitiva', aliases: ['pozione definitiva', 'cura definitiva', 'grande'] }
+        { name: 'Minore (25 HP)', price: 20, item: 'pozioneminore', aliases: ['pozione minore', 'cura minore', 'piccola'], thumb: 'https://example.com/pozione_minore.png' },
+        { name: 'Maggiore (50 HP)', price: 40, item: 'pozionemaggiore', aliases: ['pozione maggiore', 'cura maggiore', 'media'], thumb: 'https://example.com/pozione_maggiore.png' },
+        { name: 'Grande (100 HP)', price: 80, item: 'pozionedefinitiva', aliases: ['pozione definitiva', 'cura definitiva', 'grande'], thumb: 'https://example.com/pozione_grande.png' }
     ],
     '🚗 VEICOLI': [
-        { name: 'Macchina 🚗', price: 300, item: 'macchina', aliases: ['auto'] },
-        { name: 'Moto 🏍️', price: 200, item: 'moto', aliases: ['motocicletta'] },
-        { name: 'Bicicletta 🚴🏻', price: 50, item: 'bici', aliases: ['bicicletta'] }
+        { name: 'Macchina 🚗', price: 300, item: 'macchina', aliases: ['auto'], thumb: 'https://example.com/macchina.png' },
+        { name: 'Moto 🏍️', price: 200, item: 'moto', aliases: ['motocicletta'], thumb: 'https://example.com/moto.png' },
+        { name: 'Bicicletta 🚴🏻', price: 50, item: 'bici', aliases: ['bicicletta'], thumb: 'https://example.com/bici.png' }
     ],
     '🎣 ATTREZZI': [
-        { name: 'Canna da Pesca 🎣', price: 30, item: 'canna', aliases: ['canna da pesca'] }
+        { name: 'Canna da Pesca 🎣', price: 30, item: 'canna', aliases: ['canna da pesca'], thumb: 'https://example.com/canna.png' }
     ],
     '🎋 SEMI': [
-        { name: 'Seme Comune 🌱', price: 15, item: 'seme_comune', aliases: ['seme', 'seme comune', 'semi'] },
-        { name: 'Seme Raro 🌿', price: 120, item: 'seme_raro', aliases: ['seme raro'] },
-        { name: 'Seme Tossico ☠️', price: 50, item: 'seme_tossico', aliases: ['seme tossico', 'seme veleno'] }
+        { name: 'Seme Comune 🌱', price: 15, item: 'seme_comune', aliases: ['seme', 'seme comune', 'semi'], thumb: 'https://example.com/seme_comune.png' },
+        { name: 'Seme Raro 🌿', price: 120, item: 'seme_raro', aliases: ['seme raro'], thumb: 'https://example.com/seme_raro.png' },
+        { name: 'Seme Tossico ☠️', price: 50, item: 'seme_tossico', aliases: ['seme tossico', 'seme veleno'], thumb: 'https://example.com/seme_tossico.png' }
     ],
     '🛡️ PROTEZIONI': [
-    { name: 'Vita 💞', price: 200, item: 'vita', aliases: ['vita', 'vita extra', 'seconda vita', 'respawn'] },
-    { name: 'Scudo (1h) 🛡️', price: 300, item: 'scudo', aliases: ['scudo', 'scudo p', 'scudo 1h'] },
-    { name: 'Scudo (3h) 🛡️', price: 500, item: 'scudo3h', aliases: ['scudo 3h', 'scudo medio'] },
-    { name: 'Scudo (6h) 🛡️', price: 800, item: 'scudo6h', aliases: ['scudo 6h', 'scudo lungo'] },
-    { name: 'Scudo (12h) 🛡️', price: 1200, item: 'scudo12h', aliases: ['scudo 12h', 'scudo massimo'] }
+        { name: 'Vita 💞', price: 200, item: 'vita', aliases: ['vita', 'vita extra', 'seconda vita', 'respawn'], thumb: 'https://example.com/vita.png' },
+        { name: 'Scudo (1h) 🛡️', price: 300, item: 'scudo', aliases: ['scudo', 'scudo p', 'scudo 1h'], thumb: 'https://example.com/scudo1h.png' },
+        { name: 'Scudo (3h) 🛡️', price: 500, item: 'scudo3h', aliases: ['scudo 3h', 'scudo medio'], thumb: 'https://example.com/scudo3h.png' },
+        { name: 'Scudo (6h) 🛡️', price: 800, item: 'scudo6h', aliases: ['scudo 6h', 'scudo lungo'], thumb: 'https://example.com/scudo6h.png' },
+        { name: 'Scudo (12h) 🛡️', price: 1200, item: 'scudo12h', aliases: ['scudo 12h', 'scudo massimo'], thumb: 'https://example.com/scudo12h.png' }
     ],
     '🥞 SPECIALI': [
-        { name: 'Flame Pass 🔥', price: 500, item: 'flamePass', aliases: ['flamepass', ' flame', 'pass'] },
-        { name: 'Gettone 🪙', price: 5000, item: 'joincount', aliases: ['gettoni', 'token', 'gettone', 'crediti', 'credito'] },
-        { name: 'Forcina 📎', price: 9999, item: 'forcina', aliases: ['scassina', 'forcine'] },
-        { name: 'Filtro 🤐', price: 4000, item: 'filtro', aliases: ['filtro', ' filtri'] },
-        { name: 'Lente 🔎', price: 150000, item: 'lente', aliases: ['lente', 'lenti'] },
-        { name: 'Name Tag 🏷️', price: 300, item: 'nametag', aliases: ['tag', 'name tag', 'targhetta', 'targhette'] }
+        { name: 'Flame Pass 🔥', price: 500, item: 'flamePass', aliases: ['flamepass', ' flame', 'pass'], thumb: 'https://example.com/flamepass.png' },
+        { name: 'Gettone 🪙', price: 5000, item: 'joincount', aliases: ['gettoni', 'token', 'gettone', 'crediti', 'credito'], thumb: 'https://example.com/gettone.png' },
+        { name: 'Forcina 📎', price: 9999, item: 'forcina', aliases: ['scassina', 'forcine'], thumb: 'https://example.com/forcina.png' },
+        { name: 'Filtro 🤐', price: 4000, item: 'filtro', aliases: ['filtro', ' filtri'], thumb: 'https://example.com/filtro.png' },
+        { name: 'Lente 🔎', price: 150000, item: 'lente', aliases: ['lente', 'lenti'], thumb: 'https://example.com/lente.png' },
+        { name: 'Name Tag 🏷️', price: 300, item: 'nametag', aliases: ['tag', 'name tag', 'targhetta', 'targhette'], thumb: 'https://example.com/nametag.png' }
     ],
     '🐾 ANIMALI': [
-    { name: 'Cane🐶', price: 500, item: 'cane', aliases: ['cani'] },
-    { name: 'Pollo🐔', price: 100, item: 'pollo', aliases: ['pollo', 'polli', 'chicken'] },
-        { name: 'Gatto🐈', price: 300, item: 'gatto', aliases: ['gatti'] },
-        { name: 'Coniglio🐇', price: 340, item: 'coniglio', aliases: ['conigli'] },
-        { name: 'Drago🐲', price: 4000, item: 'drago', aliases: ['lucertola'] },
-        { name: 'Piccione🐦‍⬛', price: 450, item: 'piccione', aliases: ['uccello', 'pappagallo'] },
-        { name: 'Serpente🐍', price: 1200, item: 'serpente', aliases: ['serpeente'] },
-        { name: 'Cavallo🐎', price: 2000, item: 'cavallo', aliases: ['cavall'] },
-        { name: 'Pesce🐟', price: 500, item: 'pesce', aliases: ['pesciolino'] },
-        { name: 'Riccio🦔', price: 700, item: 'riccio', aliases: ['ricci'] },
-        { name: 'Scoiattolo🐿️', price: 1400, item: 'scoiattolo', aliases: ['sksk'] },
-        { name: 'polpo🐙', price: 900, item: 'polpo', aliases: ['squid', 'squiddi', 'squiddy'] },
-        { name: 'ragno🕷️', price: 3000, item: 'ragno', aliases: ['ragni'] },
-        { name: 'scorpione🦂', price: 4000, item: 'scorpione', aliases: ['scorpioni', 'scorpy']}
+        { name: 'Cane🐶', price: 500, item: 'cane', aliases: ['cani'], thumb: 'https://example.com/cane.png' },
+        { name: 'Pollo🐔', price: 100, item: 'pollo', aliases: ['pollo', 'polli', 'chicken'], thumb: 'https://example.com/pollo.png' },
+        { name: 'Gatto🐈', price: 300, item: 'gatto', aliases: ['gatti'], thumb: 'https://example.com/gatto.png' },
+        { name: 'Coniglio🐇', price: 340, item: 'coniglio', aliases: ['conigli'], thumb: 'https://example.com/coniglio.png' },
+        { name: 'Drago🐲', price: 4000, item: 'drago', aliases: ['lucertola'], thumb: 'https://example.com/drago.png' },
+        { name: 'Piccione🐦‍⬛', price: 450, item: 'piccione', aliases: ['uccello', 'pappagallo'], thumb: 'https://example.com/piccione.png' },
+        { name: 'Serpente🐍', price: 1200, item: 'serpente', aliases: ['serpeente'], thumb: 'https://example.com/serpente.png' },
+        { name: 'Cavallo🐎', price: 2000, item: 'cavallo', aliases: ['cavall'], thumb: 'https://example.com/cavallo.png' },
+        { name: 'Pesce🐟', price: 500, item: 'pesce', aliases: ['pesciolino'], thumb: 'https://example.com/pesce.png' },
+        { name: 'Riccio🦔', price: 700, item: 'riccio', aliases: ['ricci'], thumb: 'https://example.com/riccio.png' },
+        { name: 'Scoiattolo🐿️', price: 1400, item: 'scoiattolo', aliases: ['sksk'], thumb: 'https://example.com/scoiattolo.png' },
+        { name: 'polpo🐙', price: 900, item: 'polpo', aliases: ['squid', 'squiddi', 'squiddy'], thumb: 'https://example.com/polpo.png' },
+        { name: 'ragno🕷️', price: 3000, item: 'ragno', aliases: ['ragni'], thumb: 'https://example.com/ragno.png' },
+        { name: 'scorpione🦂', price: 4000, item: 'scorpione', aliases: ['scorpioni', 'scorpy'], thumb: 'https://example.com/scorpione.png' }
     ]
 }
 
@@ -277,7 +277,8 @@ if (!shopItems['🏡 CASE']) {
     name: c.name,
     price: c.price,
     item: c.key,
-    aliases: c.aliases
+    aliases: c.aliases,
+    thumb: c.thumb // Mantieni il thumb URL per le case
   }))
 }
 
@@ -289,7 +290,8 @@ function createAliasMap() {
             aliasMap[item.item] = {
                 name: item.name,
                 price: item.price,
-                aliases: [item.item, ...item.aliases]
+                aliases: [item.item, ...item.aliases],
+                thumb: item.thumb // Aggiungi thumb alla mappa
             }
         }
     }
@@ -417,85 +419,78 @@ let handler = async (m, { conn, args, usedPrefix, command }) => {
     // 1. SOLO .shop mostra la lista completa, senza ricerca
     if ((command === 'shop' || command === 'negozio') && args.length === 0) {
         try {
-            // IMPORTANTE: sendCarousel vuole il Buffer del file, non il percorso!
-            const thumbPath = path.resolve(baseShopImgPath, 'shop.png')
-            let thumb = null
-            
-            // Verifica che il file esista e carica il Buffer
-            if (fs.existsSync(thumbPath)) {
-                thumb = fs.readFileSync(thumbPath)  // ← Passa il Buffer, non il percorso!
-                console.log('[SHOP] Thumb loaded:', thumbPath, 'size:', thumb.length)
-            } else {
-                console.warn('[SHOP] Thumb non trovata:', thumbPath)
-            }
-            
             // Prepare active discounts
             const activeDiscounts = getActiveDiscounts()
 
-            // Build messages array per il carosello
-            const messages = []
+            // Build cards array per il carosello stile Pinterest
+            const cards = []
             const categories = Object.entries(shopItems)
-            let totalSections = 0
-            
-            // First pass to count total sections for the subtitle
-            categories.forEach(([_, items]) => {
-                totalSections += Math.ceil(items.length / 5)
-            })
-
             let currentSection = 1
+            let totalSections = 0
+
+            // First pass to count total sections
+            categories.forEach(([_, items]) => {
+                totalSections += items.length // Una card per item, stile Pinterest
+            })
 
             categories.forEach(([category, items]) => {
-                const chunkSize = 3
-                for (let i = 0; i < items.length; i += chunkSize) {
-                    const chunk = items.slice(i, i + chunkSize)
-                    let body = ''
-                    
-                    chunk.forEach(item => {
-                        const p = discountSystem.getDiscountedPrice(item.item, item.price, activeDiscounts)
-                        if (p.hasDiscount) {
-                            body += `*╭★─ ${item.name}*\n│ sconto           ➜       -${p.discount}%\n│ prezzo pieno ➜ 🪙 ~~${formatNumber(p.originalPrice)}~~\n│ prezzo            ➜ 🪙 ${formatNumber(p.price)}\n╰★────★────★────★\n\n`
-                         //   🏷️ -${p.discount}% | 💰 ~~${formatNumber(p.originalPrice)}~~ ➜ ${formatNumber(p.price)} 🪙\n\n
-                        } else {
-                            body += `*╭★─ ${item.name}*\n│ prezzo            ➜ 🪙 ${formatNumber(p.price)}\n╰★────★────★────★\n\n`
+                items.forEach((item, index) => {
+                    const p = discountSystem.getDiscountedPrice(item.item, item.price, activeDiscounts)
+                    let bodyParts = []
+                    if (p.hasDiscount) {
+                        const timeRemaining = discountSystem.formatTimeRemaining(p.expiresAt)
+                        bodyParts.push(`🏷️ *SCONTO ${p.discount}%!*`)
+                        bodyParts.push(`💰 ~~${formatNumber(p.originalPrice)}~~ ➜ ${formatNumber(p.price)} 🪙`)
+                        if (timeRemaining) {
+                            bodyParts.push(`⏰ Scade tra: ${timeRemaining}`)
                         }
-                    })
+                    } else {
+                        bodyParts.push(`💰 Prezzo: ${formatNumber(p.price)} 🪙`)
+                    }
 
-                    const sectionTitle = i === 0 ? `꒷꒦★ 『 ${category} 』 ★꒷꒦\n┈ ─ ─ ─ ─ ─  ✦  ─ ─ ─ ─ ─ ┈` : `『${category} ${Math.floor(i / chunkSize) + 1}\n ─ ─ ─ ─ ✦ ─ ─ ─ ─ ┈`
-                    
-                    messages.push([
-                        { title: sectionTitle, body: body.trim() },
-                        `Pagina ${currentSection}/${totalSections} • Shop`,
-                        thumb,
-                        [], null, null, null
-                    ])
+                    const title = item.name.substring(0, 80) + (item.name.length > 80 ? '...' : '')
+                    const imageUrl = item.thumb || 'https://example.com/default_shop.png' // URL di fallback se non presente
+
+                    cards.push({
+                        image: { url: imageUrl },
+                        title: `\`${title}\``,
+                        body: bodyParts.join('\n'),
+                        footer: `Pagina ${currentSection}/${totalSections} • ${category}`,
+                        buttons: [
+                            {
+                                name: "quick_reply",
+                                buttonParamsJson: JSON.stringify({
+                                    display_text: `🛒 Compra ${item.item}`,
+                                    id: `${usedPrefix}compra ${item.item}`
+                                })
+                            },
+                            {
+                                name: "cta_copy",
+                                buttonParamsJson: JSON.stringify({
+                                    display_text: "📎 Copia Comando",
+                                    copy_code: `${usedPrefix}compra ${item.item}`
+                                })
+                            }
+                        ]
+                    })
                     currentSection++
-                }
+                })
             })
 
+            console.log(`[SHOP] Preparando carosello con ${cards.length} cards`)
 
-            // Costruisci le cards per il carosello con la struttura corretta
-            const cards = messages.map((msg, index) => ({
-                body: msg[0].body,
-                footer: msg[1],
-                buttons: [
-                    {
-                        name: 'quick_reply',
-                        buttonParamsJson: JSON.stringify({
-                            display_text: `📄 ${msg[0].title.substring(0, 20)}`,
-                            id: `.shop-text`
-                        })
-                    }
-                ]
-            }))
-
-            console.log(`[SHOP] Preparando carosello con ${messages.length} sezioni, thumb size: ${thumb ? thumb.length : 'null'}`)
-
-            await conn.sendMessage(m.chat, {
-                text: `꒷꒦ ✦ 🏪 NEGOZIO CHATUNITY ✦ ꒷꒦\n\n${messages[0][0].title}`,
-                cards: cards
-            }, { quoted: m })
+            await conn.sendMessage(
+                m.chat,
+                {
+                    text: `꒷꒦ ✦ 🏪 NEGOZIO CHATUNITY ✦ ꒷꒦\n\nSaldo: ${formatNumber(user.limit || 0)} 🪙`,
+                    title: '',
+                    footer: `˗ˏˋ ☾ ChatUnity Shop ☽ ˎˊ˗`,
+                    cards: cards
+                },
+                { quoted: m }
+            )
             
-            console.log(`[SHOP] Carosello inviato con successo (${messages.length} sezioni)`)
+            console.log(`[SHOP] Carosello inviato con successo (${cards.length} cards)`)
             
             // Messaggio con bottone copia-incolla per utenti iPhone
             try {
@@ -536,10 +531,9 @@ let handler = async (m, { conn, args, usedPrefix, command }) => {
                 const activeDiscounts = getActiveDiscounts()
                 const shopText = generateShopText(usedPrefix, user.limit || 0)
                 await conn.reply(m.chat, shopText, m)
-                console.log('[SHOP] Fallback testo inviato con successo')
+                console.log('[SHOP] Fallback a testo semplice inviato')
             } catch (fallbackErr) {
-                console.error('[SHOP] Errore anche nel fallback:', fallbackErr)
-                await conn.sendMessage(m.chat, { text: 'Errore nel caricamento del negozio. Riprova più tardi.' }, { quoted: m })
+                console.error('[SHOP] Errore fallback:', fallbackErr)
             }
         }
         return
