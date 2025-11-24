@@ -282,9 +282,10 @@ handler.before = async (m, { conn, usedPrefix, command }) => {
     }
 };
 
-handler.help = ['bandiera', 'flag', 'skipbandiera'];
+handler.command = /^(bandiera|flag|skipbandiera|bandera|banderaskip|bandeira|skipbandeira|flagge|flaggeüberspringen|跳过旗帜|旗帜|пропустить_флаг|флаг|تخطي_العلم|علم|झंडा|झंडास्किप|drapeau|passerdrapeau|bendera|lewatbendera|bayrak|bayrağı_geç)$/i;
+handler.help = ['bandiera', 'flag', 'skipbandiera', 'bandera', 'banderaskip', 'bandeira', 'skipbandeira', 'flagge', 'flaggeüberspringen', '跳过旗帜', '旗帜', 'пропустить_флаг', 'флаг', 'تخطي_العلم', 'علم', 'झंडा', 'झंडास्किप', 'drapeau', 'passerdrapeau', 'bendera', 'lewatbendera', 'bayrak', 'bayrağı_geç'];
+
 handler.tags = ['game'];
-handler.command = /^(bandiera|flag|skipbandiera)$/i;
 handler.group = true;
 handler.register = true;
 
