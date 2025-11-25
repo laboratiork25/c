@@ -519,63 +519,72 @@ export async function handler(chatUpdate) {
 }
 
 export async function participantsUpdate({ id, participants, action }) {
-  if (opts['self']) return
-  if (this.isInit) return
-  if (global.db.data == null) await global.loadDatabase()
+    if (opts['self'])
+        return
+    if (this.isInit) 
+        return
+    if (global.db.data == null)
+        await loadDatabase()
 
-  let chat = global.db.data.chats[id] || {}
-  let text = ''
-  let nomeDelBot = global.db.data.nomedelbot || `𝐂𝐡𝐚𝐭𝐔𝐧𝐢𝐭𝐲-𝐁𝐨𝐭`
-  let jidCanale = global.db.data.jidcanale || '120363259442839354@newsletter'
+    let chat = global.db.data.chats[id] || {}
+    let text = ''
+    let nomeDelBot = global.db.data.nomedelbot || `𝐂𝐡𝐚𝐭𝐔𝐧𝐢𝐭𝐲-𝐁𝐨𝐭`
+    let jidCanale = global.db.data.jidcanale || '120363259442839354@newsletter'
 
-  switch (action) {
-    case 'add':
-    case 'remove':
-      if (chat.welcome) {
-        let groupMetadata = await this.groupMetadata(id).catch(() => null)
-        if (!groupMetadata) groupMetadata = (this.chats[id] || {}).metadata
-        for (let user of (Array.isArray(participants) ? participants : [])) {
-          let pp = './menu/principale.jpeg'
-          try {
-            pp = await this.profilePictureUrl(user, 'image')
-          } catch (e) {} 
-          let apii = await this.getFile(pp)
-          if (action === 'add') {
-            text = (chat.sWelcome || this.welcome || global.conn.welcome || 'benvenuto, @user!')
-              .replace('@subject', await this.getName(id))
-              .replace('@desc', groupMetadata?.desc?.toString() || 'bot')
-              .replace('@user', '@' + user.split('@')[0])
-          } else if (action === 'remove') {
-            text = (chat.sBye || this.bye || global.conn.bye || 'bye bye, @user!')
-              .replace('@user', '@' + user.split('@')[0])
-          }
-          await this.sendMessage(id, {
-            text: text,
-            contextInfo: {
-              mentionedJid: [user],
-              forwardingScore: 99,
-              isForwarded: true,
-              forwardedNewsletterMessageInfo: {
-                newsletterJid: jidCanale,
-                serverMessageId: '',
-                newsletterName: `${nomeDelBot}`
-              },
-              externalAdReply: {
-                title: (action === 'add'
-                  ? '𝐌𝐞𝐬𝐬𝐚𝐠𝐠𝐢𝐨 𝐝𝐢 𝐛𝐞𝐧𝐯𝐞𝐧𝐮𝐭𝐨'
-                  : '𝐌𝐞𝐬𝐬𝐚𝐠𝐠𝐢𝐨 𝐝𝐢 𝐚𝐝𝐝𝐢𝐨'),
-                body: ``,
-                previewType: 'PHOTO',
-                thumbnailUrl: ``,
-                thumbnail: apii.data,
-                mediaType: 1
-              }
+    switch (action) {
+        case 'add':
+        case 'remove':
+            if (chat.welcome) {
+                let groupMetadata = await this.groupMetadata(id) || (conn.chats[id] || {}).metadata
+                for (let user of participants) {
+                    let pp = './menu/principale.jpeg'
+                    try {
+                        pp = await this.profilePictureUrl(user, 'image')
+                    } catch (e) {
+                    } finally {
+                        let apii = await this.getFile(pp)
+
+                        if (action === 'add') {
+                            text = (chat.sWelcome || this.welcome || conn.welcome || 'benvenuto, @user!')
+                                .replace('@subject', await this.getName(id))
+                                .replace('@desc', groupMetadata.desc?.toString() || 'bot')
+                                .replace('@user', '@' + user.split('@')[0])
+                        } else if (action === 'remove') {
+                            text = (chat.sBye || this.bye || conn.bye || 'bye bye, @user!')
+                                .replace('@user', '@' + user.split('@')[0])
+                        }
+
+                        this.sendMessage(id, { 
+                            text: text, 
+                            contextInfo:{ 
+                                mentionedJid:[user],
+                                forwardingScore: 99,
+                                isForwarded: true,
+                                forwardedNewsletterMessageInfo: {
+                                    newsletterJid: jidCanale,
+                                    serverMessageId: '',
+                                    newsletterName: `${nomeDelBot}`
+                                },
+                                "externalAdReply": {
+                                    "title": (
+                                        action === 'add' 
+                                            ? '𝐌𝐞𝐬𝐬𝐚𝐠𝐠𝐢𝐨 𝐝𝐢 𝐛𝐞𝐧𝐯𝐞𝐧𝐮𝐭𝐨' 
+                                            : '𝐌𝐞𝐬𝐬𝐚𝐠𝐠𝐢𝐨 𝐝𝐢 𝐚𝐝𝐝𝐢𝐨'
+                                    ), 
+                                    "body": ``, 
+                                    "previewType": "PHOTO", 
+                                    "thumbnailUrl": ``, 
+                                    "thumbnail": apii.data,
+                                    "mediaType": 1,
+                                    "renderLargerThumbnail": false
+                                }
+                            }
+                        }) 
+                    } 
+                } 
             }
-          })
-        }
-      }
-      break
-  }
+            break
+    }
 }
 
 export async function groupsUpdate(groupsUpdate) {
