@@ -434,22 +434,22 @@ let handler = async (m, { conn, args, usedPrefix, command }) => {
                 const chunkSize = 3
                 for (let i = 0; i < items.length; i += chunkSize) {
                     const chunk = items.slice(i, i + chunkSize)
-                    let body = ''
+                    let ciuciuc = '.'
                     
                     chunk.forEach(item => {
                         const p = discountSystem.getDiscountedPrice(item.item, item.price, activeDiscounts)
                         if (p.hasDiscount) {
-                            body += `*╭★─ ${item.name}*\n│ sconto           ➜       -${p.discount}%\n│ prezzo pieno ➜ 🪙 ~~${formatNumber(p.originalPrice)}~~\n│ prezzo            ➜ 🪙 ${formatNumber(p.price)}\n╰★────★────★────★\n\n`
+                            ciuciuc += `*╭★─ ${item.name}*\n│ sconto           ➜       -${p.discount}%\n│ prezzo pieno ➜ 🪙 ~~${formatNumber(p.originalPrice)}~~\n│ prezzo            ➜ 🪙 ${formatNumber(p.price)}\n╰★────★────★────★\n\n`
                          //   🏷️ -${p.discount}% | 💰 ~~${formatNumber(p.originalPrice)}~~ ➜ ${formatNumber(p.price)} 🪙\n\n
                         } else {
-                            body += `*╭★─ ${item.name}*\n│ prezzo            ➜ 🪙 ${formatNumber(p.price)}\n╰★────★────★────★\n\n`
+                            ciuciuc += `*╭★─ ${item.name}*\n│ prezzo            ➜ 🪙 ${formatNumber(p.price)}\n╰★────★────★────★\n\n`
                         }
                     })
 
                     const sectionTitle = i === 0 ? `꒷꒦★ 『 ${category} 』 ★꒷꒦\n┈ ─ ─ ─ ─ ─  ✦  ─ ─ ─ ─ ─ ┈` : `『${category} ${Math.floor(i / chunkSize) + 1}\n ─ ─ ─ ─ ✦ ─ ─ ─ ─ ┈`
                     
                     messages.push([
-                        { title: sectionTitle, body: body.trim() },
+                        { title: sectionTitle, ciuciuc: ciuciuc.trim() },
                         `Pagina ${currentSection}/${totalSections} • Shop`,
                         thumb,
                         [], null, null, null
@@ -457,25 +457,46 @@ let handler = async (m, { conn, args, usedPrefix, command }) => {
                     currentSection++
                 }
             })
-            const negozio = fs.readFileSync(path.resolve('./media/shop/shop.png'))
+            // Costruisci le cards per il carosello con la stessa struttura del fallback
+            const cards = []
+            
+            for (const msg of messages) {
+                try {
+                    // Carica l'immagine per ogni card (come nel fallback)
+                    const imageUrl = 'https://i.ibb.co/hJW7WwxV/varebot.jpg'
+                    const response = await fetch(imageUrl)
+                    const arrayBuffer = await response.arrayBuffer()
+                    const imageBuffer = Buffer.from(arrayBuffer)
+                    
+                    cards.push({
+                        image: imageBuffer,
+                        title: msg[0].title,
+                        body: msg[0].ciuciuc,
+                        footer: msg[1]
+                    })
+                } catch (err) {
+                    console.error('[SHOP] Errore caricamento immagine card:', err)
+                    // Fallback con thumb locale
+                    cards.push({
+                        image: thumb,
+                        title: msg[0].title,
+                        body: msg[0].ciuciuc,
+                        footer: msg[1]
+                    })
+                }
+            }
 
+            console.log(`[SHOP] Preparando carosello con ${cards.length} cards, thumb size: ${thumb ? thumb.length : 'null'}`)
 
-            // Costruisci le cards per il carosello
-            const cards = messages.map(msg => ({
-                image: negozio,
-                title: msg[0].title,
-                body: msg[0].body,
-                footer: msg[1] // footer per ogni card
-            }))
-
-            console.log(`[SHOP] Preparando carosello con ${messages.length} sezioni, thumb size: ${thumb ? thumb.length : 'null'}`)
-
+            // Usa la stessa struttura del messaggio fallback
             await conn.sendMessage(m.chat, {
-                text: '꒷꒦ ✦ 🏪 NEGOZIO CHATUNITY ✦ ꒷꒦',
+                title: '꒷꒦ ✦ 🏪 NEGOZIO CHATUNITY ✦ ꒷꒦',
+                text: 'Scorri le categorie per vedere tutti i prodotti disponibili',
+                footer: 'Usa i comandi per acquistare o vendere oggetti!',
                 cards: cards
             }, { quoted: m })
             
-            console.log(`[SHOP] Carosello inviato con successo (${messages.length} sezioni)`)
+            console.log(`[SHOP] Carosello inviato con successo (${cards.length} sezioni)`)
             
             // Messaggio con bottone copia-incolla per utenti iPhone
             try {
