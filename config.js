@@ -20,7 +20,7 @@ global.owner = [
   ['35795191323', 'Axtral', true],
   ['66621409462', 'matte', true],
   ['393534409026', 'Easter', true],
-  ['393516612216'], 'elking', true],
+  ['393516612216', 'elking', true],
   ['xxxxxxxxxx'],
   ['xxxxxxxxxx']
 ];
