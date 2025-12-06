@@ -3,6 +3,7 @@ import '../lib/language.js'
 const handler = async (m, { conn, text, usedPrefix, command, isOwner, isAdmin }) => {
   const userId = m.sender
   const groupId = m.isGroup ? m.chat : null
+  const validLanguages = ['it', 'en', 'zh', 'ar', 'fr', 'hi', 'id', 'pt', 'ru', 'es', 'de', 'tr']
 
   // Check if it's a group command for group language
   if (m.isGroup && text?.toLowerCase().startsWith('group')) {
@@ -12,37 +13,51 @@ const handler = async (m, { conn, text, usedPrefix, command, isOwner, isAdmin })
     }
     
     const langCode = text.toLowerCase().replace('group', '').trim()
-    if (langCode === 'it' || langCode === 'en') {
+    if (validLanguages.includes(langCode)) {
       const success = global.languageManager.setGroupLanguage(groupId, langCode)
       if (success) {
         global.languageManager.saveToDatabase()
-        return conn.reply(m.chat, `🌍 Lingua del gruppo cambiata in: ${langCode === 'it' ? 'Italiano 🇮🇹' : 'English 🇬🇧'}`, m)
+        const langNames = { it: 'Italiano 🇮🇹', en: 'English 🇬🇧', zh: '中文 🇨🇳', ar: 'العربية 🇸🇦', fr: 'Français 🇫🇷', hi: 'हिन्दी 🇮🇳', id: 'Bahasa Indonesia 🇮🇩', pt: 'Português 🇵🇹', ru: 'Русский 🇷🇺', es: 'Español 🇪🇸', de: 'Deutsch 🇩🇪', tr: 'Türkçe 🇹🇷' }
+        return conn.reply(m.chat, `🌍 Lingua del gruppo cambiata in: ${langNames[langCode]}`, m)
       }
     }
-    return conn.reply(m.chat, `❌ Uso corretto: ${usedPrefix}${command} group it/en`, m)
+    return conn.reply(m.chat, `❌ Uso corretto: ${usedPrefix}${command} group it/en/zh/ar/fr/hi/id/pt/ru/es/de/tr`, m)
   }
 
   // Personal language change
   if (text) {
     const langCode = text.toLowerCase().trim()
-    if (langCode === 'it' || langCode === 'en') {
+    if (validLanguages.includes(langCode)) {
       global.languageManager.setUserLanguage(userId, langCode)
       global.languageManager.saveToDatabase()
-      return conn.reply(m.chat, `🌍 La tua lingua personale è stata cambiata in: ${langCode === 'it' ? 'Italiano 🇮🇹' : 'English 🇬🇧'}`, m)
+      const langNames = { it: 'Italiano 🇮🇹', en: 'English 🇬🇧', zh: '中文 🇨🇳', ar: 'العربية 🇸🇦', fr: 'Français 🇫🇷', hi: 'हिन्दी 🇮🇳', id: 'Bahasa Indonesia 🇮🇩', pt: 'Português 🇵🇹', ru: 'Русский 🇷🇺', es: 'Español 🇪🇸', de: 'Deutsch 🇩🇪', tr: 'Türkçe 🇹🇷' }
+      return conn.reply(m.chat, `🌍 La tua lingua personale è stata cambiata in: ${langNames[langCode]}`, m)
     } 
-    return conn.reply(m.chat, `❌ Uso corretto: ${usedPrefix}${command} it/en`, m)
+    return conn.reply(m.chat, `❌ Uso corretto: ${usedPrefix}${command} it/en/zh/ar/fr/hi/id/pt/ru/es/de/tr`, m)
   }
 
   // Show help menu if no parameters
   const helpText = `🌍 *Impostazioni Lingua*
 
+*Lingue Disponibili:*
+• 🇮🇹 it - Italiano
+• 🇬🇧 en - English
+• 🇨🇳 zh - 中文 (Cinese)
+• 🇸🇦 ar - العربية (Arabo)
+• 🇫🇷 fr - Français (Francese)
+• 🇮🇳 hi - हिन्दी (Hindi)
+• 🇮🇩 id - Bahasa Indonesia
+• 🇵🇹 pt - Português (Portoghese)
+• 🇷🇺 ru - Русский (Russo)
+• 🇪🇸 es - Español (Spagnolo)
+• 🇩🇪 de - Deutsch (Tedesco)
+• 🇹🇷 tr - Türkçe (Turco)
+
 *Lingua Personale:*
-• ${usedPrefix}${command} it - Imposta Italiano
-• ${usedPrefix}${command} en - Imposta Inglese
+• ${usedPrefix}${command} <codice> - Imposta la tua lingua
 
 *Lingua Gruppo (Solo Admin):*
-• ${usedPrefix}${command} group it - Imposta Italiano
-• ${usedPrefix}${command} group en - Imposta Inglese
+• ${usedPrefix}${command} group <codice> - Imposta lingua del gruppo
 
 *Lingua Attuale:*
 • Personale: ${global.languageManager.getUserLanguage(userId)}
