@@ -12,21 +12,20 @@ global.vs = '9.0';
 global.collab = 'Demo';
 global.wm = global.nomebot;
 global.wait = 'ⓘ 𝐂𝐚𝐫𝐢𝐜𝐚𝐦𝐞𝐧𝐭𝐨 ...';
-global.nomebot = '𝐂𝐡𝐚𝐭𝐔𝐧𝐢𝐭𝐲-𝐁𝐨𝐭';
-global.canale = '120363259442839354@newsletter';
+
 
 global.owner = [
   ['393773842461', '𝐂𝐡𝐚𝐭𝐔𝐧𝐢𝐭𝐲', true],
-  ['35795191323', 'Axtral', true],
-  ['66621409462', 'matte', true],
-  ['393534409026', 'Easter', true],
-  ['393516612216', 'elking', true],
+  ['393512884684', 'Axtral', true],
+  ['xxxxxxxxxx'],
+  ['xxxxxxxxxx'],
+  ['xxxxxxxxxx'],
   ['xxxxxxxxxx'],
   ['xxxxxxxxxx']
 ];
-
 global.mods = ['xxxxxxxxxx'];
 global.prems = ['xxxxxxxxxx', 'xxxxxxxxxx'];
+
 
 const pickRandom = arr => arr[Math.floor(Math.random() * arr.length)];
 
@@ -51,17 +50,20 @@ global.APIs = {
   zenzapis: 'https://zenzapis.xyz',
   akuari: 'https://api.akuari.my.id',
   akuari2: 'https://apimu.my.id'
+  
 };
 
 global.APIKeys = {
   'https://api.xteam.xyz': global.keysxteam,
   'https://api.lolhuman.xyz': '85faf717d0545d14074659ad',
   'https://api.neoxr.my.id': global.keysneoxr,
-  'https://violetics.pw': 'beta'
+  'https://violetics.pw': 'beta',
+
 };
 
 global.multiplier = 69;
 global.maxwarn = '4';
+
 
 global.flaaa = [
   'https://flamingtext.com/net-fu/proxy_form.cgi?&imageoutput=true&script=water-logo&fontsize=100&scaleWidth=800&scaleHeight=500&fillTextColor=%23000&shadowGlowColor=%23000&backgroundColor=%23000&text=',
@@ -72,9 +74,8 @@ global.flaaa = [
 ];
 
 const file = fileURLToPath(import.meta.url);
-
 watchFile(file, () => {
   unwatchFile(file);
   console.log(chalk.redBright("🔄 Config aggiornato: 'config.js'"));
-  import(`file:///${file.replace(/\\/g, '/')}?update=${Date.now()}`);
+  import(`${file}?update=${Date.now()}`);
 });

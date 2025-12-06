@@ -1,7 +1,7 @@
 import 'os';
 import 'util';
 import 'human-readable';
-import '@realvare/based';
+import '@chatunity/baileys';
 import 'fs';
 import 'perf_hooks';
 import path from 'path';

@@ -1,7 +1,7 @@
 import '../lib/language.js';
 import fetch from 'node-fetch';
 import FormData from 'form-data';
-import { downloadContentFromMessage } from '@realvare/based';
+import { downloadContentFromMessage } from '@chatunity/baileys';
 
 const linkRegex = /chat\.whatsapp\.com\/([0-9A-Za-z]{20,24})|whatsapp\.com\/channel\/([0-9A-Za-z]{20,24})/i;
 const urlRegex = /(https?:\/\/[^\s]+)/g;
