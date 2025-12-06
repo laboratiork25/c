@@ -623,7 +623,7 @@ global.dfail = (type, m, conn) => {
   "externalAdReply": {"title": `${msg}`, 
  "body": ``, 
   "previewType": "PHOTO",
-  "thumbnail": fs.readFileSync('./accessdenied2.png'),
+  "thumbnail": fs.readFileSync('./media/principale.jpeg'),
   "mediaType": 1,
   "renderLargerThumbnail": true}}}, {quoted: m})
 }
