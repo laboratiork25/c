@@ -30,7 +30,7 @@ const handler = async (message, { conn, usedPrefix, command }) => {
 
 handler.help = ['menugruppo', 'gruppo'];
 handler.tags = ['menu'];
-handler.command = /^(gruppo|menugruppo)$/i;
+handler.command = /^(gruppo|menugruppo|👥 Menu Gruppo)$/i;
 
 export default handler;
 
