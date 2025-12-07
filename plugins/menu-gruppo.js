@@ -9,10 +9,10 @@ const handler = async (message, { conn, usedPrefix, command }) => {
     const userId = message.sender;
     const groupId = message.isGroup ? message.chat : null;
     const nomeDelBot = conn.user?.name || global.db?.data?.nomedelbot || 'ChatUnity';
-    
+
     const menuText = generateMenuText(usedPrefix, userId, groupId);
     const imagePath = path.join(__dirname, '../media/gruppo.jpeg');
-    
+
     await conn.sendMessage(message.chat, {
         image: { url: imagePath },
         caption: menuText,
@@ -30,7 +30,9 @@ const handler = async (message, { conn, usedPrefix, command }) => {
 
 handler.help = ['menugruppo', 'gruppo'];
 handler.tags = ['menu'];
-handler.command = /^(gruppo|menugruppo|👥 Menu Gruppo)$/i;
+handler.command = /^(gruppo|menugruppo)$/i;
+handler.customPrefix = /^👥 Menu Gruppo$/i;
+handler.command = new RegExp;
 
 export default handler;
 
@@ -38,12 +40,12 @@ function generateMenuText(prefix, userId, groupId) {
     const vs = global.vs || '8.0';
     const collab = global.collab || 'ChatUnity x 333';
     const menuTitle = global.t('groupMenuTitle', userId, groupId);
-    
+
     const createSection = (title, commands) => {
         const commandLines = commands.trim().split('\n').map(c => `│ ${c.trim()}`).join('\n');
         return `╭★─ ${title} ─★╮\n${commandLines}\n╰★────────────★╯`;
     };
-    
+
     const sections = [
         createSection(global.t('musicAudioSection', userId, groupId), `
 🎵 *.play* (${global.t('songCommand', userId, groupId)})
@@ -137,10 +139,10 @@ function generateMenuText(prefix, userId, groupId) {
 🍺 *.alcolizzato*
 🌿 *.drogato*`)
     ];
-    
+
     return `
 ╭┈ ─ ─ ✦ ─ ─ ┈╮
-   ୧ 👑 ୭ *${menuTitle}*
+   ୧ 👑 ୭ ${menuTitle}
 ╰┈ ─ ─ ✦ ─ ─ ┈╯
 
 ꒷꒦ ✦ ${global.t('memberCommands', userId, groupId)} ✦ ꒷꒦
@@ -153,4 +155,3 @@ ${sections.join('\n\n')}
 │ ${global.t('collabLabel', userId, groupId)}: ${collab}
 ╰★────★────★╯`.trim();
 }
-
