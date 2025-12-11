@@ -1,7 +1,8 @@
+import fs from "fs"
+import Jimp from "jimp"
 import { cpus as _cpus, totalmem, freemem } from 'os'
 import { performance } from 'perf_hooks'
 import { sizeFormatter } from 'human-readable'
-import '../lib/language.js';
 
 let format = sizeFormatter({
   std: 'JEDEC',
@@ -10,10 +11,7 @@ let format = sizeFormatter({
   render: (literal, symbol) => `${literal} ${symbol}B`,
 })
 
-let handler = async (m, { conn, usedPrefix, command }) => {
-  const userId = m.sender;
-  const groupId = m.isGroup ? m.chat : null;
-  
+let handler = async (m, { conn }) => {
   let nomeDelBot = global.db.data.nomedelbot || `𝐂𝐡𝐚𝐭𝐔𝐧𝐢𝐭𝐲`
   let versioneBot = `${vs}`
   let old = performance.now()
@@ -38,56 +36,47 @@ let handler = async (m, { conn, usedPrefix, command }) => {
   }, {
     speed: 0,
     total: 0,
-    times: {
-      user: 0,
-      nice: 0,
-      sys: 0,
-      idle: 0,
-      irq: 0
-    }
+    times: { user: 0, nice: 0, sys: 0, idle: 0, irq: 0 }
   })
 
   let cpuModel = cpus[0]?.model || 'Unknown Model'
   let cpuSpeed = cpu.speed.toFixed(2)
 
-  let caption = global.t('systemStatus', userId, groupId, {
-    title: global.t('systemStatusTitle', userId, groupId),
-    uptime: clockString(uptime),
-    ping: speed,
-    cpuModel: cpuModel,
-    cpuSpeed: cpuSpeed,
-    ramUsed: format(totalmem() - freemem()),
-    ramTotal: format(totalmem()),
-    ramFree: format(freemem())
-  })
+  let caption = `⋆ ★ 🚀 𝑺𝑻𝑨𝑻𝑶 𝑺𝑰𝑺𝑻𝑬𝑴𝑨 🚀 ★ ⋆
+╭♡꒷ ๑ ⋆˚₊⋆───ʚ˚ɞ───⋆˚₊⋆ ๑ ⪩
+୧ ⌛ *Uptime:* ${clockString(uptime)}
+୧ ⚡ *Ping:* ${speed} ms
+  💻 *CPU:* ${cpuModel}
+  🔋 *Usage:* ${cpuSpeed} MHz
+  💾 *RAM:* ${format(totalmem() - freemem())} / ${format(totalmem())}
+  🟢 *Free:* ${format(freemem())}
+╰♡꒷ ๑ ⋆˚₊⋆───ʚ˚ɞ───⋆˚₊⋆ ๑ ⪩
+`
 
-  const profilePictureUrl = await fetchProfilePictureUrl(conn, m.sender)
+  // 🔹 CARICAMENTO DELLA THUMBNAIL
+  const thumbnailPath = "media/ping.jpeg"
+  let thumbBuffer = null
+
+  try {
+    if (fs.existsSync(thumbnailPath)) {
+      let img = await Jimp.read(thumbnailPath)
+      img.resize(150, Jimp.AUTO).quality(70)
+      thumbBuffer = await img.getBufferAsync(Jimp.MIME_JPEG)
+    }
+  } catch (e) {
+    console.error("Errore nel caricare la thumbnail:", e)
+  }
 
   let messageOptions = {
     contextInfo: {
-      forwardingScore: 999,
-      isForwarded: true,
-      forwardedNewsletterMessageInfo: {
-        newsletterJid: '120363259442839354@newsletter',
-        serverMessageId: '',
-        newsletterName: `${nomeDelBot}`
+      externalAdReply: {
+        title: nomeDelBot,
+        body: `Versione: ${versioneBot}`,
+        mediaType: 1,
+        renderLargerThumbnail: false, // 🔹 MINIATURA PICCOLA
+        thumbnail: thumbBuffer ?? undefined
       }
     }
-  }
-
-  if (profilePictureUrl !== 'default-profile-picture-url') {
-    try {
-      messageOptions.contextInfo.externalAdReply = {
-        title: nomeDelBot,
-        body: `${global.t('version', userId, groupId)} ${versioneBot}`,
-        mediaType: 1,
-        renderLargerThumbnail: false,
-        previewType: 'thumbnail',
-        thumbnail: await fetchThumbnail('https://i.ibb.co/k22STymH/Immagine-Whats-App-2025-10-23-ore-19-58-44-580b7b7d.jpg-App-2025-10-23-ore-19-58-44-580b7b7d'),
-      }
-    } catch (error) {
-      console.error('Error fetching thumbnail:', error)
-    } 
   }
 
   try {
@@ -97,24 +86,6 @@ let handler = async (m, { conn, usedPrefix, command }) => {
     })
   } catch (error) {
     console.error('Error sending message:', error)
-  }
-}
-
-async function fetchProfilePictureUrl(conn, sender) {
-  try {
-    return await conn.profilePictureUrl(sender)
-  } catch (error) {
-    console.error('Error fetching profile picture URL:', error)
-    return 'default-profile-picture-url'
-  }
-}
-
-async function fetchThumbnail(url) {
-  if (!url) return null;
-  try {
-      return await global.fetchThumbnail(url);
-  } catch {
-      return null;
   }
 }
 
