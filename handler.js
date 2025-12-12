@@ -5,9 +5,7 @@ import path, { join } from 'path'
 import { unwatchFile, watchFile } from 'fs'
 import fs from 'fs'
 import chalk from 'chalk'
-import { messageQueue, commandQueue, mediaQueue } from './lib/queue.js'
-
-const { proto, generateWAMessage, areJidsSameUser } = (await import('@chatunity/baileys')).default
+const { proto } = (await import('@chatunity/baileys')).default
 
 const isNumber = x => typeof x === 'number' && !isNaN(x)
 const delay = ms => isNumber(ms) && new Promise(resolve => setTimeout(function () {
@@ -18,25 +16,6 @@ const delay = ms => isNumber(ms) && new Promise(resolve => setTimeout(function (
 global.ignoredUsersGlobal = global.ignoredUsersGlobal || new Set()
 global.ignoredUsersGroup = global.ignoredUsersGroup || {}
 global.groupSpam = global.groupSpam || {}
-global.processedMessages = global.processedMessages || new Set()
-global.groupMetaCache = global.groupMetaCache || new Map()
-
-const DUPLICATE_WINDOW = 3000
-const GROUP_META_CACHE_TTL = 300000
-
-function selectQueue(m) {
-  if (m.mtype?.includes('image') || m.mtype?.includes('video') || 
-      m.mtype?.includes('audio') || m.mtype?.includes('document') ||
-      m.mtype?.includes('sticker')) {
-    return mediaQueue
-  }
-  
-  if (m.isCommand || (typeof m.text === 'string' && (m.text.startsWith('.') || m.text.startsWith('/')))) {
-    return commandQueue
-  }
-  
-  return messageQueue
-}
 
 export async function handler(chatUpdate) {
   if (!global.db.data.stats) global.db.data.stats = {}
@@ -44,39 +23,14 @@ export async function handler(chatUpdate) {
 
   this.msgqueque = this.msgqueque || []
   if (!chatUpdate) return
-  
   this.pushMessage(chatUpdate.messages).catch(console.error)
   let m = chatUpdate.messages[chatUpdate.messages.length - 1]
   if (!m) return
-  
-  const msgId = m.key?.id
-  if (!msgId) return
-  
-  if (global.processedMessages.has(msgId)) return
-  global.processedMessages.add(msgId)
-  setTimeout(() => global.processedMessages.delete(msgId), DUPLICATE_WINDOW)
-  
   if (global.db.data == null) await global.loadDatabase()
 
-  const queue = selectQueue(m)
-  
-  await queue.add(async () => {
-    try {
-      await processMessage.call(this, m, chatUpdate, stats)
-    } catch (error) {
-      console.error(`Errore processamento messaggio ${msgId}:`, error.message)
-    }
-  }).catch(err => {
-    if (err.message !== 'timeout') {
-      console.error('Errore coda:', err)
-    }
-  })
-}
-
-async function processMessage(m, chatUpdate, stats) {
   const isOwner = (() => {
     try {
-      const isROwner = [this.decodeJid(global.conn.user.id), ...global.owner.map(([number]) => number)]
+      const isROwner = [conn.decodeJid(global.conn.user.id), ...global.owner.map(([number]) => number)]
         .filter(Boolean)
         .map(v => v.replace(/[^0-9]/g, '') + '@s.whatsapp.net')
         .includes(m.sender)
@@ -101,7 +55,7 @@ async function processMessage(m, chatUpdate, stats) {
     m.isGroup &&
     !isOwner &&
     typeof m.text === 'string' &&
-    hasValidPrefix(m.text, this.prefix || global.prefix)
+    hasValidPrefix(m.text, conn.prefix || global.prefix)
   ) {
     const now = Date.now()
     const chatId = m.chat
@@ -133,7 +87,7 @@ async function processMessage(m, chatUpdate, stats) {
       groupData.isSuspended = true
       groupData.suspendedUntil = now + 45000
 
-      await this.sendMessage(chatId, {
+      await conn.sendMessage(chatId, {
         text: `『 ⚠ 』 Anti-spam comandi\n\nTroppi comandi in poco tempo!\nAttendi *45 secondi* prima di usare altri comandi.\n\n> sviluppato da sam aka vare`,
         mentions: [m.sender]
       })
@@ -232,7 +186,7 @@ async function processMessage(m, chatUpdate, stats) {
 
     if (typeof m.text !== 'string') m.text = ''
 
-    const isROwner = [this.decodeJid(global.conn.user.id), ...global.owner.map(([number]) => number)]
+    const isROwner = [conn.decodeJid(global.conn.user.id), ...global.owner.map(([number]) => number)]
       .map(v => v.replace(/[^0-9]/g, '') + '@s.whatsapp.net')
       .includes(m.sender)
     const isOwner2 = isROwner || m.fromMe
@@ -255,36 +209,20 @@ async function processMessage(m, chatUpdate, stats) {
     let usedPrefix
     let _user = global.db.data?.users?.[m.sender]
 
-    let groupMetadata = {}
-    if (m.isGroup) {
-      const cached = global.groupMetaCache.get(m.chat)
-      if (cached && Date.now() - cached.timestamp < GROUP_META_CACHE_TTL) {
-        groupMetadata = cached.data
-      } else {
-        try {
-          groupMetadata = ((this.chats[m.chat] || {}).metadata || await this.groupMetadata(m.chat).catch(_ => null)) || {}
-          global.groupMetaCache.set(m.chat, {
-            data: groupMetadata,
-            timestamp: Date.now()
-          })
-        } catch {
-          groupMetadata = {}
-        }
-      }
-    }
-
+    const groupMetadata = (m.isGroup ? ((conn.chats[m.chat] || {}).metadata || await this.groupMetadata(m.chat).catch(_ => null)) : {}) || {}
     const participants = (m.isGroup ? groupMetadata.participants : []) || []
     const normalizedParticipants = participants.map(u => {
       const normalizedId = this.decodeJid(u.id)
       return { ...u, id: normalizedId, jid: u.jid || normalizedId }
     })
-    const user = (m.isGroup ? normalizedParticipants.find(u => this.decodeJid(u.id) === m.sender) : {}) || {}
-    const bot = (m.isGroup ? normalizedParticipants.find(u => this.decodeJid(u.id) == this.user.jid) : {}) || {}
+    const user = (m.isGroup ? normalizedParticipants.find(u => conn.decodeJid(u.id) === m.sender) : {}) || {}
+    const bot = (m.isGroup ? normalizedParticipants.find(u => conn.decodeJid(u.id) == this.user.jid) : {}) || {}
 
     async function isUserAdmin(conn, chatId, senderId) {
       try {
         const decodedSender = conn.decodeJid(senderId)
-        return groupMetadata?.participants?.some(p =>
+        const groupMeta = groupMetadata
+        return groupMeta?.participants?.some(p =>
           (conn.decodeJid(p.id) === decodedSender || p.jid === decodedSender) &&
           (p.admin === 'admin' || p.admin === 'superadmin')
         ) || false
@@ -299,108 +237,29 @@ async function processMessage(m, chatUpdate, stats) {
 
     const ___dirname = path.join(path.dirname(fileURLToPath(import.meta.url)), './plugins')
     
-    if (m.message && (m.message.buttonsResponseMessage || m.message.templateButtonReplyMessage || m.message.listResponseMessage || m.message.interactiveResponseMessage)) {
-      let id
-      if (m.message.buttonsResponseMessage) {
-        id = m.message.buttonsResponseMessage.selectedButtonId
-      } else if (m.message.templateButtonReplyMessage) {
-        id = m.message.templateButtonReplyMessage.selectedId
-      } else if (m.message.listResponseMessage) {
-        id = m.message.listResponseMessage.singleSelectReply?.selectedRowId
-      } else if (m.message.interactiveResponseMessage) {
-        try {
-          id = JSON.parse(m.message.interactiveResponseMessage.nativeFlowResponseMessage.paramsJson).id
-        } catch (e) {
-          console.error('Errore parsing interactive response:', e)
-        }
-      }
-      
-      if (id) {
-        const text = m.message.buttonsResponseMessage?.selectedDisplayText || m.message.templateButtonReplyMessage?.selectedDisplayText || m.message.listResponseMessage?.title
-        let isIdMessage = false
-        let usedPrefixButton
-        
-        for (const name in global.plugins) {
-          const plugin = global.plugins[name]
-          if (!plugin || plugin.disabled) continue
-          if (!opts['restrict'] && plugin.tags?.includes('admin')) continue
-          if (typeof plugin !== 'function') continue
-          if (!plugin.command) continue
-          
-          const str2Regex = (str) => str.replace(/[|\\{}()[\]^$+*?.]/g, '\\$&')
-          const _prefix = plugin.customPrefix ? plugin.customPrefix : this.prefix ? this.prefix : global.prefix
-          const match = (_prefix instanceof RegExp ? 
-            [[_prefix.exec(id), _prefix]] : 
-            Array.isArray(_prefix) ? 
-              _prefix.map((p) => {
-                const re = p instanceof RegExp ? p : new RegExp(str2Regex(p))
-                return [re.exec(id), re]
-              }) :
-              typeof _prefix === 'string' ?
-                [[new RegExp(str2Regex(_prefix)).exec(id), new RegExp(str2Regex(_prefix))]] :
-                [[[], new RegExp]]
-          ).find((p) => p[1])
-          
-          if ((usedPrefixButton = (match[0] || '')[0])) {
-            const noPrefix = id.replace(usedPrefixButton, '')
-            let [command] = noPrefix.trim().split` `.filter((v) => v)
-            command = (command || '').toLowerCase()
-            
-            const isId = plugin.command instanceof RegExp ?
-              plugin.command.test(command) :
-              Array.isArray(plugin.command) ?
-                plugin.command.some((cmd) => cmd instanceof RegExp ?
-                  cmd.test(command) :
-                  cmd === command
-                ) :
-                typeof plugin.command === 'string' ?
-                  plugin.command === command :
-                  false
-            
-            if (!isId) continue
-            isIdMessage = true
-            break
-          }
-        }
-        
-        try {
-          const messages = await generateWAMessage(m.chat, {text: isIdMessage ? id : text, mentions: m.mentionedJid}, {
-            userJid: this.user.id,
-            quoted: m.quoted && m.quoted.fakeObj,
-          })
-          
-          messages.key.fromMe = areJidsSameUser(m.sender, this.user.id)
-          messages.key.id = m.key.id
-          messages.pushName = m.name
-          
-          if (m.isGroup) {
-            messages.key.participant = messages.participant = m.sender
-          }
-          
-          const msg = {
-            ...chatUpdate,
-            messages: [proto.WebMessageInfo.fromObject(messages)].map((v) => {
-              v.conn = this
-              return v
-            }),
-            type: 'append',
-          }
-          
-          this.ev.emit('messages.upsert', msg)
-          return
-        } catch (error) {
-          console.error('Errore generazione messaggio fake:', error)
-        }
-      }
-    }
-    
+    // === GESTIONE PLUGIN.ALL (BOTTONI, LISTE, INTERATTIVI) ===
     for (let name in global.plugins) {
       let plugin = global.plugins[name]
       if (!plugin || plugin.disabled) continue
       const __filename = join(___dirname, name)
       
+      // Esegui la funzione 'all' se presente nel plugin
+      if (typeof plugin.all === 'function') {
+        try {
+          await plugin.all.call(this, m, {
+            chatUpdate,
+            __dirname: ___dirname,
+            __filename
+          })
+        } catch (e) {
+          console.error(`Errore in plugin.all (${name}):`, e)
+        }
+      }
+      
+      // Salta plugin admin se restrict è disabilitato
       if (!opts['restrict'] && plugin.tags?.includes('admin')) continue
       
+      // Esegui la funzione 'before' se presente
       if (typeof plugin.before === 'function') {
         try {
           const shouldContinue = await plugin.before.call(this, m, {
@@ -425,7 +284,9 @@ async function processMessage(m, chatUpdate, stats) {
         }
       }
     }
+    // === FINE GESTIONE PLUGIN.ALL ===
 
+    // Gestione comandi normali
     for (let name in global.plugins) {
       let plugin = global.plugins[name]
       if (!plugin || plugin.disabled) continue
@@ -434,7 +295,7 @@ async function processMessage(m, chatUpdate, stats) {
       if (!opts['restrict'] && plugin.tags?.includes('admin')) continue
 
       const str2Regex = str => str.replace(/[|\\{}()[\]^$+*?.]/g, '\\$&')
-      let _prefix = plugin.customPrefix ? plugin.customPrefix : this.prefix ? this.prefix : global.prefix
+      let _prefix = plugin.customPrefix ? plugin.customPrefix : conn.prefix ? conn.prefix : global.prefix
       let match = (_prefix instanceof RegExp ?
         [[_prefix.exec(m.text), _prefix]] :
         Array.isArray(_prefix) ?
@@ -578,6 +439,7 @@ async function processMessage(m, chatUpdate, stats) {
             m.reply(textErr)
           }
         } finally {
+          // Esegui la funzione 'after' se presente
           if (typeof plugin.after === 'function') {
             try {
               await plugin.after.call(this, m, extra)
@@ -601,7 +463,7 @@ async function processMessage(m, chatUpdate, stats) {
       let user = global.db.data.users[m.sender]
       let chat = global.db.data.chats[m.chat]
       if (user?.muto) {
-        await this.sendMessage(m.chat, {
+        await conn.sendMessage(m.chat, {
           delete: {
             remoteJid: m.chat,
             fromMe: false,
@@ -660,7 +522,7 @@ export async function participantsUpdate({ id, participants, action }) {
     case 'add':
     case 'remove':
       if (chat.welcome) {
-        let groupMetadata = await this.groupMetadata(id) || (this.chats[id] || {}).metadata
+        let groupMetadata = await this.groupMetadata(id) || (conn.chats[id] || {}).metadata
         for (let user of participants) {
           let pp = './menu/principale.jpeg'
           try {
