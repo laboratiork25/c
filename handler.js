@@ -7,7 +7,7 @@ import fs from 'fs'
 import chalk from 'chalk'
 import { messageQueue, commandQueue, mediaQueue } from './lib/queue.js'
 
-const { proto } = (await import('@chatunity/baileys')).default
+const { proto, generateWAMessage, areJidsSameUser } = (await import('@chatunity/baileys')).default
 
 const isNumber = x => typeof x === 'number' && !isNaN(x)
 const delay = ms => isNumber(ms) && new Promise(resolve => setTimeout(function () {
@@ -299,22 +299,105 @@ async function processMessage(m, chatUpdate, stats) {
 
     const ___dirname = path.join(path.dirname(fileURLToPath(import.meta.url)), './plugins')
     
+    if (m.message && (m.message.buttonsResponseMessage || m.message.templateButtonReplyMessage || m.message.listResponseMessage || m.message.interactiveResponseMessage)) {
+      let id
+      if (m.message.buttonsResponseMessage) {
+        id = m.message.buttonsResponseMessage.selectedButtonId
+      } else if (m.message.templateButtonReplyMessage) {
+        id = m.message.templateButtonReplyMessage.selectedId
+      } else if (m.message.listResponseMessage) {
+        id = m.message.listResponseMessage.singleSelectReply?.selectedRowId
+      } else if (m.message.interactiveResponseMessage) {
+        try {
+          id = JSON.parse(m.message.interactiveResponseMessage.nativeFlowResponseMessage.paramsJson).id
+        } catch (e) {
+          console.error('Errore parsing interactive response:', e)
+        }
+      }
+      
+      if (id) {
+        const text = m.message.buttonsResponseMessage?.selectedDisplayText || m.message.templateButtonReplyMessage?.selectedDisplayText || m.message.listResponseMessage?.title
+        let isIdMessage = false
+        let usedPrefixButton
+        
+        for (const name in global.plugins) {
+          const plugin = global.plugins[name]
+          if (!plugin || plugin.disabled) continue
+          if (!opts['restrict'] && plugin.tags?.includes('admin')) continue
+          if (typeof plugin !== 'function') continue
+          if (!plugin.command) continue
+          
+          const str2Regex = (str) => str.replace(/[|\\{}()[\]^$+*?.]/g, '\\$&')
+          const _prefix = plugin.customPrefix ? plugin.customPrefix : this.prefix ? this.prefix : global.prefix
+          const match = (_prefix instanceof RegExp ? 
+            [[_prefix.exec(id), _prefix]] : 
+            Array.isArray(_prefix) ? 
+              _prefix.map((p) => {
+                const re = p instanceof RegExp ? p : new RegExp(str2Regex(p))
+                return [re.exec(id), re]
+              }) :
+              typeof _prefix === 'string' ?
+                [[new RegExp(str2Regex(_prefix)).exec(id), new RegExp(str2Regex(_prefix))]] :
+                [[[], new RegExp]]
+          ).find((p) => p[1])
+          
+          if ((usedPrefixButton = (match[0] || '')[0])) {
+            const noPrefix = id.replace(usedPrefixButton, '')
+            let [command] = noPrefix.trim().split` `.filter((v) => v)
+            command = (command || '').toLowerCase()
+            
+            const isId = plugin.command instanceof RegExp ?
+              plugin.command.test(command) :
+              Array.isArray(plugin.command) ?
+                plugin.command.some((cmd) => cmd instanceof RegExp ?
+                  cmd.test(command) :
+                  cmd === command
+                ) :
+                typeof plugin.command === 'string' ?
+                  plugin.command === command :
+                  false
+            
+            if (!isId) continue
+            isIdMessage = true
+            break
+          }
+        }
+        
+        try {
+          const messages = await generateWAMessage(m.chat, {text: isIdMessage ? id : text, mentions: m.mentionedJid}, {
+            userJid: this.user.id,
+            quoted: m.quoted && m.quoted.fakeObj,
+          })
+          
+          messages.key.fromMe = areJidsSameUser(m.sender, this.user.id)
+          messages.key.id = m.key.id
+          messages.pushName = m.name
+          
+          if (m.isGroup) {
+            messages.key.participant = messages.participant = m.sender
+          }
+          
+          const msg = {
+            ...chatUpdate,
+            messages: [proto.WebMessageInfo.fromObject(messages)].map((v) => {
+              v.conn = this
+              return v
+            }),
+            type: 'append',
+          }
+          
+          this.ev.emit('messages.upsert', msg)
+          return
+        } catch (error) {
+          console.error('Errore generazione messaggio fake:', error)
+        }
+      }
+    }
+    
     for (let name in global.plugins) {
       let plugin = global.plugins[name]
       if (!plugin || plugin.disabled) continue
       const __filename = join(___dirname, name)
-      
-      if (typeof plugin.all === 'function') {
-        try {
-          await plugin.all.call(this, m, {
-            chatUpdate,
-            __dirname: ___dirname,
-            __filename
-          })
-        } catch (e) {
-          console.error(`Errore in plugin.all (${name}):`, e)
-        }
-      }
       
       if (!opts['restrict'] && plugin.tags?.includes('admin')) continue
       
@@ -701,5 +784,3 @@ watchFile(file, async () => {
   console.log(chalk.redBright("Update 'handler.js'"))
   if (global.reloadHandler) console.log(await global.reloadHandler())
 })
-
-
