@@ -243,8 +243,10 @@ const filterStrings = [
 console.info = () => { };
 console.debug = () => { };
 ['log', 'warn', 'error'].forEach(methodName => redefineConsoleMethod(methodName, filterStrings));
+
 const groupMetadataCache = new NodeCache({ stdTTL: 300, checkperiod: 60, maxKeys: 500 });
 global.groupCache = groupMetadataCache;
+
 const logger = pino({
   level: 'silent',
   redact: {
@@ -263,6 +265,7 @@ const logger = pino({
   },
   timestamp: () => `,"time":"${new Date().toJSON()}"`
 });
+
 global.jidCache = new NodeCache({ stdTTL: 600, useClones: false, maxKeys: 1000 });
 global.store = makeInMemoryStore({ logger });
 
@@ -381,6 +384,7 @@ if (!fs.existsSync(`./${authFile}/creds.json`)) {
     }
   }
 }
+
 conn.isInit = false;
 conn.well = false;
 
@@ -390,6 +394,7 @@ async function chatunityedition() {
     await global.conn.newsletterFollow(mainChannelId);
   } catch (error) {}
 }
+
 if (!opts['test']) {
   if (global.db) setInterval(async () => {
     if (global.db.data) await global.db.write();
@@ -399,6 +404,7 @@ if (!opts['test']) {
     }
   }, 30 * 1000);
 }
+
 if (opts['server']) (await import('./server.js')).default(global.conn, PORT);
 
 async function connectionUpdate(update) {
@@ -548,42 +554,7 @@ async function connectSubBots() {
   try {
     conn.ev.on('connection.update', connectionUpdate);
     conn.ev.on('creds.update', saveCreds);
-    conn.ev.on('messages.upsert', async (m) => {
-      const msg = m.messages[0];
-      if (msg?.message?.buttonsResponseMessage) {
-        const buttonId = msg.message.buttonsResponseMessage.selectedButtonId;
-        const from = msg.key.remoteJid;
-        const participant = msg.key.participant || from;
-        const buttonText = msg.message.buttonsResponseMessage.selectedDisplayText;
-        console.log(chalk.bold.cyan(`Bottone premuto: ${buttonId} (${buttonText}) da ${participant}`));
-        
-        if (global.handler) {
-          const fakeMsg = {
-            ...msg,
-            body: `!${buttonId}`,
-            type: 'buttonsResponseMessage'
-          };
-          await global.handler.handler(fakeMsg);
-        }
-      }
-      
-      if (msg?.message?.listResponseMessage) {
-        const listId = msg.message.listResponseMessage.title;
-        const selectedId = msg.message.listResponseMessage.listType;
-        const from = msg.key.remoteJid;
-        const participant = msg.key.participant || from;
-        console.log(chalk.bold.cyan(`Elemento lista selezionato: ${listId} - ${selectedId} da ${participant}`));
-        
-        if (global.handler) {
-          const fakeMsg = {
-            ...msg,
-            body: `!list ${listId} ${selectedId}`,
-            type: 'listResponseMessage'
-          };
-          await global.handler.handler(fakeMsg);
-        }
-      }
-    });
+    
     console.log(chalk.bold.magenta(`
 ╭﹕₊˚ ★ ⁺˳ꕤ₊⁺・꒱
   ⋆  ︵︵ ★ ChatUnity connesso ★ ︵︵ ⋆
@@ -649,7 +620,7 @@ global.reloadHandler = async function (restatConn) {
   return true;
 };
 
-const pluginFolder = global.__dirname(join(__dirname, './plugins/index'));
+const pluginFolder = global.__dirname(join(__dirname, './plugins'));
 const pluginFilter = (filename) => /\.js$/.test(filename);
 global.plugins = {};
 
@@ -726,6 +697,7 @@ async function _quickTest() {
   const s = global.support = { ffmpeg, ffprobe, ffmpegWebp, convert, magick, gm, find };
   Object.freeze(global.support);
 }
+
 function clearDirectory(dirPath) {
   if (!existsSync(dirPath)) {
     try {
@@ -750,6 +722,7 @@ function clearDirectory(dirPath) {
     }
   });
 }
+
 function ripristinaTimer(conn) {
   if (conn.timerReset) clearInterval(conn.timerReset);
   conn.timerReset = setInterval(async () => {
