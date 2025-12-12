@@ -243,7 +243,7 @@ const filterStrings = [
 console.info = () => { };
 console.debug = () => { };
 ['log', 'warn', 'error'].forEach(methodName => redefineConsoleMethod(methodName, filterStrings));
-const groupMetadataCache = new NodeCache();
+const groupMetadataCache = new NodeCache({ stdTTL: 300, checkperiod: 60, maxKeys: 500 });
 global.groupCache = groupMetadataCache;
 const logger = pino({
   level: 'silent',
@@ -263,7 +263,7 @@ const logger = pino({
   },
   timestamp: () => `,"time":"${new Date().toJSON()}"`
 });
-global.jidCache = new NodeCache({ stdTTL: 600, useClones: false });
+global.jidCache = new NodeCache({ stdTTL: 600, useClones: false, maxKeys: 1000 });
 global.store = makeInMemoryStore({ logger });
 
 const connectionOptions = {
@@ -276,7 +276,7 @@ const connectionOptions = {
   },
   browser: opzione === '1' ? Browsers.windows('Chrome') : methodCodeQR ? Browsers.windows('Chrome') : Browsers.macOS('Safari'),
   version: version,
-  markOnlineOnConnect: true,
+  markOnlineOnConnect: false,
   generateHighQualityLinkPreview: true,
   syncFullHistory: false,
   linkPreviewImageThumbnailWidth: 192,
@@ -303,7 +303,7 @@ const connectionOptions = {
     if (cached) return cached;
     try {
       const metadata = await global.conn.groupMetadata(global.conn.decodeJid(jid));
-      global.groupCache.set(jid, metadata, 300);
+      global.groupCache.set(jid, metadata);
       return metadata;
     } catch (err) {
       return {};
@@ -330,8 +330,8 @@ const connectionOptions = {
   },
   msgRetryCounterCache,
   msgRetryCounterMap,
-  retryRequestDelayMs: 2000,
-  maxMsgRetryCount: 5,
+  retryRequestDelayMs: 250,
+  maxMsgRetryCount: 3,
   shouldIgnoreJid: jid => false,
   patchMessageBeforeSending: (message) => {
     const requiresPatch = !!(
