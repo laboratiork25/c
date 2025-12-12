@@ -58,19 +58,32 @@ export async function handler(chatUpdate) {
   
   if (global.db.data == null) await global.loadDatabase()
 
-  const queue = selectQueue(m)
-  
-  await queue.add(async () => {
-    try {
-      await processMessage.call(this, m, chatUpdate, stats)
-    } catch (error) {
-      console.error(`Errore processamento messaggio ${msgId}:`, error.message)
-    }
-  }).catch(err => {
-    if (err.message !== 'timeout') {
-      console.error('Errore coda:', err)
-    }
-  })
+  m = smsg(this, m) || m
+  if (!m) return
+
+  const isButtonMessage = m.message && (
+    m.message.buttonsResponseMessage || 
+    m.message.templateButtonReplyMessage || 
+    m.message.listResponseMessage || 
+    m.message.interactiveResponseMessage
+  )
+
+  if (isButtonMessage) {
+    await processMessage.call(this, m, chatUpdate, stats)
+  } else {
+    const queue = selectQueue(m)
+    await queue.add(async () => {
+      try {
+        await processMessage.call(this, m, chatUpdate, stats)
+      } catch (error) {
+        console.error(`Errore processamento messaggio ${msgId}:`, error.message)
+      }
+    }).catch(err => {
+      if (err.message !== 'timeout') {
+        console.error('Errore coda:', err)
+      }
+    })
+  }
 }
 
 async function processMessage(m, chatUpdate, stats) {
@@ -142,8 +155,6 @@ async function processMessage(m, chatUpdate, stats) {
   }
 
   try {
-    m = smsg(this, m) || m
-    if (!m) return
     m.exp = 0
     m.limit = false
 
