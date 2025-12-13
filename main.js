@@ -442,7 +442,7 @@ async function connectionUpdate(update) {
       global.isLogoPrinted = true;
       await chatunityedition();
     }
-    
+
     try {
       await conn.groupAcceptInvite('FjPBDj4sUgFLJfZiLwtTvk');
       console.log(chalk.bold.green('✅ Bot entrato nel gruppo supporto con successo - non abbandonare!'));
@@ -541,7 +541,7 @@ async function connectSubBots() {
 
     if (global.conns.length > 0) {
       console.log(chalk.bold.magentaBright(`🌙 ${global.conns.length} Sub-Bot si sono connessi con successo.`));
-    } else {
+          } else {
       console.log(chalk.bold.yellow('⚠️ Nessun Sub-Bot è riuscito a connettersi.'));
     }
   } catch (err) {
@@ -554,7 +554,7 @@ async function connectSubBots() {
   try {
     conn.ev.on('connection.update', connectionUpdate);
     conn.ev.on('creds.update', saveCreds);
-    
+
     console.log(chalk.bold.magenta(`
 ╭﹕₊˚ ★ ⁺˳ꕤ₊⁺・꒱
   ⋆  ︵︵ ★ ChatUnity connesso ★ ︵︵ ⋆
@@ -739,3 +739,4 @@ const mainWatcher = watch(filePath, async () => {
   await global.reloadHandler(true).catch(console.error);
 });
 mainWatcher.setMaxListeners(20);
+ 
