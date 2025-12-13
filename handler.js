@@ -61,29 +61,39 @@ export async function handler(chatUpdate) {
   m = smsg(this, m) || m
   if (!m) return
 
-  const isButtonMessage = m.message && (
-    m.message.buttonsResponseMessage || 
-    m.message.templateButtonReplyMessage || 
-    m.message.listResponseMessage || 
-    m.message.interactiveResponseMessage
-  )
-
-  if (isButtonMessage) {
-    await processMessage.call(this, m, chatUpdate, stats)
-  } else {
-    const queue = selectQueue(m)
-    await queue.add(async () => {
+  const ___dirname = path.join(path.dirname(fileURLToPath(import.meta.url)), './plugins')
+  
+  for (let name in global.plugins) {
+    let plugin = global.plugins[name]
+    if (!plugin || plugin.disabled) continue
+    const __filename = join(___dirname, name)
+    
+    if (typeof plugin.all === 'function') {
       try {
-        await processMessage.call(this, m, chatUpdate, stats)
-      } catch (error) {
-        console.error(`Errore processamento messaggio ${msgId}:`, error.message)
+        await plugin.all.call(this, m, {
+          chatUpdate,
+          __dirname: ___dirname,
+          __filename
+        })
+      } catch (e) {
+        console.error(`Errore in plugin.all (${name}):`, e)
       }
-    }).catch(err => {
-      if (err.message !== 'timeout') {
-        console.error('Errore coda:', err)
-      }
-    })
+    }
   }
+
+  const queue = selectQueue(m)
+  
+  await queue.add(async () => {
+    try {
+      await processMessage.call(this, m, chatUpdate, stats)
+    } catch (error) {
+      console.error(`Errore processamento messaggio ${msgId}:`, error.message)
+    }
+  }).catch(err => {
+    if (err.message !== 'timeout') {
+      console.error('Errore coda:', err)
+    }
+  })
 }
 
 async function processMessage(m, chatUpdate, stats) {
@@ -314,18 +324,6 @@ async function processMessage(m, chatUpdate, stats) {
       let plugin = global.plugins[name]
       if (!plugin || plugin.disabled) continue
       const __filename = join(___dirname, name)
-      
-      if (typeof plugin.all === 'function') {
-        try {
-          await plugin.all.call(this, m, {
-            chatUpdate,
-            __dirname: ___dirname,
-            __filename
-          })
-        } catch (e) {
-          console.error(`Errore in plugin.all (${name}):`, e)
-        }
-      }
       
       if (!opts['restrict'] && plugin.tags?.includes('admin')) continue
       
