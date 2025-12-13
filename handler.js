@@ -30,11 +30,11 @@ function selectQueue(m) {
       m.mtype?.includes('sticker')) {
     return mediaQueue
   }
-  
+
   if (m.isCommand || (typeof m.text === 'string' && (m.text.startsWith('.') || m.text.startsWith('/')))) {
     return commandQueue
   }
-  
+
   return messageQueue
 }
 
@@ -44,30 +44,30 @@ export async function handler(chatUpdate) {
 
   this.msgqueque = this.msgqueque || []
   if (!chatUpdate) return
-  
+
   this.pushMessage(chatUpdate.messages).catch(console.error)
   let m = chatUpdate.messages[chatUpdate.messages.length - 1]
   if (!m) return
-  
+
   const msgId = m.key?.id
   if (!msgId) return
-  
+
   if (global.processedMessages.has(msgId)) return
   global.processedMessages.add(msgId)
   setTimeout(() => global.processedMessages.delete(msgId), DUPLICATE_WINDOW)
-  
+
   if (global.db.data == null) await global.loadDatabase()
 
   m = smsg(this, m) || m
   if (!m) return
 
   const ___dirname = path.join(path.dirname(fileURLToPath(import.meta.url)), './plugins')
-  
+
   for (let name in global.plugins) {
     let plugin = global.plugins[name]
     if (!plugin || plugin.disabled) continue
     const __filename = join(___dirname, name)
-    
+
     if (typeof plugin.all === 'function') {
       try {
         await plugin.all.call(this, m, {
@@ -82,7 +82,7 @@ export async function handler(chatUpdate) {
   }
 
   const queue = selectQueue(m)
-  
+
   await queue.add(async () => {
     try {
       await processMessage.call(this, m, chatUpdate, stats)
@@ -319,14 +319,14 @@ async function processMessage(m, chatUpdate, stats) {
     const isBotAdmin = m.isGroup ? await isUserAdmin(this, m.chat, this.user.jid) : false
 
     const ___dirname = path.join(path.dirname(fileURLToPath(import.meta.url)), './plugins')
-    
+
     for (let name in global.plugins) {
       let plugin = global.plugins[name]
       if (!plugin || plugin.disabled) continue
       const __filename = join(___dirname, name)
-      
+
       if (!opts['restrict'] && plugin.tags?.includes('admin')) continue
-      
+
       if (typeof plugin.before === 'function') {
         try {
           const shouldContinue = await plugin.before.call(this, m, {
@@ -617,7 +617,7 @@ export async function participantsUpdate({ id, participants, action }) {
                   newsletterName: `${nomeDelBot}`
                 },
                 externalAdReply: {
-                  title: (
+                                    title: (
                     action === 'add'
                       ? '𝐌𝐞𝐬𝐬𝐚𝐠𝐠𝐢𝐨 𝐝𝐢 𝐛𝐞𝐧𝐯𝐞𝐧𝐮𝐭𝐨'
                       : '𝐌𝐞𝐬𝐬𝐚𝐠𝐠𝐢𝐨 𝐝𝐢 𝐚𝐝𝐝𝐢𝐨'
@@ -710,3 +710,4 @@ watchFile(file, async () => {
   console.log(chalk.redBright("Update 'handler.js'"))
   if (global.reloadHandler) console.log(await global.reloadHandler())
 })
+      
